@@ -1,0 +1,40 @@
+[cogmem]
+logs_dir = "memory/logs"
+contexts_dir = "memory/contexts"
+db_path = "memory/vectors.db"
+
+[cogmem.identity]
+soul = "identity/soul.md"
+user = "identity/user.md"
+
+[cogmem.knowledge]
+summary = "memory/knowledge/summary.md"
+error_patterns = "memory/knowledge/error-patterns.md"
+
+[cogmem.session]
+recent_logs = 2
+prefer_compact = true
+token_budget = 6000
+
+[cogmem.crystallization]
+pattern_threshold = 3
+error_threshold = 5
+log_days_threshold = 10
+checkpoint_interval_days = 21
+last_checkpoint = ""
+checkpoint_count = 0
+
+[cogmem.metrics]
+total_sessions = 0
+
+[cogmem.scoring]
+sim_weight = 0.7
+arousal_weight = 0.3
+base_half_life = 60.0
+decay_floor = 0.3
+
+[cogmem.embedding]
+provider = "ollama"
+model = "zylonai/multilingual-e5-large"
+url = "http://localhost:11434/api/embed"
+timeout = 10

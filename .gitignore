@@ -4,3 +4,8 @@ node_modules/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Cognitive Memory
+*.db
+*.db-shm
+*.db-wal
