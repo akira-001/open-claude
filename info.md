@@ -131,4 +131,8 @@ Step 1: リポジトリのクローンと依存関係インストール
   - /Users/akira/workspace/claude-code-slack-bot/.env の                        
   DEFAULT_WORKING_DIRECTORY を編集して pm2 restart claude-slack-bot   
 
-ollama pull zylonai/multilingual-e5-large
+❯ OK、今日は完了。最後にSlackにテスト送信をして、その後ラップして。                 
+
+学習状況や会話ログ、結晶化などのダッシュボード実装
+
+
