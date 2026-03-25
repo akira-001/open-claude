@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "mcp__claude_ai_Slack__slack_send_message"
+      "mcp__claude_ai_Slack__slack_send_message",
+      "mcp__claude_ai_Slack__slack_search_users"
     ]
   }
 }
