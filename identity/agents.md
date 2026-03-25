@@ -236,10 +236,14 @@ effectiveness / execution_time / error_rate が更新される。
    → 実行した場合、引き継ぎに「結晶化実施済み」と記録
 3.5. 本セッションで skill-creator を使用した場合、
      未取り込みの benchmark を `cogmem skills ingest` で自動取り込み
-3.7. スキル自動改善（cogmem.toml の `auto_improve = true` の場合）:
-     a. `cogmem skills track-summary --date YYYY-MM-DD --json` を実行
-     b. `needs_improvement: true` のスキルがなければスキップ
-     c. 改善対象のスキルごとに:
+3.7. スキル改善（cogmem.toml の `auto_improve` 設定に従う）:
+     a. `auto_improve = "off"` の場合 → スキップ
+     b. `cogmem skills track-summary --date YYYY-MM-DD --json` を実行
+     c. `needs_improvement: true` のスキルがなければスキップ
+     d. `auto_improve = "ask"` の場合:
+        - 改善対象と理由を提示:「[スキル名] に改善点あり（理由）。更新する？」
+        - ユーザーが承認したスキルのみ更新。拒否されたらスキップ
+     e. 改善対象のスキルごとに（"auto" は全件、"ask" は承認分のみ）:
         - SKILL.md を Read する
         - events の内容に基づいて SKILL.md を Edit:
           - extra_step → 該当箇所に手順を追加
@@ -247,7 +251,7 @@ effectiveness / execution_time / error_rate が更新される。
           - error_recovery → エラーハンドリング手順を追加
           - user_correction → 指摘内容を反映（最優先）
         - `cogmem skills learn` でメトリクスも記録
-     d. 引き継ぎに「スキル自動改善: [スキル名] 更新（理由）」と記録
+     f. 引き継ぎに「スキル自動改善: [スキル名] 更新（理由）」と記録
 4. memory/knowledge/summary.md を更新（変更があれば）
 5. cogmem.toml の total_sessions をインクリメント
 

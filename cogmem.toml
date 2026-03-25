@@ -25,7 +25,7 @@ last_checkpoint = ""
 checkpoint_count = 0
 
 [cogmem.skills]
-auto_improve = true
+auto_improve = "auto"  # "auto" | "ask" | "off"
 
 [cogmem.metrics]
 total_sessions = 0
