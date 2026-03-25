@@ -24,6 +24,9 @@ checkpoint_interval_days = 21
 last_checkpoint = ""
 checkpoint_count = 0
 
+[cogmem.skills]
+auto_improve = true
+
 [cogmem.metrics]
 total_sessions = 0
 
