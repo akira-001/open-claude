@@ -275,6 +275,14 @@ effectiveness / execution_time / error_rate が更新される。
 「ありがとう」「OK」「今日はここまで」「また明日」「終わります」
 "thanks", "done for today", "see you tomorrow", "that's all"
 
+0. **遡及チェック（Wrap 最初に実行）**:
+   `cogmem watch --since "8 hours ago" --json` を実行する。
+   結果に基づいて:
+   - `fix_count >= 3` → [PATTERN] エントリをログに追記（まだ記録されていなければ）
+   - `revert_count >= 1` → [ERROR] エントリをログに追記（まだ記録されていなければ）
+   - `log_gap.has_gap == true` → ログ漏れ警告をユーザーに通知
+   - `skill_signals` がある → スキル自動生成の候補をユーザーに通知
+   - 上記いずれかに該当した場合、`cogmem watch --auto-log` で自動追記
 1. 本日のログファイルに「## セッション概要」を記入（1〜2行）
 2. ログエントリ全体を走査し「## 引き継ぎ」を生成
 3. **以下の2つを並列実行する**:
