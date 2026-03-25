@@ -7,6 +7,15 @@
 
 ログは会話終了時にまとめて書くのではなく、**重要な瞬間に即座に追記**する（下記 Live Logging 参照）。
 
+### 並列実行の原則
+
+独立した cogmem コマンドや実装タスクは**並列実行**する:
+- Session Init: index 完了後に search / signals / audit を並列
+- スキル実行中: track イベントはバックグラウンド実行
+- タスク完了後: learn はバックグラウンド実行
+- Wrap: signals + track-summary を並列
+- 実装タスク: 異なるファイルへの独立した変更はサブエージェントで並列
+
 ---
 
 ## Session Init
@@ -35,16 +44,13 @@ Step 3: `cogmem index` を実行（差分インデックス更新）
          → Ollama 未起動時はスキップ
          → cogmem 未インストール時は `pip install cogmem-agent` を実行
 
-Step 4: `cogmem search` で現在の会話コンテキストからキーワード検索
-         → score >= 0.75 かつ arousal >= 0.6 のエントリをフラッシュバックとして提示
-
-Step 5: `cogmem signals` で結晶化シグナルをチェック
-         → 条件を満たす場合のみ通知を追加
-
-Step 5.5: `cogmem skills audit --json --brief` を実行
-          → recommendations があれば通知に追加
-          → 例: 「Skill audit: [name] の effectiveness が低い (0.35)。
-             /skill-creator での改善を推奨」
+Step 4-5.5: **以下の3つを並列実行する**（全て Step 3 の index 完了後）:
+         - `cogmem search` で現在の会話コンテキストからキーワード検索
+           → score >= 0.75 かつ arousal >= 0.6 のエントリをフラッシュバックとして提示
+         - `cogmem signals` で結晶化シグナルをチェック
+           → 条件を満たす場合のみ通知を追加
+         - `cogmem skills audit --json --brief` を実行
+           → recommendations があれば通知に追加
 
 Step 6: トークン予算チェック（目標: 合計 6k tokens）
          → 超過時は /compact を推奨
@@ -182,6 +188,11 @@ cogmem skills track "<skill-name>" \
   [--step "<Step N>"]
 ```
 
+### 並列実行ルール
+- **逸脱イベント（extra_step 等）**: メインタスクと並列でバックグラウンド実行可
+- **skill_start / skill_end**: フローの区切りなので同期実行
+- **cogmem skills learn（タスク完了後）**: バックグラウンド実行可
+
 ### 記録しないケース
 - スキル通りにスムーズに実行できた場合 → 逸脱イベントなし（skill_start/end のみ）
 - 些末な順序変更（Step 2 と Step 3 の入れ替えなど）
@@ -266,12 +277,14 @@ effectiveness / execution_time / error_rate が更新される。
 
 1. 本日のログファイルに「## セッション概要」を記入（1〜2行）
 2. ログエントリ全体を走査し「## 引き継ぎ」を生成
-3. `cogmem signals` で結晶化シグナルをチェック
-   → 条件を満たす場合、結晶化を自動実行（下記「結晶化」セクションのステップ1〜6）
+3. **以下の2つを並列実行する**:
+   - `cogmem signals` で結晶化シグナルをチェック
+   - `cogmem skills track-summary --date YYYY-MM-DD --json` でスキル改善判定
+   → signals が条件を満たす場合、結晶化を自動実行（下記「結晶化」セクションのステップ1〜6）
    → 実行した場合、引き継ぎに「結晶化実施済み」と記録
 3.5. 本セッションで skill-creator を使用した場合、
      未取り込みの benchmark を `cogmem skills ingest` で自動取り込み
-3.7. スキル改善（cogmem.toml の `auto_improve` 設定に従う）:
+3.7. スキル改善（Step 3 の track-summary 結果を使用。cogmem.toml の `auto_improve` 設定に従う）:
      a. `auto_improve = "off"` の場合 → スキップ
      b. `cogmem skills track-summary --date YYYY-MM-DD --json` を実行
      c. `needs_improvement: true` のスキルがなければスキップ
