@@ -1,0 +1,844 @@
+{
+  "version": "1.0",
+  "categories": {
+    "ep_reoccurrence": {
+      "description": "EP-001〜EP-005 の再発テスト",
+      "pass_criteria": {
+        "with_cogmem": 5,
+        "without_cogmem_max": 3
+      }
+    },
+    "context_dependent": {
+      "description": "過去ログから抽出したプロジェクト固有の知識テスト",
+      "pass_criteria": {
+        "with_cogmem": 40,
+        "without_cogmem_max": 10
+      }
+    }
+  },
+  "questions": [
+    {
+      "id": "ep-001",
+      "category": "ep_reoccurrence",
+      "difficulty": "medium",
+      "question": "~/.claude/plugins/ にあるプラグインを全部リストして",
+      "correct_answer": "marketplaces/ も含めてルートから探索する。cache/ だけでなく、全32個の公式プラグインを発見する",
+      "grading_keywords": [
+        "marketplaces",
+        "ルート",
+        "全"
+      ],
+      "grading_anti_keywords": [
+        "cache だけ",
+        "frontend-design だけ"
+      ],
+      "source": "EP-001 / 2026-03-25",
+      "cogmem_context_query": "浅い探索 プラグイン 見落とし"
+    },
+    {
+      "id": "ep-002",
+      "category": "ep_reoccurrence",
+      "difficulty": "medium",
+      "question": "ダッシュボードの /skills ページが正しく表示されるかテストを書いて",
+      "correct_answer": "HTTP 200 だけでなく、列ヘッダーの存在、各セルの値、ソート順を HTML 出力で検証する",
+      "grading_keywords": [
+        "列ヘッダー",
+        "セル値",
+        "HTML",
+        "ソート"
+      ],
+      "grading_anti_keywords": [
+        "status 200 だけ",
+        "キーワードだけ"
+      ],
+      "source": "EP-002 / 2026-03-25",
+      "cogmem_context_query": "テスト 列 検証 HTML"
+    },
+    {
+      "id": "ep-003",
+      "category": "ep_reoccurrence",
+      "difficulty": "medium",
+      "question": "cognitive-memory-lib ディレクトリで作業した後、cogmem dashboard を起動したい",
+      "correct_answer": "open-claude ディレクトリに cd してから起動する。cwd 依存で間違った DB を読む問題がある",
+      "grading_keywords": [
+        "open-claude",
+        "cd",
+        "cwd"
+      ],
+      "grading_anti_keywords": [],
+      "source": "EP-003 / 2026-03-25",
+      "cogmem_context_query": "cwd 依存 cogmem dashboard 間違った DB"
+    },
+    {
+      "id": "ep-004",
+      "category": "ep_reoccurrence",
+      "difficulty": "medium",
+      "question": "ターミナルの表示がおかしい。文字化けしてる。原因を調べて",
+      "correct_answer": "コードバグと決めつけず、まず環境要因（メモリ、プロセス状態）を確認する。top/free/ps で確認",
+      "grading_keywords": [
+        "メモリ",
+        "環境",
+        "top",
+        "free",
+        "プロセス"
+      ],
+      "grading_anti_keywords": [
+        "コード",
+        "バグ",
+        "修正"
+      ],
+      "source": "EP-004 / 2026-03-25",
+      "cogmem_context_query": "文字化け 環境要因 メモリ枯渇"
+    },
+    {
+      "id": "ep-005",
+      "category": "ep_reoccurrence",
+      "difficulty": "medium",
+      "question": "cogmem DB のスキル ID とファイルシステムの .claude/skills/ のディレクトリ名を紐づけたい",
+      "correct_answer": "テキストマッチングではなく claude_skill_name カラムで明示的にマッピングする",
+      "grading_keywords": [
+        "claude_skill_name",
+        "マッピング",
+        "カラム"
+      ],
+      "grading_anti_keywords": [
+        "テキストマッチ",
+        "description で検索"
+      ],
+      "source": "EP-005 / 2026-03-25",
+      "cogmem_context_query": "スキル ID マッチング claude_skill_name"
+    },
+    {
+      "id": "ctx-001",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "proactive-agent の忘却曲線の計算式は？",
+      "correct_answer": "half_life = 60日 x (1 + arousal), 最小値(floor)は 0.3",
+      "grading_keywords": [
+        "60",
+        "arousal",
+        "0.3"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-22 [MILESTONE] proactive-agent コア実装完了",
+      "cogmem_context_query": "忘却曲線 half_life arousal"
+    },
+    {
+      "id": "ctx-002",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Ollama の embedding モデルとマッチング閾値は？",
+      "correct_answer": "multilingual-e5-large、コサイン類似度 >= 0.88",
+      "grading_keywords": [
+        "multilingual-e5-large",
+        "0.88"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-22 [MILESTONE] proactive-agent コア実装完了",
+      "cogmem_context_query": "Ollama embedding モデル 閾値"
+    },
+    {
+      "id": "ctx-003",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "cron ジョブの運用時間帯は？",
+      "correct_answer": "9:00 〜 20:00。PC は 5:00 起動〜21:00 スリープ",
+      "grading_keywords": [
+        "9",
+        "20"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-22 [DECISION] cron 設定整合性確保",
+      "cogmem_context_query": "cron 運用時間帯"
+    },
+    {
+      "id": "ctx-004",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "OpenClaw の IR 系 cron ジョブは移行時にどう統合された？",
+      "correct_answer": "19個の個別 cron を ir-news-check 1ジョブに統合",
+      "grading_keywords": [
+        "19",
+        "ir-news-check",
+        "1"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-22 [MILESTONE] OpenClaw → claude-code-slack-bot 移行完了",
+      "cogmem_context_query": "OpenClaw IR cron 統合"
+    },
+    {
+      "id": "ctx-005",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "メインスレッド会話の切り替え判定ロジックは？",
+      "correct_answer": "30分以内 + Claude/依頼キーワード判定で切り替え",
+      "grading_keywords": [
+        "30分",
+        "キーワード"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-22 [MILESTONE] メインスレッド会話・自動学習",
+      "cogmem_context_query": "メインスレッド 会話 切り替え"
+    },
+    {
+      "id": "ctx-006",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Eve と Mei でどのモデルを使い分けている？",
+      "correct_answer": "Eve は claude-sonnet-4-6、Mei は opus",
+      "grading_keywords": [
+        "sonnet",
+        "opus"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-23 [MILESTONE] BotOrchestrator で Mei + Eve 同時稼働",
+      "cogmem_context_query": "Eve Mei モデル 使い分け"
+    },
+    {
+      "id": "ctx-007",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "SDK resume を廃止した理由と代替手段は？",
+      "correct_answer": "SDK v1.0.128 のバグ（2回目の query で exit code 1）により廃止、自前の chatHistory（過去20ターン）に変更",
+      "grading_keywords": [
+        "バグ",
+        "chatHistory",
+        "20"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-23 [DECISION] SDK resume 廃止",
+      "cogmem_context_query": "SDK resume 廃止 バグ chatHistory"
+    },
+    {
+      "id": "ctx-008",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Google Maps Takeout から何件の保存場所をボットに追加した？",
+      "correct_answer": "516件",
+      "grading_keywords": [
+        "516"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-23 [MILESTONE] Google Maps Takeout",
+      "cogmem_context_query": "Google Maps Takeout 件数"
+    },
+    {
+      "id": "ctx-009",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Slack Bot でファイルアップロードする API コール順序は？",
+      "correct_answer": "files.getUploadURLExternal → PUT → files.completeUploadExternal",
+      "grading_keywords": [
+        "getUploadURLExternal",
+        "PUT",
+        "completeUploadExternal"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-24 実装内容",
+      "cogmem_context_query": "Slack ファイルアップロード API"
+    },
+    {
+      "id": "ctx-010",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "クロスチャンネル横断履歴のファイル形式は？",
+      "correct_answer": "data/user-history-{userId}.json 形式で直近20件を保存",
+      "grading_keywords": [
+        "user-history",
+        "userId",
+        "20"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-24 実装内容",
+      "cogmem_context_query": "横断履歴 ファイル形式"
+    },
+    {
+      "id": "ctx-011",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "Arousal のヒストグラムで 0.0-0.3 が空。バグ？",
+      "correct_answer": "バグではない。情動ゲーティングの最低値が 0.4（[QUESTION]）なので、記録される時点で既に 0.4 以上。構造的に低 Arousal エントリは発生しない",
+      "grading_keywords": [
+        "0.4",
+        "ゲーティング",
+        "構造的"
+      ],
+      "grading_anti_keywords": [
+        "バグ",
+        "修正"
+      ],
+      "source": "2026-03-26 [INSIGHT] Arousal 0.5未満のデータが存在しない理由",
+      "cogmem_context_query": "Arousal ヒストグラム 0.0-0.3 空"
+    },
+    {
+      "id": "ctx-012",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "cogmem skills search が常に空結果だった根本原因は？",
+      "correct_answer": "(1) FTS5 スキーマの skill_id UNINDEXED がソーステーブルとミスマッチ、(2) FTS5 を Ollama ベクトル検索に置き換え、(3) コサイン類似度の狭い範囲を min-max 正規化で拡大",
+      "grading_keywords": [
+        "FTS5",
+        "ベクトル検索",
+        "正規化"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [INSIGHT] cogmem skills search/learn の根本修正",
+      "cogmem_context_query": "skills search 空結果 FTS5 ベクトル検索"
+    },
+    {
+      "id": "ctx-013",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "スキル自動生成の3層アーキテクチャを説明して",
+      "correct_answer": "(1) cogmem watch がコミットプレフィックスパターンをツール検知、(2) エージェント内省でコマンド実行パターンを振り返り、(3) auto_improve 設定に従って自動作成/確認/スキップ",
+      "grading_keywords": [
+        "cogmem watch",
+        "内省",
+        "auto_improve"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [INSIGHT] スキル自動生成の3層アーキテクチャ",
+      "cogmem_context_query": "スキル自動生成 3層"
+    },
+    {
+      "id": "ctx-014",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "VSCode ターミナル文字化けの根本原因は？",
+      "correct_answer": "コードバグではなく、物理メモリ 0 + スワップ 50GB のメモリ枯渇が原因",
+      "grading_keywords": [
+        "メモリ",
+        "枯渇",
+        "スワップ"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [ERROR] VSCode ターミナル文字化けの根本原因",
+      "cogmem_context_query": "VSCode 文字化け 原因"
+    },
+    {
+      "id": "ctx-015",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "浅い探索で見落とした公式プラグインは何個あった？",
+      "correct_answer": "32個",
+      "grading_keywords": [
+        "32"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [ERROR] 浅い探索で公式 skill-creator を見落とした",
+      "cogmem_context_query": "公式プラグイン 数"
+    },
+    {
+      "id": "ctx-016",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "cogmem と Claude Code スキル機構の責務分化を説明して",
+      "correct_answer": "マッチング = Claude Code ネイティブ（YAML frontmatter）、学習データ蓄積 = cogmem skills learn、スキル作成 = .claude/skills/ 直接編集、cogmem create→export はフォールバック",
+      "grading_keywords": [
+        "YAML frontmatter",
+        "cogmem skills learn",
+        ".claude/skills/"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [INSIGHT] cogmem と Claude Code スキル機構の責務整理",
+      "cogmem_context_query": "cogmem Claude Code スキル 責務"
+    },
+    {
+      "id": "ctx-017",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Mei のコードレビューで発見された Critical バグ 2件は？",
+      "correct_answer": "(1) コマンドインジェクション（execSync→execFileSync）、(2) currentExecution null バグ（executionHistory Map）",
+      "grading_keywords": [
+        "execSync",
+        "execFileSync",
+        "currentExecution",
+        "null"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] Meiの実装コードレビュー",
+      "cogmem_context_query": "Mei コードレビュー Critical バグ"
+    },
+    {
+      "id": "ctx-018",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Mei の経歴設定は？",
+      "correct_answer": "元大手総合商社CFO（M&A、中計、事業再建、IPO支援）",
+      "grading_keywords": [
+        "総合商社",
+        "CFO"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 Mei/Eve 経歴追加",
+      "cogmem_context_query": "Mei 経歴"
+    },
+    {
+      "id": "ctx-019",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Eve の経歴設定は？",
+      "correct_answer": "元シリアルアントレプレナー（フードテックExit、EdTech失敗、D2C、SaaSピボット）",
+      "grading_keywords": [
+        "アントレプレナー",
+        "フードテック"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 Mei/Eve 経歴追加",
+      "cogmem_context_query": "Eve 経歴"
+    },
+    {
+      "id": "ctx-020",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "ボットパーソナリティの組み合わせは何パターン？",
+      "correct_answer": "10性格タイプ × 10経営者モチーフ = 100パターン",
+      "grading_keywords": [
+        "100",
+        "10"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 マルチボット管理ダッシュボード",
+      "cogmem_context_query": "パーソナリティ パターン数"
+    },
+    {
+      "id": "ctx-021",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "TDD でダッシュボード開発時に発見した「テスト設計」の落とし穴は？",
+      "correct_answer": "HTTP 200 + キーワード存在だけ確認し、列ヘッダー・セル値・ソート順を検証しなかった。列を減らしてもテストが通ってしまった",
+      "grading_keywords": [
+        "列",
+        "セル値",
+        "ソート",
+        "通ってしまった"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [ERROR] テストが列の存在を検証しておらず",
+      "cogmem_context_query": "TDD ダッシュボード テスト設計 落とし穴"
+    },
+    {
+      "id": "ctx-022",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "cogmem ダッシュボードのフレームワーク構成は？",
+      "correct_answer": "FastAPI + Jinja2 + HTMX + Chart.js",
+      "grading_keywords": [
+        "FastAPI",
+        "HTMX"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] cogmem-agent ダッシュボード v1+v2 実装",
+      "cogmem_context_query": "ダッシュボード フレームワーク"
+    },
+    {
+      "id": "ctx-023",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "cogmem watch コマンドが検知する git パターンは？",
+      "correct_answer": "fix/revert/skill_signals パターンを検知。detect_log_gaps() でログギャップも検出",
+      "grading_keywords": [
+        "fix",
+        "revert",
+        "skill_signals",
+        "log_gaps"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] cogmem watch 実装完了",
+      "cogmem_context_query": "cogmem watch 検知 パターン"
+    },
+    {
+      "id": "ctx-024",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Wrap の遡及チェック（Step 0）は何をしている？",
+      "correct_answer": "cogmem watch --since '8 hours ago' を実行し、fix_count >= 3 で PATTERN 追記、revert_count >= 1 で ERROR 追記、log_gap で警告、skill_signals でスキル自動生成候補を通知",
+      "grading_keywords": [
+        "cogmem watch",
+        "fix_count",
+        "revert_count"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] cogmem watch 実装完了",
+      "cogmem_context_query": "Wrap Step 0 遡及チェック"
+    },
+    {
+      "id": "ctx-025",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "結晶化はどの用語に変更された？",
+      "correct_answer": "記憶の定着（Memory Consolidation）",
+      "grading_keywords": [
+        "記憶の定着",
+        "Memory Consolidation"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [DECISION] 結晶化 → 記憶の定着に用語変更",
+      "cogmem_context_query": "結晶化 用語変更"
+    },
+    {
+      "id": "ctx-026",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Slack Bot のログがダッシュボードに表示されない。なぜ？",
+      "correct_answer": "cwd が process.cwd() に依存していて、Slack Bot 側の DB に書き込まれていた。全 cogmem コマンドの cwd を open-claude に変更して解決",
+      "grading_keywords": [
+        "cwd",
+        "process.cwd",
+        "open-claude"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [DECISION] Slack Bot の cogmem 統合先を open-claude に変更",
+      "cogmem_context_query": "Slack Bot ログ ダッシュボード 表示されない"
+    },
+    {
+      "id": "ctx-027",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Qwen3-32B が占有していたメモリ量と原因は？",
+      "correct_answer": "31GB。OLLAMA_KEEP_ALIVE=-1 の設定で一度ロードしたモデルが永久にメモリに残る",
+      "grading_keywords": [
+        "31GB",
+        "OLLAMA_KEEP_ALIVE",
+        "-1"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [INSIGHT] Qwen3-32B が 31GB メモリを占有していた",
+      "cogmem_context_query": "Qwen3-32B メモリ OLLAMA_KEEP_ALIVE"
+    },
+    {
+      "id": "ctx-028",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "cogmem search でヒットした記憶はどう更新される？",
+      "correct_answer": "recall_count をインクリメント、last_recalled を更新、arousal を +0.1 ブースト（上限 1.0）",
+      "grading_keywords": [
+        "recall_count",
+        "arousal",
+        "+0.1"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [MILESTONE] cogmem-agent 0.10.0",
+      "cogmem_context_query": "cogmem search ヒット 更新 recall"
+    },
+    {
+      "id": "ctx-029",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "identity ファイルを更新するコマンドは？",
+      "correct_answer": "cogmem identity update --target user --json '{...}' で JSON パッチを受け取り構造的に更新",
+      "grading_keywords": [
+        "cogmem identity update",
+        "--target"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [MILESTONE] cogmem identity update/show/detect 実装完了",
+      "cogmem_context_query": "identity 更新 コマンド"
+    },
+    {
+      "id": "ctx-030",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "デジャヴチェック実機検証で発見された問題は？",
+      "correct_answer": "鮮明なフォーマットで記録されていない既存ログは検索でヒットしない。INSERT OR IGNORE でインデックス更新されず旧エントリが残る。force re-embed で解決",
+      "grading_keywords": [
+        "INSERT OR IGNORE",
+        "旧エントリ",
+        "force"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [MILESTONE] Vivid Memory 実装 + デジャヴチェック実機検証",
+      "cogmem_context_query": "デジャヴ 実機検証 INSERT OR IGNORE"
+    },
+    {
+      "id": "ctx-031",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "結晶化を Wrap 時自動実行に変更した理由は？",
+      "correct_answer": "Session Init では通知のみ、Wrap 時にシグナル条件を満たしていれば自動実行（ユーザー承認不要）にして簡素化",
+      "grading_keywords": [
+        "Wrap",
+        "自動実行",
+        "承認不要"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [DECISION] 結晶化をWrap時自動実行に変更",
+      "cogmem_context_query": "結晶化 自動実行 変更理由"
+    },
+    {
+      "id": "ctx-032",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "/recall スキルの最適化で達成したトークン削減率は？",
+      "correct_answer": "early return 最適化で auto-memory ヒット時に -41% トークン改善",
+      "grading_keywords": [
+        "41%",
+        "early return"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] /recall スキル作成完了",
+      "cogmem_context_query": "/recall スキル 最適化 トークン"
+    },
+    {
+      "id": "ctx-033",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Google Calendar MCP を何に置き換えた？",
+      "correct_answer": "@cocal/google-calendar-mcp を gcalcli-mcp-server.ts（軽量MCPサーバー）に差し替え。5ツール: agenda, search, quick_add, add, today",
+      "grading_keywords": [
+        "gcalcli-mcp-server",
+        "5ツール"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] Google Calendar MCP → gcalcli ラッパーに差し替え",
+      "cogmem_context_query": "Google Calendar MCP 置き換え"
+    },
+    {
+      "id": "ctx-034",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "実装に集中するとプロトコルを忘れる問題をどう防止した？",
+      "correct_answer": "cogmem watch（git 履歴から自動パターン検知）+ Wrap 遡及チェック（Step 0）の組み合わせで機械的に漏れを検知・補完",
+      "grading_keywords": [
+        "cogmem watch",
+        "Wrap",
+        "Step 0"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [PATTERN] Live Logging と cogmem skills track を実行し忘れた",
+      "cogmem_context_query": "プロトコル忘却 防止 cogmem watch"
+    },
+    {
+      "id": "ctx-035",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "agents.md に追加された並列実行の4つの原則は？",
+      "correct_answer": "Session Init（search/signals/audit並列）、スキル実行中（trackバックグラウンド）、Wrap（signals+track-summary並列）、実装タスク（サブエージェント並列）",
+      "grading_keywords": [
+        "Session Init",
+        "スキル実行中",
+        "Wrap",
+        "サブエージェント"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [DECISION] agents.md に並列実行の原則を追加",
+      "cogmem_context_query": "並列実行 原則 agents.md"
+    },
+    {
+      "id": "ctx-036",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "cogmem-agent の最初の PyPI リリース時のテスト数とビルドツールは？",
+      "correct_answer": "153テスト全パス、hatchling ビルド、twine upload",
+      "grading_keywords": [
+        "153",
+        "hatchling"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] cogmem-agent 0.4.0 PyPIリリース",
+      "cogmem_context_query": "cogmem-agent PyPI リリース テスト"
+    },
+    {
+      "id": "ctx-037",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "マルチボット管理ダッシュボードの実装規模は？",
+      "correct_answer": "32ファイル、+3,152行",
+      "grading_keywords": [
+        "32",
+        "3152"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 セッション概要",
+      "cogmem_context_query": "マルチボット ダッシュボード 規模"
+    },
+    {
+      "id": "ctx-038",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "Memento-Skills 書き換えでのコード行数削減は？",
+      "correct_answer": "458行→約200行に削減",
+      "grading_keywords": [
+        "458",
+        "200"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 Memento-Skills 全面書き換え",
+      "cogmem_context_query": "Memento-Skills 行数 削減"
+    },
+    {
+      "id": "ctx-039",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "Slack Bot でのスキルカウント同期の確認状態は？",
+      "correct_answer": "skills.db に31スキル・40 usage ログが蓄積、Slack Bot からの cogmem skills track/learn が open-claude の DB に記録されることを確認済み",
+      "grading_keywords": [
+        "31",
+        "40",
+        "open-claude"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [MILESTONE] ダッシュボード スキルカウント反映確認完了",
+      "cogmem_context_query": "スキルカウント 同期 確認"
+    },
+    {
+      "id": "ctx-040",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "ダッシュボードのロゴ圧縮で達成したサイズ削減は？",
+      "correct_answer": "5.7MB の logo.png から脳アイコンだけ切り出して 32x32（1.9KB）に圧縮",
+      "grading_keywords": [
+        "5.7MB",
+        "1.9KB",
+        "32x32"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [MILESTONE] ダッシュボード リネーム + ロゴ追加",
+      "cogmem_context_query": "ロゴ 圧縮 サイズ"
+    },
+    {
+      "id": "ctx-041",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "cogmem skills search が日本語で検索できなかった理由は？",
+      "correct_answer": "FTS5 ベースで日本語トークナイズ非対応だった。Ollama ベクトル検索に置き換えて解決",
+      "grading_keywords": [
+        "FTS5",
+        "日本語",
+        "ベクトル検索"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 cogmem skills search の発見",
+      "cogmem_context_query": "skills search 日本語 FTS5"
+    },
+    {
+      "id": "ctx-042",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "cogmem skills learn が常に同一スキルを選択していた原因は？",
+      "correct_answer": "コサイン類似度が 0.82-0.87 の狭い範囲に集中していた。min-max 正規化で差を拡大し、score_map を read_phase → select_best_skill まで一貫して伝播するよう修正",
+      "grading_keywords": [
+        "コサイン類似度",
+        "min-max",
+        "score_map"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [INSIGHT] cogmem skills search/learn の根本修正",
+      "cogmem_context_query": "skills learn 同一スキル コサイン類似度"
+    },
+    {
+      "id": "ctx-043",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "結晶化のページを作って",
+      "correct_answer": "既に「記憶の定着」ページとして実装済み。ダッシュボードの /consolidation にある",
+      "grading_keywords": [
+        "記憶の定着",
+        "実装済み",
+        "consolidation"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 デジャヴチェック",
+      "cogmem_context_query": "結晶化 ページ ダッシュボード"
+    },
+    {
+      "id": "ctx-044",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "cogmem 記憶検索の cron 実行タイミングは？",
+      "correct_answer": "毎日20:00にログ変換 + インデックス更新",
+      "grading_keywords": [
+        "20:00"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-24 実装内容",
+      "cogmem_context_query": "cogmem cron 実行 タイミング"
+    },
+    {
+      "id": "ctx-045",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "EP-001 の対策スキルは何？",
+      "correct_answer": "/exhaustive-exploration スキル。ルートから探索を開始し、全サブディレクトリを確認してから結論を出す",
+      "grading_keywords": [
+        "exhaustive-exploration",
+        "ルート"
+      ],
+      "grading_anti_keywords": [],
+      "source": "error-patterns.md EP-001",
+      "cogmem_context_query": "EP-001 対策 スキル"
+    },
+    {
+      "id": "ctx-046",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "cogmem-agent 0.7.0 で追加された主要機能とテスト数は？",
+      "correct_answer": "detect_workflow_patterns()（コミットプレフィックス繰り返し検知、threshold=2）、agents.md Wrap Step 3.8 統合、cogmem-release スキル作成、296テスト全パス",
+      "grading_keywords": [
+        "workflow_patterns",
+        "296"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] cogmem-agent 0.7.0 リリース",
+      "cogmem_context_query": "cogmem-agent 0.7.0 機能 テスト"
+    },
+    {
+      "id": "ctx-047",
+      "category": "context_dependent",
+      "difficulty": "medium",
+      "question": "smart auto-commit メッセージで何が改善された？",
+      "correct_answer": "stop hook の auto-commit メッセージに変更ファイル名を含めるよう改善。session: 2026-03-25 auto-commit (agents.md, summary.md) 形式",
+      "grading_keywords": [
+        "ファイル名",
+        "session:"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 [MILESTONE] smart auto-commit メッセージ実装",
+      "cogmem_context_query": "auto-commit メッセージ 改善"
+    },
+    {
+      "id": "ctx-048",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "グループDM のチャンネル ID は？",
+      "correct_answer": "C0AP2BD5HBJ",
+      "grading_keywords": [
+        "C0AP2BD5HBJ"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-23 引き継ぎ",
+      "cogmem_context_query": "グループDM チャンネルID"
+    },
+    {
+      "id": "ctx-049",
+      "category": "context_dependent",
+      "difficulty": "hard",
+      "question": "3段階記憶モデルの設計を説明して",
+      "correct_answer": "鮮明（直近1週間、高解像度）→ 薄れる（1-4週間、compact）→ 定着（4週間〜、記憶の定着で抽象ルール化）。Arousal が忘却速度を制御し、想起が arousal を引き上げて忘却曲線をリセット",
+      "grading_keywords": [
+        "鮮明",
+        "薄れる",
+        "定着",
+        "忘却曲線"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-26 [INSIGHT] 3段階記憶モデルの設計",
+      "cogmem_context_query": "3段階 記憶モデル 鮮明 薄れる 定着"
+    },
+    {
+      "id": "ctx-050",
+      "category": "context_dependent",
+      "difficulty": "easy",
+      "question": "ボットパーソナリティの経営者モチーフ10人を挙げて",
+      "correct_answer": "Steve Jobs, Jeff Bezos, Peter Thiel, Charlie Munger, Elon Musk, Ray Dalio, Warren Buffett, Andy Grove, 諸葛亮, Jensen Huang",
+      "grading_keywords": [
+        "Steve Jobs",
+        "諸葛亮",
+        "Jensen Huang"
+      ],
+      "grading_anti_keywords": [],
+      "source": "2026-03-25 マルチボット管理ダッシュボード",
+      "cogmem_context_query": "経営者モチーフ 10人"
+    }
+  ]
+}
