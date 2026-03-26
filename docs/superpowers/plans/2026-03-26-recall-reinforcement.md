@@ -4,7 +4,7 @@
 
 **Goal:** 検索やフラッシュバックで記憶が呼び出された時に recall_count / last_recalled を記録し、arousal を引き上げて忘却曲線をリセットする。「何度も思い出す記憶は定着する」を実装する。
 
-**Architecture:** memories テーブルに `recall_count` / `last_recalled` カラムを追加。`MemoryStore.search()` と `context_search()` の結果返却時に、ヒットした記憶の recall メタデータを更新する。arousal 引き上げは `min(arousal + 0.1, 1.0)` で上限キャップ。
+**Architecture:** memories テーブルに `recall_count` / `last_recalled` カラムを追加。SearchResult に `content_hash` フィールドを追加し、semantic_search は DB から直接、grep_search は DB 逆引きで hash を取得。search() / context_search() の結果返却時に、content_hash がある記憶の recall メタデータを更新する。arousal boost はデフォルト +0.1（ダッシュボードで変更可能）。
 
 **Tech Stack:** Python, SQLite, pytest
 
@@ -12,10 +12,27 @@
 
 ---
 
-### Task 1: memories テーブルにカラム追加
+## File Structure
+
+| ファイル | 責務 | 変更種別 |
+|---------|------|---------|
+| `src/cognitive_memory/types.py` | SearchResult に content_hash 追加 | Modify |
+| `src/cognitive_memory/store.py` | DB スキーマ + reinforce_recall + search ラッパー | Modify |
+| `src/cognitive_memory/search.py` | semantic/grep が content_hash を返す | Modify |
+| `src/cognitive_memory/cli/recall_cmd.py` | recall-stats CLI | Create |
+| `src/cognitive_memory/cli/main.py` | サブコマンド登録 | Modify |
+| `src/cognitive_memory/dashboard/services/memory_service.py` | 想起統計クエリ | Modify |
+| `src/cognitive_memory/dashboard/templates/memory/overview.html` | 想起セクション表示 | Modify |
+| `src/cognitive_memory/dashboard/i18n.py` | 翻訳キー追加 | Modify |
+| `tests/test_recall.py` | 全テスト | Create |
+
+---
+
+### Task 1: DB スキーマ — recall_count / last_recalled 追加
 
 **Files:**
-- Modify: `src/cognitive_memory/store.py:61-72` (_init_db の CREATE TABLE)
+- Modify: `src/cognitive_memory/store.py:61-82`
+- Test: `tests/test_recall.py`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -23,6 +40,10 @@
 # tests/test_recall.py
 """Tests for recall reinforcement."""
 
+from __future__ import annotations
+
+import hashlib
+import json
 import sqlite3
 from pathlib import Path
 
@@ -44,30 +65,65 @@ def store(tmp_path):
         yield s
 
 
-def test_memories_table_has_recall_columns(store):
-    """recall_count and last_recalled columns exist with correct defaults."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector) "
-        "VALUES ('h1', '2026-03-26', 'test', 0.5, '[]')"
-    )
-    row = store.conn.execute(
-        "SELECT recall_count, last_recalled FROM memories WHERE content_hash = 'h1'"
-    ).fetchone()
-    assert row["recall_count"] == 0
-    assert row["last_recalled"] is None
+class TestSchema:
+    def test_new_db_has_recall_columns(self, store):
+        """New DB has recall_count=0 and last_recalled=NULL by default."""
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'test', 0.5, '[]')"
+        )
+        row = store.conn.execute(
+            "SELECT recall_count, last_recalled FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["recall_count"] == 0
+        assert row["last_recalled"] is None
+
+    def test_existing_db_migration(self, tmp_path):
+        """Opening a DB without recall columns adds them via ALTER TABLE."""
+        db_path = tmp_path / "memory" / "old.db"
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(db_path))
+        conn.execute("""
+            CREATE TABLE memories (
+                id INTEGER PRIMARY KEY, content_hash TEXT UNIQUE,
+                date TEXT, content TEXT, arousal REAL, vector BLOB
+            )
+        """)
+        conn.execute("""
+            CREATE TABLE indexed_files (
+                filename TEXT PRIMARY KEY, indexed_at TEXT, entry_count INTEGER
+            )
+        """)
+        conn.execute(
+            "INSERT INTO memories VALUES (1, 'old1', '2026-03-20', 'old entry', 0.7, '[]')"
+        )
+        conn.commit()
+        conn.close()
+
+        (tmp_path / "cogmem.toml").write_text(
+            '[cogmem]\nlogs_dir = "memory/logs"\ndb_path = "memory/old.db"\n',
+            encoding="utf-8",
+        )
+        config = CogMemConfig.from_toml(tmp_path / "cogmem.toml")
+        with MemoryStore(config) as s:
+            row = s.conn.execute(
+                "SELECT recall_count, last_recalled FROM memories WHERE content_hash = 'old1'"
+            ).fetchone()
+            assert row["recall_count"] == 0
+            assert row["last_recalled"] is None
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::test_memories_table_has_recall_columns -v`
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestSchema -v`
 Expected: FAIL — `OperationalError: table memories has no column named recall_count`
 
 - [ ] **Step 3: Write minimal implementation**
 
-`store.py` の `_init_db` で CREATE TABLE に 2 カラム追加 + ALTER TABLE でマイグレーション:
+`store.py` の `_init_db` を変更:
 
 ```python
-# _init_db 内の CREATE TABLE memories を以下に変更:
+# CREATE TABLE に 2 カラム追加
 self._conn.execute("""
     CREATE TABLE IF NOT EXISTS memories (
         id           INTEGER PRIMARY KEY,
@@ -81,7 +137,7 @@ self._conn.execute("""
     )
 """)
 
-# 既存DBのマイグレーション（カラムが無ければ追加）
+# 既存DBマイグレーション（_init_db の末尾、commit の前に追加）
 for col, col_def in [
     ("recall_count", "INTEGER DEFAULT 0"),
     ("last_recalled", "TEXT"),
@@ -94,8 +150,8 @@ for col, col_def in [
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py -v`
-Expected: PASS
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestSchema -v`
+Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
@@ -111,72 +167,82 @@ cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add tests/test_reca
 - Modify: `src/cognitive_memory/store.py` (新メソッド追加)
 - Test: `tests/test_recall.py`
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_recall.py に追加
 
-def test_reinforce_recall_increments_count(store):
-    """reinforce_recall increments recall_count and updates last_recalled."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector) "
-        "VALUES ('h1', '2026-03-26', 'test memory', 0.5, '[]')"
-    )
-    store.conn.commit()
+class TestReinforceRecall:
+    def test_increments_count(self, store):
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'test', 0.5, '[]')"
+        )
+        store.conn.commit()
+        store.reinforce_recall("h1")
+        row = store.conn.execute(
+            "SELECT recall_count FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["recall_count"] == 1
 
-    store.reinforce_recall("h1")
+    def test_updates_timestamp(self, store):
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'test', 0.5, '[]')"
+        )
+        store.conn.commit()
+        store.reinforce_recall("h1")
+        row = store.conn.execute(
+            "SELECT last_recalled FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["last_recalled"] is not None
+        assert "2026" in row["last_recalled"]
 
-    row = store.conn.execute(
-        "SELECT recall_count, last_recalled, arousal FROM memories WHERE content_hash = 'h1'"
-    ).fetchone()
-    assert row["recall_count"] == 1
-    assert row["last_recalled"] is not None
-    assert row["arousal"] == 0.6  # 0.5 + 0.1
+    def test_boosts_arousal(self, store):
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'test', 0.5, '[]')"
+        )
+        store.conn.commit()
+        store.reinforce_recall("h1")
+        row = store.conn.execute(
+            "SELECT arousal FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["arousal"] == pytest.approx(0.6)
 
+    def test_arousal_caps_at_1(self, store):
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'high', 0.95, '[]')"
+        )
+        store.conn.commit()
+        store.reinforce_recall("h1")
+        row = store.conn.execute(
+            "SELECT arousal FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["arousal"] == pytest.approx(1.0)
 
-def test_reinforce_recall_caps_arousal_at_1(store):
-    """arousal never exceeds 1.0."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector) "
-        "VALUES ('h2', '2026-03-26', 'high arousal', 0.95, '[]')"
-    )
-    store.conn.commit()
+    def test_multiple_recalls(self, store):
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES ('h1', '2026-03-26', 'repeated', 0.5, '[]')"
+        )
+        store.conn.commit()
+        for _ in range(3):
+            store.reinforce_recall("h1")
+        row = store.conn.execute(
+            "SELECT recall_count, arousal FROM memories WHERE content_hash = 'h1'"
+        ).fetchone()
+        assert row["recall_count"] == 3
+        assert row["arousal"] == pytest.approx(0.8)
 
-    store.reinforce_recall("h2")
-
-    row = store.conn.execute(
-        "SELECT arousal FROM memories WHERE content_hash = 'h2'"
-    ).fetchone()
-    assert row["arousal"] == 1.0
-
-
-def test_reinforce_recall_multiple_times(store):
-    """Multiple recalls accumulate count and arousal."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector) "
-        "VALUES ('h3', '2026-03-26', 'repeated', 0.5, '[]')"
-    )
-    store.conn.commit()
-
-    store.reinforce_recall("h3")
-    store.reinforce_recall("h3")
-    store.reinforce_recall("h3")
-
-    row = store.conn.execute(
-        "SELECT recall_count, arousal FROM memories WHERE content_hash = 'h3'"
-    ).fetchone()
-    assert row["recall_count"] == 3
-    assert row["arousal"] == 0.8  # 0.5 + 0.1*3
-
-
-def test_reinforce_recall_nonexistent_hash(store):
-    """Calling reinforce_recall with unknown hash does nothing (no error)."""
-    store.reinforce_recall("nonexistent")  # should not raise
+    def test_nonexistent_hash(self, store):
+        store.reinforce_recall("nonexistent")  # should not raise
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py -v`
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestReinforceRecall -v`
 Expected: FAIL — `AttributeError: 'MemoryStore' object has no attribute 'reinforce_recall'`
 
 - [ ] **Step 3: Write minimal implementation**
@@ -200,8 +266,8 @@ def reinforce_recall(self, content_hash: str, arousal_boost: float = 0.1) -> Non
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py -v`
-Expected: PASS (5 tests)
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestReinforceRecall -v`
+Expected: PASS (6 tests)
 
 - [ ] **Step 5: Commit**
 
@@ -211,89 +277,395 @@ cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_m
 
 ---
 
-### Task 3: search() で自動想起
+### Task 3: SearchResult に content_hash 追加 + semantic_search が hash を返す
 
 **Files:**
-- Modify: `src/cognitive_memory/store.py:203-229` (search メソッド)
+- Modify: `src/cognitive_memory/types.py:20-30`
+- Modify: `src/cognitive_memory/search.py:40-62` (semantic_search)
+- Test: `tests/test_recall.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+```python
+# tests/test_recall.py に追加
+
+from cognitive_memory.types import SearchResult
+
+
+class TestSearchResultHash:
+    def test_search_result_has_content_hash(self):
+        """SearchResult accepts content_hash field."""
+        r = SearchResult(
+            score=0.9, date="2026-03-26", content="test",
+            arousal=0.5, source="semantic", content_hash="abc123",
+        )
+        assert r.content_hash == "abc123"
+
+    def test_search_result_hash_default_none(self):
+        """content_hash defaults to None."""
+        r = SearchResult(
+            score=0.9, date="2026-03-26", content="test",
+            arousal=0.5, source="grep",
+        )
+        assert r.content_hash is None
+```
+
+```python
+# tests/test_recall.py に追加
+
+class TestSemanticSearchHash:
+    def test_semantic_returns_content_hash(self, store):
+        """semantic_search includes content_hash from DB."""
+        content = "### [INSIGHT] テスト洞察"
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
+        vec = [0.1] * 384  # match embedding dimension
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (content_hash, "2026-03-26", content, 0.8, json.dumps(vec)),
+        )
+        store.conn.commit()
+
+        from cognitive_memory.search import semantic_search
+        from cognitive_memory.scoring import normalize
+
+        query_vec = normalize([0.1] * 384)
+        results, status = semantic_search(
+            query_vec, store.config.database_path, store.config, top_k=5
+        )
+        assert status == "ok"
+        assert len(results) >= 1
+        assert results[0].content_hash == content_hash
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestSearchResultHash tests/test_recall.py::TestSemanticSearchHash -v`
+Expected: FAIL — `TypeError: __init__() got an unexpected keyword argument 'content_hash'`
+
+- [ ] **Step 3: Implement**
+
+types.py:
+```python
+@dataclass
+class SearchResult:
+    score: float
+    date: str
+    content: str
+    arousal: float
+    source: str
+    cosine_sim: Optional[float] = None
+    time_decay: Optional[float] = None
+    content_hash: Optional[str] = None  # 追加
+```
+
+search.py の semantic_search — SELECT に content_hash を追加し、SearchResult に渡す:
+```python
+# L40-42: SELECT に content_hash を追加
+for row in conn.execute(
+    "SELECT content_hash, date, content, arousal, vector FROM memories"
+):
+    # ...
+    results.append(
+        SearchResult(
+            # ... 既存フィールド ...
+            content_hash=row["content_hash"],  # 追加
+        )
+    )
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestSearchResultHash tests/test_recall.py::TestSemanticSearchHash -v`
+Expected: PASS (3 tests)
+
+- [ ] **Step 5: Run full test suite**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/ -q --timeout=30`
+Expected: 全パス
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_memory/types.py src/cognitive_memory/search.py tests/test_recall.py && git commit -m "feat: add content_hash to SearchResult, semantic_search returns hash"
+```
+
+---
+
+### Task 4: grep_search が DB 逆引きで hash を返す
+
+**Files:**
+- Modify: `src/cognitive_memory/search.py:78-134` (grep_search)
 - Test: `tests/test_recall.py`
 
 - [ ] **Step 1: Write the failing test**
 
 ```python
 # tests/test_recall.py に追加
-import hashlib
-import json
 
+class TestGrepSearchHash:
+    def test_grep_returns_content_hash(self, store, tmp_path):
+        """grep_search looks up content_hash from DB by matching content."""
+        content = "### [ERROR] テスト用エラーエントリ\n*Arousal: 0.9 | Emotion: Correction*\ngrep で見つかるテスト。"
+        content_clean = content.replace("---", "").strip()
+        content_hash = hashlib.sha256(content_clean.encode()).hexdigest()
 
-def _insert_memory_with_vector(store, content_hash, date, content, arousal, vector):
-    """Helper to insert a memory with a real vector."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector) "
-        "VALUES (?, ?, ?, ?, ?)",
-        (content_hash, date, content, arousal, json.dumps(vector)),
-    )
-    store.conn.commit()
-
-
-def test_search_reinforces_results(store, monkeypatch):
-    """search() calls reinforce_recall for each result."""
-    # Insert a memory
-    content = "### [INSIGHT] テスト用の洞察エントリ"
-    content_hash = hashlib.sha256(content.encode()).hexdigest()
-    _insert_memory_with_vector(store, content_hash, "2026-03-26", content, 0.5, [0.1] * 10)
-
-    # Track reinforce calls
-    reinforced = []
-    original_reinforce = store.reinforce_recall
-
-    def tracking_reinforce(h, **kwargs):
-        reinforced.append(h)
-        return original_reinforce(h, **kwargs)
-
-    monkeypatch.setattr(store, "reinforce_recall", tracking_reinforce)
-
-    # Mock search to return our memory
-    from cognitive_memory.types import SearchResult, SearchResponse
-
-    def fake_search(query, top_k=5):
-        return SearchResponse(
-            results=[
-                SearchResult(
-                    score=0.9,
-                    date="2026-03-26",
-                    content=content,
-                    arousal=0.5,
-                    source="semantic",
-                    cosine_sim=0.9,
-                )
-            ],
-            status="ok",
+        # Write log file
+        log_file = store.config.logs_path / "2026-03-26.md"
+        log_file.write_text(
+            f"# 2026-03-26\n\n## ログエントリ\n\n{content}\n\n---\n\n## 引き継ぎ\n",
+            encoding="utf-8",
         )
 
-    monkeypatch.setattr(store, "_execute_search", fake_search)
-    response = store.search("テスト洞察")
+        # Index so DB has the hash
+        store.index_file(log_file, force=True)
 
-    # Verify reinforcement happened for the result
-    row = store.conn.execute(
-        "SELECT recall_count FROM memories WHERE content_hash = ?",
-        (content_hash,),
-    ).fetchone()
-    # recall_count should be >= 1 if reinforcement was triggered
-    assert row["recall_count"] >= 1 or len(reinforced) >= 1
+        from cognitive_memory.search import grep_search
+        results = grep_search("テスト用エラー", store.config.logs_path, store.config)
+        assert len(results) >= 1
+        assert results[0].content_hash == content_hash
+
+    def test_grep_returns_none_hash_when_not_indexed(self, store):
+        """grep result has content_hash=None when entry is not in DB."""
+        log_file = store.config.logs_path / "2026-03-27.md"
+        log_file.write_text(
+            "# 2026-03-27\n\n## ログエントリ\n\n### [INSIGHT] DB未登録エントリ\n*Arousal: 0.7*\nインデックスされていない。\n\n---\n\n## 引き継ぎ\n",
+            encoding="utf-8",
+        )
+        from cognitive_memory.search import grep_search
+        results = grep_search("DB未登録", store.config.logs_path, store.config)
+        assert len(results) >= 1
+        assert results[0].content_hash is None
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::test_search_reinforces_results -v`
-Expected: FAIL — `AttributeError: '_execute_search'` (メソッドがまだない)
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestGrepSearchHash -v`
+Expected: FAIL — `content_hash` が None（grep_search がまだ hash を返さないため）
 
-- [ ] **Step 3: Refactor search to call reinforce_recall**
+- [ ] **Step 3: Implement**
 
-search() の内部ロジックを `_execute_search` に抽出し、search() は結果に対して `reinforce_recall` を呼ぶラッパーにする:
+grep_search に `db_path` パラメータを追加し、content_hash を逆引き:
 
 ```python
-# store.py の search メソッドを分割
+def grep_search(
+    query: str,
+    logs_dir: Path,
+    config: CogMemConfig,
+    top_k: int = 5,
+) -> List[SearchResult]:
+    """Keyword search over raw log files (grep-equivalent)."""
+    # ... 既存ロジック ...
 
+    # DB 接続（hash 逆引き用）
+    db_path = config.database_path
+    db_conn = None
+    if db_path.exists():
+        try:
+            db_conn = sqlite3.connect(str(db_path))
+            db_conn.row_factory = sqlite3.Row
+        except sqlite3.Error:
+            db_conn = None
+
+    # ... entries ループ内で ...
+    # content_hash の逆引き
+    found_hash = None
+    if db_conn is not None:
+        try:
+            row = db_conn.execute(
+                "SELECT content_hash FROM memories WHERE content = ? AND date = ?",
+                (e_clean, date),
+            ).fetchone()
+            if row:
+                found_hash = row["content_hash"]
+        except sqlite3.Error:
+            pass
+
+    results.append(
+        SearchResult(
+            # ... 既存フィールド ...
+            content_hash=found_hash,  # 追加
+        )
+    )
+
+    # ... ループ後 ...
+    if db_conn is not None:
+        db_conn.close()
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestGrepSearchHash -v`
+Expected: PASS (2 tests)
+
+- [ ] **Step 5: Run full test suite**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/ -q --timeout=30`
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_memory/search.py tests/test_recall.py && git commit -m "feat: grep_search returns content_hash via DB reverse lookup"
+```
+
+---
+
+### Task 5: search() / context_search() で自動想起
+
+**Files:**
+- Modify: `src/cognitive_memory/store.py:203-290` (search, context_search)
+- Test: `tests/test_recall.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+```python
+# tests/test_recall.py に追加
+
+from cognitive_memory.types import SearchResponse
+
+
+class TestSearchReinforcement:
+    def test_search_reinforces_with_hash(self, store, monkeypatch):
+        """search() calls reinforce_recall for results with content_hash."""
+        content = "### [INSIGHT] 想起対象"
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (content_hash, "2026-03-26", content, 0.5, "[]"),
+        )
+        store.conn.commit()
+
+        def fake_execute(query, top_k=5):
+            return SearchResponse(
+                results=[
+                    SearchResult(
+                        score=0.9, date="2026-03-26", content=content,
+                        arousal=0.5, source="semantic", content_hash=content_hash,
+                    )
+                ],
+                status="ok",
+            )
+        monkeypatch.setattr(store, "_execute_search", fake_execute)
+        store.search("想起")
+
+        row = store.conn.execute(
+            "SELECT recall_count, arousal FROM memories WHERE content_hash = ?",
+            (content_hash,),
+        ).fetchone()
+        assert row["recall_count"] == 1
+        assert row["arousal"] == pytest.approx(0.6)
+
+    def test_search_skips_none_hash(self, store, monkeypatch):
+        """search() does NOT reinforce results with content_hash=None."""
+        reinforced = []
+        original = store.reinforce_recall
+        def tracking(h, **kw):
+            reinforced.append(h)
+            original(h, **kw)
+        monkeypatch.setattr(store, "reinforce_recall", tracking)
+
+        def fake_execute(query, top_k=5):
+            return SearchResponse(
+                results=[
+                    SearchResult(
+                        score=0.5, date="2026-03-26", content="no hash",
+                        arousal=0.5, source="grep", content_hash=None,
+                    )
+                ],
+                status="ok",
+            )
+        monkeypatch.setattr(store, "_execute_search", fake_execute)
+        store.search("test")
+        assert len(reinforced) == 0
+
+    def test_search_no_results_no_reinforce(self, store, monkeypatch):
+        """search() with 0 results does not call reinforce."""
+        reinforced = []
+        original = store.reinforce_recall
+        def tracking(h, **kw):
+            reinforced.append(h)
+            original(h, **kw)
+        monkeypatch.setattr(store, "reinforce_recall", tracking)
+
+        def fake_execute(query, top_k=5):
+            return SearchResponse(results=[], status="ok")
+        monkeypatch.setattr(store, "_execute_search", fake_execute)
+        store.search("empty")
+        assert len(reinforced) == 0
+
+    def test_search_skipped_no_reinforce(self, store, monkeypatch):
+        """Gate-skipped search does not reinforce."""
+        reinforced = []
+        original = store.reinforce_recall
+        def tracking(h, **kw):
+            reinforced.append(h)
+            original(h, **kw)
+        monkeypatch.setattr(store, "reinforce_recall", tracking)
+
+        def fake_execute(query, top_k=5):
+            return SearchResponse(results=[], status="skipped_by_gate")
+        monkeypatch.setattr(store, "_execute_search", fake_execute)
+        store.search("a")
+        assert len(reinforced) == 0
+
+
+class TestContextSearchReinforcement:
+    def test_context_search_reinforces(self, store, monkeypatch):
+        """context_search() reinforces results with content_hash."""
+        content = "### [INSIGHT] フラッシュバック対象"
+        content_hash = hashlib.sha256(content.encode()).hexdigest()
+        store.conn.execute(
+            "INSERT INTO memories (content_hash, date, content, arousal, vector) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (content_hash, "2026-03-26", content, 0.8, "[]"),
+        )
+        store.conn.commit()
+
+        def fake_execute(query, top_k=5):
+            return SearchResponse(
+                results=[
+                    SearchResult(
+                        score=0.9, date="2026-03-26", content=content,
+                        arousal=0.8, source="semantic", cosine_sim=0.9,
+                        content_hash=content_hash,
+                    )
+                ],
+                status="ok",
+            )
+        monkeypatch.setattr(store, "_execute_search", fake_execute)
+        monkeypatch.setattr(store.config, "context_search_enabled", True)
+        store.context_search("フラッシュバック")
+
+        row = store.conn.execute(
+            "SELECT recall_count FROM memories WHERE content_hash = ?",
+            (content_hash,),
+        ).fetchone()
+        assert row["recall_count"] == 1
+
+    def test_context_search_disabled_no_reinforce(self, store, monkeypatch):
+        """Disabled context_search does not reinforce."""
+        reinforced = []
+        original = store.reinforce_recall
+        def tracking(h, **kw):
+            reinforced.append(h)
+            original(h, **kw)
+        monkeypatch.setattr(store, "reinforce_recall", tracking)
+        monkeypatch.setattr(store.config, "context_search_enabled", False)
+        store.context_search("test")
+        assert len(reinforced) == 0
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::TestSearchReinforcement tests/test_recall.py::TestContextSearchReinforcement -v`
+Expected: FAIL — `AttributeError: '_execute_search'`
+
+- [ ] **Step 3: Refactor search and add reinforcement**
+
+store.py: search() の内部ロジックを `_execute_search` に抽出、search() はラッパー:
+
+```python
 def _execute_search(self, query: str, top_k: int = 5) -> SearchResponse:
     """Internal search pipeline without recall reinforcement."""
     if not should_search(query):
@@ -319,109 +691,29 @@ def _execute_search(self, query: str, top_k: int = 5) -> SearchResponse:
         results=grep_results, status=f"degraded ({status_reason})"
     )
 
+def _reinforce_results(self, results: List[SearchResult]) -> None:
+    """Reinforce recall for search results that have a content_hash."""
+    for result in results:
+        if result.content_hash is not None:
+            self.reinforce_recall(result.content_hash)
+
 def search(self, query: str, top_k: int = 5) -> SearchResponse:
     """Full search pipeline with recall reinforcement."""
     response = self._execute_search(query, top_k)
-
-    # Reinforce recalled memories
-    for result in response.results:
-        content_hash = hashlib.sha256(result.content.encode()).hexdigest()
-        self.reinforce_recall(content_hash)
-
+    self._reinforce_results(response.results)
     return response
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py -v`
-Expected: PASS (6 tests)
-
-- [ ] **Step 5: Run full test suite**
-
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/ -q --timeout=30`
-Expected: 全パス（既存テストが壊れていないこと）
-
-- [ ] **Step 6: Commit**
-
-```bash
-cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_memory/store.py tests/test_recall.py && git commit -m "feat: search results automatically reinforce recalled memories"
-```
-
----
-
-### Task 4: context_search() でも自動想起
-
-**Files:**
-- Modify: `src/cognitive_memory/store.py:231+` (context_search メソッド)
-- Test: `tests/test_recall.py`
-
-- [ ] **Step 1: Write the failing test**
-
+context_search: 結果返却前に `_reinforce_results` を呼ぶ（`return response` の前に追加）:
 ```python
-# tests/test_recall.py に追加
-
-def test_context_search_reinforces_flashbacks(store, monkeypatch):
-    """context_search() reinforces memories that pass flashback filter."""
-    content = "### [INSIGHT] フラッシュバック対象"
-    content_hash = hashlib.sha256(content.encode()).hexdigest()
-    _insert_memory_with_vector(store, content_hash, "2026-03-26", content, 0.8, [0.1] * 10)
-
-    reinforced = []
-    original_reinforce = store.reinforce_recall
-
-    def tracking_reinforce(h, **kwargs):
-        reinforced.append(h)
-        return original_reinforce(h, **kwargs)
-
-    monkeypatch.setattr(store, "reinforce_recall", tracking_reinforce)
-
-    # Mock _execute_search to return a high-score high-arousal result
-    from cognitive_memory.types import SearchResult, SearchResponse
-
-    def fake_execute(query, top_k=5):
-        return SearchResponse(
-            results=[
-                SearchResult(
-                    score=0.9,
-                    date="2026-03-26",
-                    content=content,
-                    arousal=0.8,
-                    source="semantic",
-                    cosine_sim=0.9,
-                )
-            ],
-            status="ok",
-        )
-
-    monkeypatch.setattr(store, "_execute_search", fake_execute)
-
-    # Enable context search
-    monkeypatch.setattr(store.config, "context_search_enabled", True)
-
-    response = store.context_search("フラッシュバック")
-
-    assert len(reinforced) >= 1
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py::test_context_search_reinforces_flashbacks -v`
-
-- [ ] **Step 3: Add reinforcement to context_search**
-
-`context_search` の結果返却前に、search と同じパターンで `reinforce_recall` を呼ぶ:
-
-```python
-# context_search の return response の前に追加:
-for result in response.results:
-    content_hash = hashlib.sha256(result.content.encode()).hexdigest()
-    self.reinforce_recall(content_hash)
+self._reinforce_results(response.results)
+return response
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_recall.py -v`
-Expected: PASS (7 tests)
+Expected: PASS (全テスト)
 
 - [ ] **Step 5: Run full test suite**
 
@@ -430,12 +722,12 @@ Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest
 - [ ] **Step 6: Commit**
 
 ```bash
-cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_memory/store.py tests/test_recall.py && git commit -m "feat: context_search also reinforces recalled memories"
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_memory/store.py tests/test_recall.py && git commit -m "feat: search and context_search reinforce recalled memories via content_hash"
 ```
 
 ---
 
-### Task 5: ダッシュボードに想起情報を表示
+### Task 6: ダッシュボードに想起情報を表示
 
 **Files:**
 - Modify: `src/cognitive_memory/dashboard/services/memory_service.py`
@@ -446,25 +738,24 @@ cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add src/cognitive_m
 - [ ] **Step 1: Write the failing test**
 
 ```python
-# tests/test_dashboard/test_routes.py に追加（既存クラスに）
+# tests/test_dashboard/test_routes.py の TestRoutes クラスに追加
 
-def test_home_shows_recall_stats(self, client):
-    """Memory overview shows most recalled memories."""
+def test_home_shows_recall_section(self, client):
+    """Memory overview page has a recall/想起 section."""
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "recall" in resp.text.lower() or "想起" in resp.text
+    html = resp.text.lower()
+    assert "recall" in html or "想起" in html
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_dashboard/test_routes.py::TestRoutes::test_home_shows_recall_stats -v`
+Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_dashboard/test_routes.py::TestRoutes::test_home_shows_recall_section -v`
 
 - [ ] **Step 3: Implement**
 
-`memory_service.get_overview_data()` に most recalled memories クエリを追加:
-
+memory_service.py の `get_overview_data()` に most_recalled クエリを追加:
 ```python
-# memory_service.py に追加
 most_recalled = []
 try:
     rows = conn.execute(
@@ -474,7 +765,7 @@ try:
     ).fetchall()
     most_recalled = [
         {
-            "content": r["content"].split("\n")[0][:80],
+            "title": r["content"].split("\n")[0][:80],
             "recall_count": r["recall_count"],
             "last_recalled": r["last_recalled"],
             "arousal": r["arousal"],
@@ -482,10 +773,18 @@ try:
         for r in rows
     ]
 except sqlite3.OperationalError:
-    pass  # recall_count column doesn't exist yet
+    pass
+# return dict に "most_recalled": most_recalled を追加
 ```
 
-テンプレートとi18nに対応するセクションを追加。
+i18n.py に翻訳キー追加:
+```python
+"memory.most_recalled": {"en": "Most Recalled", "ja": "よく想起される記憶"},
+"memory.recall_count": {"en": "Recalls", "ja": "想起回数"},
+"memory.no_recalls": {"en": "No recalled memories yet.", "ja": "想起された記憶はまだありません。"},
+```
+
+overview.html にセクション追加（既存の signals panel の前に）。
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -501,36 +800,48 @@ cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add -A && git commi
 
 ---
 
-### Task 6: cogmem recall-stats CLI コマンド
+### Task 7: cogmem recall-stats CLI コマンド
 
 **Files:**
 - Create: `src/cognitive_memory/cli/recall_cmd.py`
-- Modify: `src/cognitive_memory/cli/main.py` (サブコマンド登録)
+- Modify: `src/cognitive_memory/cli/main.py`
 - Test: `tests/test_recall.py`
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing tests**
 
 ```python
 # tests/test_recall.py に追加
 
-def test_recall_stats_output(store):
-    """recall-stats shows memories sorted by recall_count."""
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector, recall_count, last_recalled) "
-        "VALUES ('rs1', '2026-03-26', '### [INSIGHT] よく思い出す記憶', 0.8, '[]', 5, '2026-03-26T10:00:00')"
-    )
-    store.conn.execute(
-        "INSERT INTO memories (content_hash, date, content, arousal, vector, recall_count) "
-        "VALUES ('rs2', '2026-03-25', '### [DECISION] 一度だけ', 0.6, '[]', 1)"
-    )
-    store.conn.commit()
+class TestRecallStats:
+    def test_sorted_by_count(self, store):
+        """Memories returned sorted by recall_count descending."""
+        store.conn.execute(
+            "INSERT INTO memories VALUES (NULL, 'rs1', '2026-03-26', '### [INSIGHT] よく思い出す', 0.8, '[]', 5, '2026-03-26T10:00:00')"
+        )
+        store.conn.execute(
+            "INSERT INTO memories VALUES (NULL, 'rs2', '2026-03-25', '### [DECISION] 一度だけ', 0.6, '[]', 1, NULL)"
+        )
+        store.conn.commit()
 
-    rows = store.conn.execute(
-        "SELECT content, recall_count FROM memories WHERE recall_count > 0 ORDER BY recall_count DESC"
-    ).fetchall()
-    assert len(rows) == 2
-    assert rows[0]["recall_count"] == 5
-    assert rows[1]["recall_count"] == 1
+        rows = store.conn.execute(
+            "SELECT content, recall_count FROM memories "
+            "WHERE recall_count > 0 ORDER BY recall_count DESC"
+        ).fetchall()
+        assert len(rows) == 2
+        assert rows[0]["recall_count"] == 5
+        assert rows[1]["recall_count"] == 1
+
+    def test_no_recalls(self, store):
+        """No rows returned when all recall_count = 0."""
+        store.conn.execute(
+            "INSERT INTO memories VALUES (NULL, 'rs3', '2026-03-26', 'no recall', 0.5, '[]', 0, NULL)"
+        )
+        store.conn.commit()
+
+        rows = store.conn.execute(
+            "SELECT * FROM memories WHERE recall_count > 0"
+        ).fetchall()
+        assert len(rows) == 0
 ```
 
 - [ ] **Step 2: Run test to verify it passes** (DB 層は Task 1 で実装済み)
@@ -543,6 +854,7 @@ def test_recall_stats_output(store):
 
 from __future__ import annotations
 
+import json
 import sys
 
 from ..config import CogMemConfig
@@ -553,18 +865,20 @@ def run_recall_stats(json_output: bool = False):
     config = CogMemConfig.find_and_load()
 
     with MemoryStore(config) as store:
-        rows = store.conn.execute(
-            "SELECT content, recall_count, last_recalled, arousal, date "
-            "FROM memories WHERE recall_count > 0 "
-            "ORDER BY recall_count DESC LIMIT 10"
-        ).fetchall()
+        try:
+            rows = store.conn.execute(
+                "SELECT content, recall_count, last_recalled, arousal, date "
+                "FROM memories WHERE recall_count > 0 "
+                "ORDER BY recall_count DESC LIMIT 10"
+            ).fetchall()
+        except Exception:
+            rows = []
 
     if not rows:
         print("No recalled memories yet.")
         return
 
     if json_output:
-        import json
         data = [
             {
                 "title": r["content"].split("\n")[0][:80],
@@ -586,7 +900,7 @@ def run_recall_stats(json_output: bool = False):
 
 - [ ] **Step 4: Register in main.py**
 
-`main.py` のサブコマンドに `recall-stats` を追加。
+main.py のサブコマンドに `recall-stats` を追加（`--json` フラグ付き）。
 
 - [ ] **Step 5: Run full test suite**
 
@@ -597,3 +911,35 @@ Run: `cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest
 ```bash
 cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add -A && git commit -m "feat: add cogmem recall-stats CLI command"
 ```
+
+---
+
+### Task 8: 既存 DB のマイグレーション実行
+
+**Files:** なし（手動実行ステップ）
+
+- [ ] **Step 1: open-claude の DB をマイグレーション**
+
+```bash
+cd /Users/akira/workspace/open-claude && python3 -c "
+from cognitive_memory.config import CogMemConfig
+from cognitive_memory.store import MemoryStore
+config = CogMemConfig.find_and_load()
+with MemoryStore(config) as store:
+    row = store.conn.execute('SELECT COUNT(*) as n FROM memories').fetchone()
+    print(f'Migrated: {row[\"n\"]} memories now have recall_count column')
+"
+```
+
+- [ ] **Step 2: Verify**
+
+```bash
+cd /Users/akira/workspace/open-claude && python3 -c "
+import sqlite3
+conn = sqlite3.connect('memory/vectors.db')
+conn.row_factory = sqlite3.Row
+row = conn.execute('SELECT recall_count, last_recalled FROM memories LIMIT 1').fetchone()
+print(f'recall_count={row[\"recall_count\"]}, last_recalled={row[\"last_recalled\"]}')
+"
+```
+Expected: `recall_count=0, last_recalled=None`
