@@ -943,3 +943,446 @@ print(f'recall_count={row[\"recall_count\"]}, last_recalled={row[\"last_recalled
 "
 ```
 Expected: `recall_count=0, last_recalled=None`
+
+---
+
+### Task 9: 3段階記憶パイプライン統合テスト
+
+**Files:**
+- Create: `tests/test_memory_pipeline.py`
+- Create: `tests/fixtures/session_auth_debug.md` (ダミー長文ログ)
+
+**目的:** リアルな長文セッションログが、鮮明→薄れる→定着の3段階で正しく抽象化され、想起により arousal が変化することを検証する。LLM を使って結晶化の抽象度を評価する。
+
+- [ ] **Step 1: ダミーの長文セッションログを作成**
+
+```python
+# tests/fixtures/session_auth_debug.md
+# 「認証システムのバグ修正」2時間セッションのリアルなログ
+```
+
+```markdown
+# 2026-03-20 セッションログ
+
+## セッション概要
+認証システムのセッショントークン期限切れバグを修正。最初の仮説（トークン生成ロジック）は外れ、実際の原因はタイムゾーン変換のミスだった。同じパターンが決済モジュールにも存在することを発見し、両方修正。
+
+## ログエントリ
+
+### [QUESTION] セッショントークンが突然期限切れになる報告
+*Arousal: 0.4 | Emotion: Curiosity*
+ユーザーから「ログイン後30分で強制ログアウトされる」との報告。設定上は24時間有効のはず。エラーログに「token_expired」が頻出。まず再現を試みる。
+
+---
+
+### [DECISION] トークン生成ロジックを調査する方針
+*Arousal: 0.5 | Emotion: Planning*
+仮説: generateToken() の有効期限計算が間違っている。auth/token.py の expiry 計算を確認する。テスト環境で再現できたので、デバッグログを仕込む。
+
+---
+
+### [ERROR] 仮説が間違っていた — トークン生成は正常
+*Arousal: 0.8 | Emotion: Surprise*
+generateToken() のコードを精査した結果、有効期限の計算は正しかった。デバッグログで確認: トークン生成時の expiry は正しく24時間後に設定されている。しかし検証時に「期限切れ」と判定される。生成と検証で別の問題がある。30分の無駄。仮説を検証せずにコードを読み始めたのが原因。
+
+---
+
+### [INSIGHT] 本当の原因はタイムゾーン変換 — UTC vs JST の不一致
+*Arousal: 0.9 | Emotion: Discovery*
+validateToken() が datetime.now() を使っていた（JST）が、トークンの expiry は UTC で保存されていた。9時間のズレで、UTC 15:00 以降に生成されたトークンは即座に「期限切れ」と判定される。datetime.now() → datetime.utcnow() に修正。
+
+---
+
+### [MILESTONE] 修正完了 — テスト追加
+*Arousal: 0.5 | Emotion: Relief*
+validateToken() を datetime.utcnow() に修正。タイムゾーン関連のテストを3件追加: UTC生成+UTC検証、JST時間帯での検証、日付境界でのエッジケース。全パス。
+
+---
+
+### [DECISION] 決済モジュールにも同じコードレビューを実施
+*Arousal: 0.6 | Emotion: Caution*
+auth/token.py の datetime.now() が問題だったなら、他のモジュールにも同じパターンがあるかもしれない。grep で datetime.now() を全ファイル検索する。
+
+---
+
+### [PATTERN] 決済モジュールにも同じタイムゾーンバグを発見
+*Arousal: 0.8 | Emotion: Recognition*
+payment/receipt.py の領収書発行日時も datetime.now() を使っていた。UTC で保存された取引日時と JST の発行日時が混在し、日次集計レポートの金額が1日ずれるバグの原因だった。同じ修正を適用。チーム内で「datetime.now() 禁止、必ず datetime.utcnow() または timezone-aware を使う」のルール策定を提案。
+
+---
+
+### [MILESTONE] PR作成 — 認証+決済のタイムゾーン統一
+*Arousal: 0.5 | Emotion: Completion*
+auth/token.py と payment/receipt.py の修正 + テスト6件。PR #142 作成。レビュー依頼済み。
+
+---
+
+## 引き継ぎ
+- **継続テーマ**: datetime.now() の全ファイル置換（残り3箇所）
+- **次のアクション**: PR #142 のレビュー対応、残り3箇所の修正
+- **注意事項**: datetime.now() 禁止ルールをコーディングガイドラインに追加する
+```
+
+- [ ] **Step 2: 統合テストを作成**
+
+```python
+# tests/test_memory_pipeline.py
+"""Integration tests for 3-stage memory pipeline:
+   鮮明 (vivid) → 薄れる (fading) → 定着 (crystallized)
+   + recall reinforcement across stages.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+from pathlib import Path
+
+import pytest
+
+from cognitive_memory.config import CogMemConfig
+from cognitive_memory.parser import parse_entries
+from cognitive_memory.store import MemoryStore
+
+FIXTURE_DIR = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture
+def pipeline_store(tmp_path):
+    """Store with a realistic session log indexed."""
+    logs_dir = tmp_path / "memory" / "logs"
+    logs_dir.mkdir(parents=True)
+
+    # Copy fixture log
+    fixture = FIXTURE_DIR / "session_auth_debug.md"
+    log_file = logs_dir / "2026-03-20.md"
+    log_file.write_text(fixture.read_text(encoding="utf-8"), encoding="utf-8")
+
+    (tmp_path / "cogmem.toml").write_text(
+        '[cogmem]\nlogs_dir = "memory/logs"\ndb_path = "memory/vectors.db"\n'
+        '[cogmem.crystallization]\npattern_threshold = 1\nerror_threshold = 1\n',
+        encoding="utf-8",
+    )
+    config = CogMemConfig.from_toml(tmp_path / "cogmem.toml")
+
+    with MemoryStore(config) as s:
+        # Use a dummy embedder that returns fixed vectors
+        class DummyEmbedder:
+            def embed(self, text):
+                return [0.1] * 384
+            def embed_batch(self, texts):
+                # Return slightly different vectors for each text
+                return [
+                    [0.1 + i * 0.01] * 384 for i in range(len(texts))
+                ]
+        s._embedder = DummyEmbedder()
+        s.index_file(log_file, force=True)
+        yield s
+
+
+class TestStage1Vivid:
+    """鮮明（直近）: 全エントリが保持され、arousal が正しい。"""
+
+    def test_all_entries_indexed(self, pipeline_store):
+        """All 8 log entries are parsed and indexed."""
+        rows = pipeline_store.conn.execute(
+            "SELECT COUNT(*) as n FROM memories WHERE date = '2026-03-20'"
+        ).fetchone()
+        assert rows["n"] == 8
+
+    def test_arousal_distribution(self, pipeline_store):
+        """Arousal values match the log entries."""
+        rows = pipeline_store.conn.execute(
+            "SELECT arousal FROM memories WHERE date = '2026-03-20' ORDER BY id"
+        ).fetchall()
+        arousals = [r["arousal"] for r in rows]
+        # Expected: 0.4, 0.5, 0.8, 0.9, 0.5, 0.6, 0.8, 0.5
+        assert arousals == pytest.approx(
+            [0.4, 0.5, 0.8, 0.9, 0.5, 0.6, 0.8, 0.5]
+        )
+
+    def test_categories_correct(self, pipeline_store):
+        """Each entry has the correct category tag."""
+        rows = pipeline_store.conn.execute(
+            "SELECT content FROM memories WHERE date = '2026-03-20' ORDER BY id"
+        ).fetchall()
+        categories = []
+        for r in rows:
+            m = re.search(r"\[([A-Z]+)\]", r["content"])
+            categories.append(m.group(1) if m else None)
+        assert categories == [
+            "QUESTION", "DECISION", "ERROR", "INSIGHT",
+            "MILESTONE", "DECISION", "PATTERN", "MILESTONE",
+        ]
+
+    def test_high_arousal_entries_have_detail(self, pipeline_store):
+        """High arousal entries (>=0.8) contain multi-line detail."""
+        rows = pipeline_store.conn.execute(
+            "SELECT content, arousal FROM memories "
+            "WHERE date = '2026-03-20' AND arousal >= 0.8 ORDER BY id"
+        ).fetchall()
+        assert len(rows) == 3  # ERROR(0.8), INSIGHT(0.9), PATTERN(0.8)
+        for r in rows:
+            lines = r["content"].strip().split("\n")
+            assert len(lines) >= 3, f"High arousal entry should have detail: {lines[0]}"
+
+
+class TestStage2Fading:
+    """薄れる（compact化）: 高 arousal のみ残る。"""
+
+    def test_compact_preserves_high_arousal(self, pipeline_store):
+        """After compact, only entries with arousal >= 0.6 would survive."""
+        rows = pipeline_store.conn.execute(
+            "SELECT content, arousal FROM memories "
+            "WHERE date = '2026-03-20' AND arousal >= 0.6 ORDER BY arousal DESC"
+        ).fetchall()
+        # Should be: INSIGHT(0.9), ERROR(0.8), PATTERN(0.8), DECISION(0.6)
+        assert len(rows) == 4
+        assert rows[0]["arousal"] == 0.9  # INSIGHT — highest
+        assert rows[1]["arousal"] == 0.8  # ERROR or PATTERN
+
+    def test_low_arousal_would_be_dropped(self, pipeline_store):
+        """Low arousal entries (< 0.6) would not survive compact."""
+        rows = pipeline_store.conn.execute(
+            "SELECT content, arousal FROM memories "
+            "WHERE date = '2026-03-20' AND arousal < 0.6"
+        ).fetchall()
+        assert len(rows) == 4  # QUESTION(0.4), DECISION(0.5), MILESTONE(0.5), MILESTONE(0.5)
+        for r in rows:
+            assert r["arousal"] < 0.6
+
+
+class TestStage3Crystallized:
+    """定着（結晶化）: パターンが抽象ルールに変換される。"""
+
+    def test_signals_detect_patterns(self, pipeline_store):
+        """Crystallization signals detect PATTERN and ERROR entries."""
+        from cognitive_memory.signals import check_signals
+        signals = check_signals(pipeline_store.config)
+        assert signals.pattern_count >= 1  # [PATTERN] entry
+        assert signals.error_count >= 1    # [ERROR] entry
+
+    def test_error_pattern_extractable(self, pipeline_store):
+        """The ERROR entry contains enough info to extract an error pattern."""
+        row = pipeline_store.conn.execute(
+            "SELECT content FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.8 "
+            "AND content LIKE '%ERROR%'"
+        ).fetchone()
+        assert row is not None
+        content = row["content"]
+        # Should contain: what went wrong and why
+        assert "仮説" in content  # mentions the wrong hypothesis
+        assert "無駄" in content or "原因" in content  # mentions wasted effort or cause
+
+    def test_pattern_entry_is_abstractable(self, pipeline_store):
+        """The PATTERN entry identifies a repeating issue across modules."""
+        row = pipeline_store.conn.execute(
+            "SELECT content FROM memories "
+            "WHERE date = '2026-03-20' AND content LIKE '%PATTERN%'"
+        ).fetchone()
+        assert row is not None
+        content = row["content"]
+        # Should contain: the pattern that repeats
+        assert "datetime.now()" in content or "タイムゾーン" in content
+        # Should contain: the rule/recommendation
+        assert "禁止" in content or "ルール" in content
+
+
+class TestRecallReinforcement:
+    """想起による arousal 変化の検証。"""
+
+    def test_never_recalled_stays_same(self, pipeline_store):
+        """Entry with no recalls keeps original arousal."""
+        row = pipeline_store.conn.execute(
+            "SELECT arousal, recall_count FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.4"
+        ).fetchone()
+        assert row["recall_count"] == 0
+        assert row["arousal"] == pytest.approx(0.4)
+
+    def test_single_recall_boosts(self, pipeline_store):
+        """One recall bumps arousal by 0.1."""
+        row = pipeline_store.conn.execute(
+            "SELECT content_hash, arousal FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.5 LIMIT 1"
+        ).fetchone()
+        original_arousal = row["arousal"]
+        pipeline_store.reinforce_recall(row["content_hash"])
+
+        updated = pipeline_store.conn.execute(
+            "SELECT arousal, recall_count FROM memories WHERE content_hash = ?",
+            (row["content_hash"],),
+        ).fetchone()
+        assert updated["recall_count"] == 1
+        assert updated["arousal"] == pytest.approx(original_arousal + 0.1)
+
+    def test_repeated_recalls_accumulate(self, pipeline_store):
+        """3 recalls on arousal=0.6 entry → arousal=0.9."""
+        row = pipeline_store.conn.execute(
+            "SELECT content_hash FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.6 LIMIT 1"
+        ).fetchone()
+        for _ in range(3):
+            pipeline_store.reinforce_recall(row["content_hash"])
+
+        updated = pipeline_store.conn.execute(
+            "SELECT arousal, recall_count FROM memories WHERE content_hash = ?",
+            (row["content_hash"],),
+        ).fetchone()
+        assert updated["recall_count"] == 3
+        assert updated["arousal"] == pytest.approx(0.9)
+
+    def test_arousal_cap_on_high_entry(self, pipeline_store):
+        """Recalling arousal=0.9 entry twice → caps at 1.0."""
+        row = pipeline_store.conn.execute(
+            "SELECT content_hash FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.9 LIMIT 1"
+        ).fetchone()
+        pipeline_store.reinforce_recall(row["content_hash"])
+        pipeline_store.reinforce_recall(row["content_hash"])
+
+        updated = pipeline_store.conn.execute(
+            "SELECT arousal, recall_count FROM memories WHERE content_hash = ?",
+            (row["content_hash"],),
+        ).fetchone()
+        assert updated["recall_count"] == 2
+        assert updated["arousal"] == pytest.approx(1.0)
+
+    def test_recall_promotes_low_to_survival(self, pipeline_store):
+        """A low-arousal entry (0.4) recalled 3 times reaches 0.7,
+        crossing the compact survival threshold (0.6)."""
+        row = pipeline_store.conn.execute(
+            "SELECT content_hash FROM memories "
+            "WHERE date = '2026-03-20' AND arousal = 0.4 LIMIT 1"
+        ).fetchone()
+        for _ in range(3):
+            pipeline_store.reinforce_recall(row["content_hash"])
+
+        updated = pipeline_store.conn.execute(
+            "SELECT arousal FROM memories WHERE content_hash = ?",
+            (row["content_hash"],),
+        ).fetchone()
+        assert updated["arousal"] == pytest.approx(0.7)
+        assert updated["arousal"] >= 0.6  # would survive compact
+
+
+class TestLLMAbstractionQuality:
+    """LLM を使って結晶化の抽象度を評価する。
+    Ollama が起動していない環境ではスキップ。"""
+
+    @pytest.fixture
+    def llm_available(self):
+        """Check if Ollama is running."""
+        import urllib.request
+        try:
+            urllib.request.urlopen("http://localhost:11434/api/tags", timeout=3)
+            return True
+        except Exception:
+            pytest.skip("Ollama not available")
+
+    def test_pattern_abstracts_to_rule(self, pipeline_store, llm_available):
+        """LLM can abstract the PATTERN entry into a general rule."""
+        import urllib.request
+
+        row = pipeline_store.conn.execute(
+            "SELECT content FROM memories "
+            "WHERE date = '2026-03-20' AND content LIKE '%PATTERN%'"
+        ).fetchone()
+
+        prompt = (
+            "以下のログエントリから、再利用可能な抽象ルールを1行で抽出してください。\n\n"
+            f"{row['content']}\n\n"
+            "ルール:"
+        )
+        payload = json.dumps({
+            "model": "qwen3:4b",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1},
+        }).encode()
+
+        req = urllib.request.Request(
+            "http://localhost:11434/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=30)
+        result = json.loads(resp.read())["response"].strip()
+
+        # The abstracted rule should mention timezone or datetime
+        assert any(
+            kw in result for kw in ["タイムゾーン", "timezone", "UTC", "datetime", "時刻"]
+        ), f"LLM rule should mention timezone concept, got: {result}"
+        # Should be concise (1-2 sentences, not a paragraph)
+        assert len(result) < 200, f"Rule too long ({len(result)} chars): {result}"
+
+    def test_error_abstracts_to_lesson(self, pipeline_store, llm_available):
+        """LLM can abstract the ERROR entry into a lesson learned."""
+        import urllib.request
+
+        row = pipeline_store.conn.execute(
+            "SELECT content FROM memories "
+            "WHERE date = '2026-03-20' AND content LIKE '%ERROR%'"
+        ).fetchone()
+
+        prompt = (
+            "以下のエラーログから、次回同じ状況を避けるための教訓を1行で抽出してください。\n\n"
+            f"{row['content']}\n\n"
+            "教訓:"
+        )
+        payload = json.dumps({
+            "model": "qwen3:4b",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1},
+        }).encode()
+
+        req = urllib.request.Request(
+            "http://localhost:11434/api/generate",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        resp = urllib.request.urlopen(req, timeout=30)
+        result = json.loads(resp.read())["response"].strip()
+
+        # The lesson should mention hypothesis verification
+        assert any(
+            kw in result for kw in ["仮説", "検証", "確認", "先に", "hypothesis", "verify"]
+        ), f"LLM lesson should mention verification, got: {result}"
+        assert len(result) < 200, f"Lesson too long ({len(result)} chars): {result}"
+```
+
+- [ ] **Step 3: fixtures ディレクトリとログファイルを作成**
+
+```bash
+mkdir -p /Users/akira/workspace/ai-dev/cognitive-memory-lib/tests/fixtures
+```
+
+`session_auth_debug.md` を Step 1 の内容で作成。
+
+- [ ] **Step 4: Run tests**
+
+```bash
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/test_memory_pipeline.py -v --timeout=60
+```
+
+Expected:
+- TestStage1Vivid: 4 PASS
+- TestStage2Fading: 2 PASS
+- TestStage3Crystallized: 3 PASS
+- TestRecallReinforcement: 5 PASS
+- TestLLMAbstractionQuality: 2 PASS (Ollama 起動時) or 2 SKIP (未起動時)
+
+- [ ] **Step 5: Run full test suite**
+
+```bash
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && python3 -m pytest tests/ -q --timeout=60
+```
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd /Users/akira/workspace/ai-dev/cognitive-memory-lib && git add tests/test_memory_pipeline.py tests/fixtures/session_auth_debug.md && git commit -m "test: add 3-stage memory pipeline integration tests with LLM evaluation"
+```
