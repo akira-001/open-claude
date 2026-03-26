@@ -41,9 +41,10 @@ Live Logging や Skill Tracking は意識だけでは維持できない。`cogme
 ## アクティブプロジェクト
 
 ### cogmem-agent（認知記憶エージェント）
-- **状態**: v0.10.0 リリース済み（405テスト全パス）。ダッシュボードのティールテーマ + consolidation リネームは未リリース（ソース側に変更あり）
-- **主要機能**: ベクトル検索、スキルシステム、watch、ダッシュボード、identity update/show/detect、recall 強化（recall_count/last_recalled）
-- **次**: ティールテーマ含むダッシュボード改善をリリース、index force re-embed 問題の解決
+- **状態**: v0.10.0 リリース済み（430テスト全パス）。force re-embed + ダッシュボードティール + README 更新が未リリース
+- **主要機能**: ベクトル検索、スキルシステム、watch、ダッシュボード、identity、recall 強化、vivid encoding、déjà vu チェック
+- **ベンチマーク**: cogmem A/B 比較 Opus — なし 17% → あり 40%、Hard +60%
+- **次**: 次期リリース（force re-embed + ティール + README）、A/B キーワード採点改善
 
 ### claude-code-slack-bot（Mei/Eve 2ボット体制）
 - **状態**: 運用中。cogmem 統合先を open-claude に変更済み。会話ログ・スキルカウントの反映確認済み
