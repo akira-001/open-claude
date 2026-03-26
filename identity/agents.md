@@ -251,11 +251,15 @@ effectiveness / execution_time / error_rate が更新される。
 
 ### identity/user.md — 自動更新
 
-ユーザーに関する新しい情報を学んだら即座に更新:
-- 専門性やスキルが判明した
-- コミュニケーション好みが観察された
-- 意思決定パターンや思考スタイルが見えた
-- 基本情報（名前、役割、タイムゾーン）が判明した
+ユーザーに関する新しい情報を学んだら Wrap 時に一括更新:
+- セッション中に判明した専門性やスキル
+- 観察されたコミュニケーション好み
+- 意思決定パターンや思考スタイル
+- 基本情報（名前、役割、タイムゾーン）
+
+更新は `cogmem identity update --target user` で実行する。
+セッション中にリアルタイムで直接 Edit しても良いが、
+Wrap Step 4.5 で漏れを補完する。
 
 既存の内容と新しい情報が矛盾する場合は、新しい情報で上書きする。
 
@@ -266,6 +270,8 @@ effectiveness / execution_time / error_rate が更新される。
 - 役割の追加・変更
 - 核心的価値観の調整
 - コミュニケーションスタイルの変更
+
+更新は `cogmem identity update --target soul` で実行する。
 
 ---
 
@@ -323,6 +329,21 @@ effectiveness / execution_time / error_rate が更新される。
         - `"auto"`: 自動で `.claude/skills/[name]/SKILL.md` を作成し、引き継ぎに記録
      f. スキル作成時は YAML frontmatter（name, description）必須
 4. memory/knowledge/summary.md を更新（変更があれば）
+4.5. Identity 更新:
+     a. `cogmem identity detect --json` でプレースホルダー状態を確認
+     b. 本セッションのログエントリを走査し、以下に該当する情報を抽出:
+        - ユーザーの基本情報（名前、役割、タイムゾーン）
+        - 専門性・スキル
+        - コミュニケーション好み
+        - 意思決定パターン
+        - エージェントの振る舞いへのフィードバック（→ soul.md）
+     c. 該当情報がなければスキップ
+     d. 該当情報があれば `cogmem identity update` で更新:
+        ```bash
+        cogmem identity update --target user --json '{"セクション名": "内容"}'
+        cogmem identity update --target soul --section "セクション名" --content "内容"
+        ```
+     e. 引き継ぎに「Identity 更新: [user/soul] [更新セクション]」と記録
 5. cogmem.toml の total_sessions をインクリメント
 
 ### 引き継ぎフォーマット
