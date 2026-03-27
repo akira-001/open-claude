@@ -103,7 +103,7 @@ selection_score = final_score + exploration_bonus  # 候補選択時のみ
 | `src/conversation-scorer.ts` | **NEW** — 6軸スコアリング、文脈ボーナス、探索ボーナス | 作成 |
 | `src/skill-enhanced-proactive-agent.ts` | run() でスコアラーを呼び出し、handleReaction() で TS 更新 | 修正 |
 | `src/proactive-state.ts` | LearningState 追加、categoryWeights 更新停止、buildCronPrompt 修正 | 修正 |
-| `interest_scanner.py` | timeliness スコアをキャッシュに含める | 修正 |
+| `interest_scanner.py` | timeliness, emotion_type, ワイルドカード枠, カテゴリ交差スキャン | 修正 |
 | `dashboard/src/pages/ProactiveConfig.tsx` | スコア内訳 + 学習状態 + 探索ボーナス表示 | 修正 |
 | `dashboard/server/api.ts` | stats API にスコア + 学習情報を含める | 修正 |
 | `src/__tests__/thompson-sampling.test.ts` | **NEW** — TS 数学関数の単体テスト (~15件) | 作成 |
@@ -276,13 +276,62 @@ function scoreAffinity(candidate: RawCandidate, ctx: ConversationContext): numbe
 
 ```typescript
 function scoreSurprise(candidate: RawCandidate, ctx: ConversationContext): number {
-  // 2つの興味カテゴリの交差点 → 0.9
-  //   例: "AIを使ったゴルフスイング分析" = ai_agent × golf
-  // 普段触れないカテゴリからの高品質記事 → 0.7
-  // 「去年の今頃」型の記憶 → 0.8
-  // 定番カテゴリの定番情報 → 0.1
+  // === 探索候補は自動的に高スコア ===
 
-  // 実装: キーワードマッチで複数カテゴリに該当する記事を検出
+  // カテゴリ交差（探索D）: interest_scanner が見つけた2カテゴリ交差記事
+  if (candidate.category === '_cross') {
+    return 0.9;
+  }
+
+  // ワイルドカード（探索C）: 既存カテゴリ外の話題
+  if (candidate.category === '_wildcard') {
+    return 0.8;
+  }
+
+  // cogmem 未カテゴリ化（探索B）: 最近よく出るが分類されていないトピック
+  if (candidate.category === '_discovery') {
+    const occurrences = (candidate.metadata.occurrences as number) || 0;
+    return Math.min(0.5 + occurrences * 0.1, 0.85);  // 出現回数に応じて 0.5-0.85
+  }
+
+  // === 通常カテゴリの surprise ===
+
+  // 2つの興味カテゴリの交差点（タイトルから検出）
+  //   例: "AIを使ったゴルフスイング分析" = ai_agent × golf
+  const crossMatch = detectCrossCategoryInTitle(candidate.topic);
+  if (crossMatch) return 0.85;
+
+  // 普段触れないカテゴリからの高品質記事
+  const categoryN = ctx.recentHistory.filter(h => h.category === candidate.category).length;
+  if (categoryN === 0) return 0.7;  // 直近で全く触れていない
+
+  // 「去年の今頃」型の記憶
+  if (candidate.source === 'cogmem' && candidate.metadata.isOneYearAgo) return 0.8;
+
+  // 定番カテゴリの定番情報
+  return 0.1;
+}
+
+// タイトルから複数カテゴリに該当するか検出
+function detectCrossCategoryInTitle(title: string): string[] | null {
+  const CATEGORY_KEYWORDS: Record<string, string[]> = {
+    ai_agent: ['AI', '人工知能', 'エージェント', 'Claude', 'ChatGPT'],
+    golf: ['ゴルフ', 'スイング', 'パター'],
+    dodgers: ['ドジャース', '大谷', 'MLB'],
+    campingcar: ['キャンピングカー', '車中泊'],
+    onsen: ['温泉', '露天風呂'],
+    cat_health: ['猫', 'ネコ', 'キャット'],
+    business_strategy: ['経営', 'DX', 'コンサル'],
+    // ...
+  };
+
+  const matched: string[] = [];
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (keywords.some(kw => title.includes(kw))) {
+      matched.push(cat);
+    }
+  }
+  return matched.length >= 2 ? matched : null;
 }
 ```
 
@@ -416,6 +465,13 @@ function scoreCandidates(
 ```typescript
 const EXPLORATION_COEFF = 0.1;  // 探索の強さ（0=exploitation only, 高い=探索強め）
 
+// 探索候補カテゴリには追加の固定ボーナス
+const DISCOVERY_BONUS: Record<string, number> = {
+  '_wildcard':  0.15,  // ワイルドカード: 強めの探索ボーナス
+  '_cross':     0.10,  // カテゴリ交差: surprise スコアが既に高いので控えめ
+  '_discovery': 0.12,  // cogmem 未カテゴリ化: 中程度
+};
+
 function addExplorationBonus(
   candidates: ScoredCandidate[],
   learningState: LearningState
@@ -424,10 +480,14 @@ function addExplorationBonus(
 
   return candidates.map(c => {
     const categoryN = learningState.categorySelections[c.category] || 0;
+
     // UCB1 探索項: あまり選ばれてないカテゴリにボーナス
-    const explorationBonus = categoryN === 0
+    let explorationBonus = categoryN === 0
       ? EXPLORATION_COEFF * 2  // 未知のカテゴリには大きめのボーナス
       : EXPLORATION_COEFF * Math.sqrt(2 * Math.log(totalN) / categoryN);
+
+    // 探索候補カテゴリには追加の固定ボーナス
+    explorationBonus += DISCOVERY_BONUS[c.category] || 0;
 
     return {
       ...c,
@@ -524,42 +584,182 @@ git commit -m "feat: add 6-axis conversation scoring engine with Thompson Sampli
 
 ---
 
-## Task 2: interest_scanner.py — timeliness メタデータ強化
+## Task 2: interest_scanner.py — メタデータ強化 + 探索機能
 
 **Files:**
-- Modify: `interest_scanner.py`
+- Modify: `/Users/akira/workspace/ai-dev/web-search/interest_scanner.py`
+
+### 2A: 基本メタデータ追加
 
 - [ ] **Step 1: 各アイテムに timeliness_score を追加**
 
 score_item() の結果に timeliness を分離して保存:
 
 ```python
-item["timeliness"] = freshness  # 0-1, 時間ベースの鮮度
-item["score"] = ...             # 従来の総合スコア
+def score_item(item: dict, priority: float) -> float:
+    # ... 既存ロジック
+    freshness = max(0, 1.0 - (hours_old / 48))
+    item["timeliness"] = round(freshness, 3)  # NEW: 分離して保存
+    score += freshness * 0.4
+    # ...
 ```
 
 - [ ] **Step 2: カテゴリに感情タイプを追加**
 
 ```python
 INTEREST_CATEGORIES = {
-    "dodgers": {
-        ...
-        "emotion_type": "light",  # light | medium | heavy
-    },
-    "ai_agent": {
-        ...
-        "emotion_type": "heavy",
-    },
+    # light: 趣味・リラックス系
+    "dodgers":           { ..., "emotion_type": "light" },
+    "golf":              { ..., "emotion_type": "light" },
+    "onsen":             { ..., "emotion_type": "light" },
+    "food_dining":       { ..., "emotion_type": "light" },
+    "local_tokorozawa":  { ..., "emotion_type": "light" },
+    "weather_seasonal":  { ..., "emotion_type": "light" },
+    # medium: 関心度が高いが重くない
+    "campingcar":        { ..., "emotion_type": "medium" },
+    "cat_health":        { ..., "emotion_type": "medium" },
+    "llm_local":         { ..., "emotion_type": "medium" },
+    "dev_tools":         { ..., "emotion_type": "medium" },
+    # heavy: ビジネス・専門
+    "ai_agent":          { ..., "emotion_type": "heavy" },
+    "business_strategy": { ..., "emotion_type": "heavy" },
+    "ma_startup":        { ..., "emotion_type": "heavy" },
 }
 ```
 
 キャッシュに emotion_type を含めて保存。
 
-- [ ] **Step 3: コミット**
+### 2B: ワイルドカード枠（C）
+
+毎回1枠、既存カテゴリに属さない「意外な話題」を取得する。
+
+- [ ] **Step 3: ワイルドカード検索の実装**
+
+```python
+# 既存カテゴリのキーワードを全て収集（除外フィルタ用）
+CATEGORY_KEYWORDS = set()
+for cat in INTEREST_CATEGORIES.values():
+    for q in cat["queries_ja"] + cat.get("queries_en", []):
+        for word in q.split():
+            if len(word) >= 2:
+                CATEGORY_KEYWORDS.add(word.lower())
+
+def scan_wildcard() -> list[dict]:
+    """既存カテゴリに該当しないトップニュースを取得"""
+    # Google News トップ（日本語）
+    items = fetch_google_news("注目 テクノロジー OR サイエンス OR 話題", "ja", 10)
+
+    # 既存カテゴリのキーワードを含むものを除外
+    wildcards = []
+    for item in items:
+        title_lower = item["title"].lower()
+        if not any(kw in title_lower for kw in CATEGORY_KEYWORDS):
+            item["score"] = score_item(item, 0.3)  # 低めの priority
+            item["timeliness"] = ...  # score_item で設定済み
+            wildcards.append(item)
+
+    return wildcards[:2]  # 最大2件
+```
+
+- [ ] **Step 4: キャッシュに wildcard カテゴリを保存**
+
+```python
+# main() 内、通常スキャン後に追加
+wildcard_items = scan_wildcard()
+if wildcard_items:
+    results["_wildcard"] = {
+        "label": "ワイルドカード",
+        "items": wildcard_items,
+        "count": len(wildcard_items),
+        "priority": 0.3,
+        "tier": "C",
+        "emotion_type": "light",
+        "lastChecked": datetime.now(timezone.utc).isoformat(),
+    }
+```
+
+### 2C: 隣接カテゴリ交差（D）
+
+2つの興味カテゴリの交差点にある記事を発見する。
+
+- [ ] **Step 5: カテゴリ交差ペアの定義**
+
+```python
+# 意外性の高い組み合わせを定義
+CROSS_CATEGORY_PAIRS = [
+    # (cat1, cat2, 検索クエリ)
+    ("golf", "ai_agent",          ["AI ゴルフ スイング分析", "golf AI coaching"]),
+    ("golf", "cat_health",        ["ペット ゴルフ場", "cat cafe golf"]),
+    ("dodgers", "local_tokorozawa", ["ドジャース パブリックビューイング 埼玉"]),
+    ("ai_agent", "business_strategy", ["AI 経営コンサル 自動化", "AI CEO advisory"]),
+    ("campingcar", "onsen",       ["キャンピングカー 温泉 旅行", "車中泊 温泉巡り"]),
+    ("campingcar", "cat_health",  ["猫 キャンピングカー 旅行", "cat camping travel"]),
+    ("llm_local", "golf",         ["ローカルAI スポーツ分析"]),
+    ("onsen", "local_tokorozawa", ["所沢 近場 日帰り温泉 新規オープン"]),
+    ("dev_tools", "business_strategy", ["ノーコード DX 中小企業"]),
+]
+```
+
+- [ ] **Step 6: 交差スキャンの実装**
+
+```python
+def scan_cross_categories(priorities: dict, cache: dict) -> list[dict]:
+    """カテゴリ交差点の記事を検索"""
+    # 12時間おき（Tier C と同じ頻度）
+    cross_cache = cache.get("categories", {}).get("_cross", {})
+    last_checked = cross_cache.get("lastChecked")
+    if last_checked:
+        try:
+            elapsed = (datetime.now(timezone.utc) - datetime.fromisoformat(last_checked)).total_seconds() / 3600
+            if elapsed < 12:
+                return cross_cache.get("items", [])
+        except (ValueError, TypeError):
+            pass
+
+    items = []
+    seen_titles = set()
+
+    for cat1, cat2, queries in CROSS_CATEGORY_PAIRS:
+        # 両カテゴリの優先度の平均が一定以上の場合のみスキャン
+        avg_priority = (priorities.get(cat1, 0) + priorities.get(cat2, 0)) / 2
+        if avg_priority < 0.3:
+            continue
+
+        for query in queries:
+            lang = "en" if any(c.isascii() and c.isalpha() for c in query) else "ja"
+            for item in fetch_google_news(query, lang, 2):
+                if item["title"] not in seen_titles:
+                    seen_titles.add(item["title"])
+                    item["score"] = score_item(item, avg_priority)
+                    item["cross_categories"] = [cat1, cat2]
+                    items.append(item)
+
+    items.sort(key=lambda x: x["score"], reverse=True)
+    return items[:5]
+```
+
+- [ ] **Step 7: キャッシュに _cross カテゴリを保存**
+
+```python
+cross_items = scan_cross_categories(priorities, cache)
+if cross_items:
+    results["_cross"] = {
+        "label": "カテゴリ交差",
+        "items": cross_items,
+        "count": len(cross_items),
+        "priority": 0.5,
+        "tier": "B",
+        "emotion_type": "light",
+        "lastChecked": datetime.now(timezone.utc).isoformat(),
+    }
+```
+
+- [ ] **Step 8: コミット**
 
 ```bash
+cd /Users/akira/workspace/ai-dev/web-search
 git add interest_scanner.py
-git commit -m "feat: add timeliness and emotion_type to interest cache"
+git commit -m "feat: add timeliness, emotion_type, wildcard, and cross-category scanning"
 ```
 
 ---
@@ -590,11 +790,144 @@ state.lastScoredCandidates = scoredCandidates.slice(0, 10);
 
 - [ ] **Step 2: buildRawCandidates() 実装**
 
-interest-cache.json, カレンダー, cogmem, フォローアップ候補を統合して RawCandidate[] を構築。
+6つのソースから RawCandidate[] を構築:
+
+```typescript
+function buildRawCandidates(
+  collectedData: CollectedData,
+  memoryContext: MemoryContext,
+  interestCache: InterestCache,
+  ctx: ConversationContext
+): RawCandidate[] {
+  const candidates: RawCandidate[] = [];
+
+  // 1. interest-cache: 通常カテゴリ
+  for (const [catId, catData] of Object.entries(interestCache.categories)) {
+    if (catId.startsWith('_')) continue;  // _wildcard, _cross は別処理
+    for (const item of catData.items) {
+      candidates.push({
+        topic: item.title,
+        source: 'interest-cache',
+        category: catId,
+        pub_date: item.pub_date,
+        metadata: { url: item.url, mediaSource: item.source, emotion_type: catData.emotion_type },
+      });
+    }
+  }
+
+  // 2. interest-cache: ワイルドカード枠（探索C）
+  const wildcardItems = interestCache.categories['_wildcard']?.items || [];
+  for (const item of wildcardItems) {
+    candidates.push({
+      topic: item.title,
+      source: 'interest-cache',
+      category: '_wildcard',
+      pub_date: item.pub_date,
+      metadata: { url: item.url, isWildcard: true },
+    });
+  }
+
+  // 3. interest-cache: カテゴリ交差（探索D）
+  const crossItems = interestCache.categories['_cross']?.items || [];
+  for (const item of crossItems) {
+    candidates.push({
+      topic: item.title,
+      source: 'interest-cache',
+      category: '_cross',
+      pub_date: item.pub_date,
+      metadata: { url: item.url, crossCategories: item.cross_categories },
+    });
+  }
+
+  // 4. カレンダー
+  for (const event of collectedData.calendar || []) {
+    candidates.push({
+      topic: event.summary,
+      source: 'calendar',
+      category: guessCalendarCategory(event),
+      pub_date: event.start,
+      metadata: { location: event.location },
+    });
+  }
+
+  // 5. cogmem 未カテゴリ化トピック（探索B）
+  //    gatherMemoryContext() で抽出した「最近よく出るがカテゴリ化されていないキーワード」
+  for (const topic of memoryContext.uncategorizedTopics || []) {
+    candidates.push({
+      topic: topic.keyword,
+      source: 'cogmem',
+      category: '_discovery',
+      pub_date: null,
+      metadata: { occurrences: topic.count, lastSeen: topic.lastDate, arousal: topic.avgArousal },
+    });
+  }
+
+  // 6. フォローアップ候補
+  const followUps = generateFollowUpCandidates(ctx);
+  candidates.push(...followUps);
+
+  return candidates;
+}
+```
 
 - [ ] **Step 3: buildConversationContext() 実装**
 
 proactive-state から ConversationContext を構築。calendarDensity はカレンダーデータから算出。
+
+- [ ] **Step 3.5: gatherMemoryContext() に未カテゴリ化トピック抽出を追加（探索B）**
+
+```typescript
+// gatherMemoryContext() 内に追加
+async function extractUncategorizedTopics(): Promise<Array<{keyword: string; count: number; lastDate: string; avgArousal: number}>> {
+  // cogmem search で直近7日のログからキーワードを抽出
+  // 既存の INTEREST_CATEGORIES のキーワードに該当しないものをフィルタ
+
+  const KNOWN_KEYWORDS = new Set([
+    'ドジャース', '大谷', 'ゴルフ', '温泉', 'キャンピングカー', '猫',
+    'AI', 'エージェント', 'Claude', 'LLM', 'Ollama', '経営', 'コンサル',
+    '所沢', 'Slack', 'M&A', 'スタートアップ', // ... 全カテゴリのキーワード
+  ]);
+
+  // cogmem watch --since "7 days ago" --json から workflow_patterns を取得
+  // または cogmem search で高頻度キーワードを抽出
+  const result = execSync(
+    'cd /Users/akira/workspace/open-claude && cogmem search "最近の話題 トレンド 気になる" --json --limit 20',
+    { encoding: 'utf-8', timeout: 10000 }
+  );
+
+  const entries = JSON.parse(result);
+
+  // エントリからキーワードを抽出し、既知カテゴリに属さないものをフィルタ
+  const keywordCounts: Record<string, {count: number; lastDate: string; totalArousal: number}> = {};
+
+  for (const entry of entries) {
+    const words = extractKeywords(entry.content);  // 名詞抽出（簡易: 2文字以上のカタカナ/漢字列）
+    for (const word of words) {
+      if (KNOWN_KEYWORDS.has(word)) continue;
+      if (!keywordCounts[word]) {
+        keywordCounts[word] = { count: 0, lastDate: entry.date, totalArousal: 0 };
+      }
+      keywordCounts[word].count++;
+      keywordCounts[word].totalArousal += entry.arousal || 0.5;
+      if (entry.date > keywordCounts[word].lastDate) {
+        keywordCounts[word].lastDate = entry.date;
+      }
+    }
+  }
+
+  // 2回以上出現したものだけ返す
+  return Object.entries(keywordCounts)
+    .filter(([_, v]) => v.count >= 2)
+    .map(([keyword, v]) => ({
+      keyword,
+      count: v.count,
+      lastDate: v.lastDate,
+      avgArousal: v.totalArousal / v.count,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);  // 最大3件
+}
+```
 
 - [ ] **Step 4: buildCronPrompt() を修正 — スコア付き候補を含める**
 
