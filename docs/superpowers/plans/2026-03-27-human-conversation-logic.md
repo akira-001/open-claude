@@ -8,6 +8,14 @@
 
 **Tech Stack:** TypeScript (proactive agent), Python (interest scanner), React (dashboard)
 
+**Eng Review Decisions (2026-03-27):**
+1. **categoryWeights → 読み取り専用**: TS priors に重み学習を一本化。categoryWeights は affinity の入力としてのみ使用（更新停止）
+2. **反応検知 → イベント駆動**: pendingReward ポーリングを廃止。既存 handleReaction() に TS 更新をフックイン。neutral は次回 run() で2h+無反応を検知
+3. **RawCandidate → 共通フィールド + metadata bag**: source discriminant + Record<string, unknown>
+4. **ファイル分離**: thompson-sampling.ts（数学ユーティリティ）+ conversation-scorer.ts（スコアリング）
+5. **ループ安全弁**: gammaSample() に 1000回上限 + 期待値フォールバック
+6. **Credit assignment**: 粗い更新を許容（データ量が少なく rescale で古い誤りが薄まる）
+
 ---
 
 ## 人間の会話ロジックとは何か
@@ -91,19 +99,26 @@ selection_score = final_score + exploration_bonus  # 候補選択時のみ
 
 | ファイル | 役割 | 変更 |
 |---------|------|------|
-| `src/conversation-scorer.ts` | **NEW** — 6軸スコアリングエンジン | 作成 |
-| `src/skill-enhanced-proactive-agent.ts` | run() でスコアラーを呼び出し、候補リストを構築 | 修正 |
-| `src/proactive-state.ts` | buildCronPrompt() にスコア付き候補を渡す | 修正 |
+| `src/thompson-sampling.ts` | **NEW** — Beta分布サンプリング、priors 更新、rescale | 作成 |
+| `src/conversation-scorer.ts` | **NEW** — 6軸スコアリング、文脈ボーナス、探索ボーナス | 作成 |
+| `src/skill-enhanced-proactive-agent.ts` | run() でスコアラーを呼び出し、handleReaction() で TS 更新 | 修正 |
+| `src/proactive-state.ts` | LearningState 追加、categoryWeights 更新停止、buildCronPrompt 修正 | 修正 |
 | `interest_scanner.py` | timeliness スコアをキャッシュに含める | 修正 |
-| `dashboard/src/pages/ProactiveConfig.tsx` | 判断ログにスコア内訳を表示 | 修正 |
-| `dashboard/server/api.ts` | stats API にスコア情報を含める | 修正 |
+| `dashboard/src/pages/ProactiveConfig.tsx` | スコア内訳 + 学習状態 + 探索ボーナス表示 | 修正 |
+| `dashboard/server/api.ts` | stats API にスコア + 学習情報を含める | 修正 |
+| `src/__tests__/thompson-sampling.test.ts` | **NEW** — TS 数学関数の単体テスト (~15件) | 作成 |
+| `src/__tests__/conversation-scorer.test.ts` | **NEW** — 6軸スコアリングの単体テスト (~35件) | 作成 |
+| `src/__tests__/proactive-agent.test.ts` | handleReaction → TS 統合テスト追加 (~5件) | 修正 |
 
 ---
 
-## Task 1: conversation-scorer.ts — スコアリングエンジン
+## Task 1: thompson-sampling.ts + conversation-scorer.ts — スコアリングエンジン
 
 **Files:**
+- Create: `src/thompson-sampling.ts`
 - Create: `src/conversation-scorer.ts`
+- Create: `src/__tests__/thompson-sampling.test.ts`
+- Create: `src/__tests__/conversation-scorer.test.ts`
 
 ### スコアリング関数の設計
 
@@ -618,69 +633,91 @@ state.lastDecisionLog = {
 };
 ```
 
-- [ ] **Step 6: 反応観測 → priors 更新（学習ループ）**
+- [ ] **Step 6: handleReaction() に TS priors 更新を統合**
 
-Slack からの反応（リアクション絵文字、返信、無反応）を検知して priors を更新する。
+既存のイベント駆動 handleReaction() に TS 学習をフックイン。
+pendingReward は使わない — Slack の reaction_added イベントで即座に更新。
 
 ```typescript
-// proactive-state.ts に追加
-interface ProactiveState {
-  // ... 既存フィールド
-  learningState: LearningState;         // Thompson Sampling の学習状態
-  pendingReward?: {                     // 反応待ちの候補
-    candidate: ScoredCandidate;
-    sentAt: string;
-    messageTs: string;
-  };
-}
+// skill-enhanced-proactive-agent.ts の handleReaction() を拡張
+async handleReaction(emoji: string, messageTs: string, channel: string): Promise<void> {
+  const state = loadState(this.statePath);
+  const entry = state.history.find((h) => h.slackTs === messageTs);
+  if (!entry) return;
 
-// skill-enhanced-proactive-agent.ts の run() 冒頭で
-// 前回送信の反応を確認して priors を更新
-function checkAndUpdateReward(state: ProactiveState): void {
-  if (!state.pendingReward) return;
+  // 既存: categoryWeights は読み取り専用に変更（applyReaction の重み更新を停止）
+  // 反応の記録（entry.reaction, entry.reactionDelta, stats）は維持
+  applyReaction(state, messageTs, emoji);
 
-  const { candidate, sentAt, messageTs } = state.pendingReward;
-  const minutesSinceSent = (Date.now() - new Date(sentAt).getTime()) / 60000;
+  // NEW: Thompson Sampling priors を更新
+  const scoredCandidate = state.lastScoredCandidates?.find(
+    c => c.category === entry.interestCategory || c.topic === entry.preview
+  );
+  if (scoredCandidate && state.learningState) {
+    const reaction = emojiToReaction(emoji);  // 'positive' | 'neutral' | 'negative'
+    state.learningState = updatePriors(state.learningState, scoredCandidate, reaction);
+    state.learningState = rescalePriors(state.learningState);
+  }
 
-  // 30分以上経過したら反応を確定
-  if (minutesSinceSent < 30) return;
+  saveState(state, this.statePath);
 
-  // Slack API で反応を取得（既存の reaction tracking ロジックを流用）
-  const reaction = detectReaction(messageTs);  // 'positive' | 'neutral' | 'negative'
-
-  // Beta 分布を更新
-  state.learningState = updatePriors(state.learningState, candidate, reaction);
-
-  // rescale チェック（α+β が大きくなりすぎたら）
-  state.learningState = rescalePriors(state.learningState);
-
-  // ログに記録
-  console.log(`[TS] Reward observed: ${reaction} for "${candidate.topic}" (${candidate.category})`);
-
-  // pending をクリア
-  delete state.pendingReward;
-}
-
-// 送信後に pending を設定
-function setPendingReward(state: ProactiveState, chosen: ScoredCandidate, messageTs: string): void {
-  state.pendingReward = {
-    candidate: chosen,
-    sentAt: new Date().toISOString(),
-    messageTs,
-  };
+  // 既存: Skill learning
+  if (this.enableSkillLearning) {
+    await this.learnFromReaction(emoji, messageTs);
+  }
 }
 ```
 
-- [ ] **Step 7: learningState の永続化**
+- [ ] **Step 7: neutral 検知（次回 run() 冒頭）**
 
-`proactive-state.ts` の `loadState()` / `saveState()` に `learningState` フィールドを追加。
-既存の state ファイル（mei-state.json）に含めて永続化する。
-state に `learningState` がない場合は `createInitialLearningState()` で初期化。
+run() の冒頭で、前回送信から2時間以上経過 + 反応なしを neutral として TS 更新。
 
-- [ ] **Step 8: コミット**
+```typescript
+// run() の冒頭に追加
+function checkNeutralReaction(state: ProactiveState): void {
+  if (!state.lastScoredCandidates?.length) return;
+  const lastEntry = state.history[state.history.length - 1];
+  if (!lastEntry || lastEntry.reaction !== null) return;  // 既に反応あり
+
+  const minutesSinceSent = (Date.now() - new Date(lastEntry.sentAt).getTime()) / 60000;
+  if (minutesSinceSent < 120) return;  // 2時間未満はまだ待つ
+
+  const scoredCandidate = state.lastScoredCandidates.find(
+    c => c.category === lastEntry.interestCategory
+  );
+  if (scoredCandidate && state.learningState) {
+    state.learningState = updatePriors(state.learningState, scoredCandidate, 'neutral');
+    state.learningState = rescalePriors(state.learningState);
+  }
+}
+```
+
+- [ ] **Step 8: learningState の永続化 + lastScoredCandidates の保存**
+
+`proactive-state.ts` の型と `loadState()` / `saveState()` を拡張:
+
+```typescript
+interface ProactiveState {
+  // ... 既存フィールド
+  learningState?: LearningState;                    // Thompson Sampling の学習状態
+  lastScoredCandidates?: ScoredCandidate[];         // 直近のスコア付き候補（ダッシュボード + 反応マッチ用）
+}
+
+// loadState() 内:
+if (!state.learningState) {
+  state.learningState = createInitialLearningState();
+}
+```
+
+- [ ] **Step 9: categoryWeights の更新停止**
+
+`applyReaction()` 内の `updateWeight()` 呼び出しをコメントアウトまたは条件分岐。
+既存の categoryWeights 値は保持（affinity スコアの入力として使用）。
+
+- [ ] **Step 10: コミット**
 
 ```bash
-git add src/skill-enhanced-proactive-agent.ts src/proactive-state.ts src/conversation-scorer.ts
+git add src/skill-enhanced-proactive-agent.ts src/proactive-state.ts src/conversation-scorer.ts src/thompson-sampling.ts
 git commit -m "feat: integrate 6-axis scoring with Thompson Sampling into proactive agent"
 ```
 
@@ -821,3 +858,14 @@ $B screenshot /tmp/proactive-v3.png
 6. **経験から学ぶ（Thompson Sampling）** — 「前にこういう話題で反応良かったから、似た状況ではこの軸を重視しよう」。人間が無意識にやっている「この人にはこの話の振り方が合う」を Beta 分布の更新で再現する
 
 7. **たまに冒険する（UCB 探索）** — いつも安全な話題だけだと関係が硬直する。試したことのないカテゴリに探索ボーナスを付けて、新しい反応パターンを発見する機会を作る
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | — |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR (PLAN) | 5 issues, 0 critical gaps |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+
+**VERDICT:** ENG CLEARED — 5 issues all resolved (dual learning→C案, polling→event-driven, RawCandidate→metadata bag, TS分離, ループ安全弁). 55 test paths identified for TDD.
