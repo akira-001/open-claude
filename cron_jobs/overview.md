@@ -20,7 +20,7 @@
 |---------|------------|------|--------|
 | ir-news-check | 毎週月曜 9:00 | company_list.md の企業リストを元に、最新の決算短信を Web 検索で確認。新着があればサマリを送信 | DM (U3SFGQXNH) |
 | gmail-to-drive | 毎週月曜 9:00 | Gmail (motogami@gmail.com) から領収書・請求書 PDF を検索し、Google Drive (redperth@gmail.com) に自動保存してアーカイブ | #general (C0AHQV1ME4S) |
-| campingcar-search-weekly | 毎週金曜 9:00 | campnofuji.jp からキャンピングカーの新着物件をスクレイピングし、SOLD OUT 除外・装備分離表示・ローカル LLM おすすめピック付きで投稿 | DM (U3SFGQXNH) |
+| campingcar-search-weekly | 毎週金曜 9:05 | campnofuji.jp からキャンピングカーの新着物件をスクレイピングし、SOLD OUT 除外・装備分離表示・ローカル LLM おすすめピック付きで投稿 | DM (U3SFGQXNH) |
 
 ---
 
