@@ -1,0 +1,66 @@
+<h2>Implementation Approach</h2>
+<p class="subtitle">Ember ダッシュボードのスタイル基盤をどうするか</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>CSS Custom Properties に移行</h3>
+      <p>cogmem と同じ方式。Tailwind を剥がして CSS 変数ベースに。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>cogmem と完全に同じ構造 — 将来の共通化が容易</li>
+          <li>デザイントークンの一元管理</li>
+          <li>ダークモード切替も変数だけで可能</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>全コンポーネントの className 書き直し（大工事）</li>
+          <li>Tailwind のユーティリティ（flex, grid, gap等）も失う</li>
+          <li>工数が最も大きい</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Tailwind テーマカスタマイズ</h3>
+      <p>tailwind.config.js で Ember Glow のカラートークンを定義。既存クラスの色名を差し替え。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Tailwind のユーティリティはそのまま使える</li>
+          <li>色名の置換で済む（gray-900 → ember-bg 等）</li>
+          <li>工数が中程度</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>cogmem との構造的統一はされない</li>
+          <li>全コンポーネントの色クラスを grep & replace</li>
+          <li>タイポグラフィ・spacing の統一は手作業</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>ハイブリッド: CSS 変数 + Tailwind</h3>
+      <p>CSS 変数でカラートークンを定義し、Tailwind の arbitrary value [var(--xxx)] で参照。レイアウトユーティリティは Tailwind のまま。</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>カラートークンは cogmem と同じ構造</li>
+          <li>flex, grid, gap, p-*, m-* 等のレイアウトは維持</li>
+          <li>将来の共通デザインシステムへの移行パスが明確</li>
+          <li>変更箇所が最小限</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>bg-gray-800 → bg-[var(--surface)] への書き換えは必要</li>
+          <li>2つのシステムが混在する過渡期がある</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 2rem;">推奨: <strong>C. ハイブリッド</strong> — カラーの統一感を得つつ、Tailwind のレイアウト機能を維持。工数と効果のバランスが最も良い。</p>
