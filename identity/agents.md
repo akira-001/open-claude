@@ -395,6 +395,12 @@ Session Init 時の検知は通知のみ（Wrap まで待つ）。
 4. [ERROR] パターンを error-patterns.md に EP-NNN 形式で追記
 5. memory/knowledge/summary.md を更新
 6. cogmem.toml の crystallization セクションを更新
+7. 忘却処理: `cogmem decay` を実行（定着済みログに対して自動適用）
+   - Arousal >= {threshold} → 詳細を残す（鮮烈な記憶）
+   - recall_count >= {threshold} かつ直近 {window} ヶ月に想起あり → 残す
+   - recall_count >= {threshold} かつ直近 {window} ヶ月に想起なし → 削除
+   - 上記以外 → compact に圧縮、詳細削除
+   - 閾値はダッシュボード（/consolidation/）で変更可能
 
 ### シグナル条件
 
