@@ -47,9 +47,10 @@ Live Logging や Skill Tracking は意識だけでは維持できない。`cogme
 - **次**: A/B キーワード採点改善、3レベル比較テスト設計
 
 ### claude-code-slack-bot（Mei/Eve 2ボット体制）
-- **状態**: 運用中。Ember ダッシュボード大幅強化済み
-- **主要機能**: CronEditor 共通コンポーネント、cron 新規作成、プロンプト編集、No Reply トグル、内発的報酬システム、5層会話前提システム、proactive context 注入
-- **次**: ProfilePage 動作確認、ダッシュボードサーバーの pm2 管理移行検討
+- **状態**: 運用中。Self-Actualization Engine 実装済み
+- **主要機能**: 5層プロファイルページ（レーダーチャート+展開カード）、階層型報酬（L1-L5+L-action）、週次プロファイリング問いかけ（選択肢付き）、共有プロアクティブ履歴（Mei/Eve重複防止）、ボット別テーマ（Mei暖色/Eve寒色）、配信履歴報酬ログ表示、スケジュールSSOT（cron-jobs.json一元管理）
+- **リポジトリ**: akira-001/claude-code-slack-bot（private フォーク）
+- **次**: 週次問いかけ初回動作確認、ダッシュボードサーバー pm2 管理移行
 
 ### open-claude（このリポジトリ）
 - **役割**: cogmem の認知記憶データ + エージェント設定の格納場所
