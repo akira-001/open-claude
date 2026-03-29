@@ -23,24 +23,6 @@
 
 ---
 
-## コンテキスト構造
-
-どこに何を書くか迷ったとき → `context-architecture` スキルを読む
-
----
-
-## フェーズ別スキル対応表
-
-| フェーズ | トリガー | 読むスキル |
-|---------|---------|-----------|
-| Session Init | 会話開始（挨拶、新トピック） | `session-init` |
-| Live Logging | 下記トリガー表の条件 | `live-logging` |
-| Skill Tracking | スキル使用時 | `skill-tracking` |
-| Wrap | 下記トリガーフレーズ | `wrap` |
-| 記憶の定着 | Wrap時に signals 検知 | `crystallize` |
-
----
-
 ## Live Logging トリガー表（常時参照）
 
 | トリガー | タグ | Arousal |
