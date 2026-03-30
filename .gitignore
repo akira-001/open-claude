@@ -9,5 +9,6 @@ __pycache__/
 *.db
 *.db-shm
 *.db-wal
+cogmem.local.toml
 .gstack/
 memory/skills.db
