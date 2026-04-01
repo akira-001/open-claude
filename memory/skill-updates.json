@@ -1,27 +1,30 @@
 {
-  "checked_at": "2026-04-01T21:31:33.921680",
+  "checked_at": "2026-04-02T08:50:46.378267",
   "sources": {
     "gstack": {
       "type": "git",
-      "version": "0.13.0.0",
-      "local_sha": "78bc1d19",
+      "version": "0.15.0.0",
+      "local_sha": "6169273d",
       "remote_sha": "6169273d",
-      "up_to_date": false,
-      "behind": 22
+      "up_to_date": true,
+      "behind": 0
     },
     "plugin:frontend-design": {
       "type": "plugin",
       "version": "unknown",
+      "latest_version": "",
       "up_to_date": true
     },
     "plugin:superpowers": {
       "type": "plugin",
-      "version": "5.0.5",
-      "up_to_date": true
+      "version": "5.0.7",
+      "latest_version": "5.0.5",
+      "up_to_date": false
     },
     "plugin:skill-creator": {
       "type": "plugin",
       "version": "unknown",
+      "latest_version": "",
       "up_to_date": true
     }
   }
