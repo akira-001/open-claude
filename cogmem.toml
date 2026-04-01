@@ -36,6 +36,25 @@ arousal_weight = 0.3
 base_half_life = 60.0
 decay_floor = 0.3
 
+[cogmem.behavior]
+consecutive_failure_threshold = 2
+
+[[cogmem.skill_triggers]]
+pattern = "dashboard/templates/**"
+skills = ["tdd-dashboard-dev"]
+
+[[cogmem.skill_triggers]]
+pattern = "dashboard/services/**"
+skills = ["tdd-dashboard-dev"]
+
+[[cogmem.skill_triggers]]
+pattern = "dashboard/i18n.py"
+skills = ["tdd-dashboard-dev"]
+
+[[cogmem.skill_triggers]]
+pattern = "cron-jobs.json"
+skills = ["cron-automation"]
+
 [cogmem.embedding]
 provider = "ollama"
 model = "zylonai/multilingual-e5-large"
