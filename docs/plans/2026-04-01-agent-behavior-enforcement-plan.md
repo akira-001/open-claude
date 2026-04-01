@@ -532,14 +532,6 @@ def run_skill_gate(hook_input: dict, base_dir: str | None = None) -> None:
         from ..config import CogMemConfig
         from ..skills.store import SkillsStore
 
-        if base_dir:
-            import tomllib  # Python 3.11+
-        except ImportError:
-            try:
-                import tomli as tomllib
-            except ImportError:
-                return
-
         config = CogMemConfig.find_and_load(start_dir=base_dir)
         store = SkillsStore(config)
 
@@ -623,6 +615,39 @@ skills = ["tdd-dashboard-dev"]
         from cognitive_memory.watch import get_changed_files_since
         files = get_changed_files_since("1 day ago", str(tmp_path))
         assert "dashboard/templates/list.html" in files
+
+    def test_watch_json_includes_skill_gaps(self, tmp_path, monkeypatch):
+        """watch --json の出力に skill_gaps が含まれる"""
+        import subprocess
+        toml = tmp_path / "cogmem.toml"
+        toml.write_text('''[cogmem]
+logs_dir = "memory/logs"
+
+[[cogmem.skill_triggers]]
+pattern = "dashboard/**"
+skills = ["tdd-dashboard-dev"]
+''')
+        (tmp_path / "memory").mkdir()
+        (tmp_path / "memory" / "logs").mkdir()
+        monkeypatch.chdir(tmp_path)
+
+        subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "t@t.com"], cwd=tmp_path, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "T"], cwd=tmp_path, capture_output=True)
+        (tmp_path / "dashboard").mkdir()
+        (tmp_path / "dashboard" / "x.html").write_text("test")
+        subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "feat: dash"], cwd=tmp_path, capture_output=True)
+
+        from cognitive_memory.cli.watch_cmd import run_watch
+        import io, contextlib
+        f = io.StringIO()
+        with contextlib.redirect_stdout(f):
+            run_watch(since="1 day ago", json_output=True)
+        import json
+        output = json.loads(f.getvalue())
+        assert "skill_gaps" in output
+        assert any(g["expected_skill"] == "tdd-dashboard-dev" for g in output["skill_gaps"])
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -815,11 +840,11 @@ def setup_hooks(settings_dir: str) -> None:
     print(f"  hooks → {claude_dir / 'settings.json'}")
 ```
 
-- [ ] **Step 5: Add behavior section template to cogmem.toml generation**
+- [ ] **Step 5: Add behavior section to scaffold template**
 
-```python
-# init_cmd.py — cogmem.toml テンプレート内に追加
+`src/cognitive_memory/templates/cogmem.toml` の末尾に追加:
 
+```toml
 [cogmem.behavior]
 consecutive_failure_threshold = 2
 # skill_gate = true  # デフォルト有効
@@ -932,15 +957,13 @@ skills = ["tdd-dashboard-dev"]
 pattern = "cron-jobs.json"
 skills = ["cron-automation"]
 
-[[cogmem.skill_triggers]]
-pattern = ".claude/skills/**/SKILL.md"
-skills = ["skill-improve"]
+# 注: .claude/skills/**/SKILL.md → skill-improve は _DEFAULT_SKILL_TRIGGERS に含まれるため不要
 ```
 
 - [ ] **Step 2: Verify cogmem loads the config**
 
 Run: `cd /Users/akira/workspace/open-claude && python3 -c "from cognitive_memory.config import CogMemConfig; c = CogMemConfig.find_and_load(); print(f'threshold={c.consecutive_failure_threshold}, triggers={len(c.skill_triggers)}')"` 
-Expected: `threshold=2, triggers=5`
+Expected: `threshold=2, triggers=4`
 
 - [ ] **Step 3: Setup hooks in settings.json**
 
