@@ -47,12 +47,13 @@
     padding: 4px;
   }
   #controls {
-    padding: 20px;
+    padding: 16px 20px;
     display: flex;
     justify-content: center;
     gap: 12px;
     align-items: center;
     background: #16213e;
+    flex-wrap: wrap;
   }
   #talkBtn {
     width: 80px;
@@ -79,7 +80,7 @@
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
   }
-  #ttsToggle {
+  .side-btn {
     background: none;
     border: 1px solid #555;
     color: #aaa;
@@ -88,7 +89,17 @@
     cursor: pointer;
     font-size: 13px;
   }
-  #ttsToggle.on { border-color: #0f3460; color: #7ec8e3; }
+  .side-btn.on { border-color: #0f3460; color: #7ec8e3; }
+  #voiceSelect {
+    background: #0d1b2a;
+    color: #aaa;
+    border: 1px solid #555;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    max-width: 160px;
+  }
+  #voiceSelect:focus { border-color: #0f3460; color: #7ec8e3; outline: none; }
 </style>
 </head>
 <body>
@@ -96,31 +107,38 @@
 <div id="chat"></div>
 
 <div id="controls">
-  <button id="ttsToggle" class="on" onclick="toggleTTS()">TTS ON</button>
+  <select id="voiceSelect"></select>
   <button id="talkBtn">TALK</button>
+  <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">TTS ON</button>
 </div>
 
 <script>
 const chat = document.getElementById('chat');
 const talkBtn = document.getElementById('talkBtn');
 const ttsToggle = document.getElementById('ttsToggle');
+const voiceSelect = document.getElementById('voiceSelect');
 
 let ws = null;
+let micStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
 let recording = false;
 let processing = false;
 let ttsEnabled = true;
-let speaking = false;
 
-let pendingText = null;
+// マイクを初回のみ取得して使い回す
+async function getMicStream() {
+  if (!micStream || !micStream.active) {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  }
+  return micStream;
+}
 
 function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.binaryType = 'arraybuffer';
 
   ws.onmessage = (e) => {
-    // バイナリ = VOICEVOX 音声データ (WAV)
     if (e.data instanceof ArrayBuffer) {
       if (ttsEnabled) playAudio(e.data);
       processing = false;
@@ -136,14 +154,12 @@ function connect() {
       addMessage(msg.text, 'user');
     } else if (msg.type === 'assistant_text') {
       addMessage(msg.text, 'assistant');
-      // tts_fallback: VOICEVOX 失敗時はブラウザTTSで読み上げ
       if (msg.tts_fallback) {
         if (ttsEnabled) speak(msg.text);
         processing = false;
         talkBtn.disabled = false;
         talkBtn.textContent = 'TALK';
       }
-      // VOICEVOX 成功時はバイナリ到着後にボタン復帰
     }
   };
 
@@ -172,26 +188,24 @@ function addMessage(text, type) {
 
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
-  speaking = true;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'ja-JP';
   const voices = speechSynthesis.getVoices();
   const jaVoice = voices.find(v => v.lang.startsWith('ja'));
   if (jaVoice) u.voice = jaVoice;
   u.rate = 1.1;
-  u.onend = () => { speaking = false; };
   speechSynthesis.speak(u);
 }
 
 function toggleTTS() {
   ttsEnabled = !ttsEnabled;
   ttsToggle.textContent = ttsEnabled ? 'TTS ON' : 'TTS OFF';
-  ttsToggle.className = ttsEnabled ? 'on' : '';
+  ttsToggle.className = ttsEnabled ? 'side-btn on' : 'side-btn';
   if (!ttsEnabled) speechSynthesis.cancel();
 }
 
 async function startRecording() {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await getMicStream();
   audioChunks = [];
   mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
 
@@ -200,7 +214,6 @@ async function startRecording() {
   };
 
   mediaRecorder.onstop = async () => {
-    stream.getTracks().forEach(t => t.stop());
     const blob = new Blob(audioChunks, { type: 'audio/webm' });
     const buf = await blob.arrayBuffer();
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -236,8 +249,33 @@ talkBtn.addEventListener('click', (e) => {
   }
 });
 
+// 音声切り替え
+voiceSelect.addEventListener('change', () => {
+  const id = parseInt(voiceSelect.value);
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'set_speaker', speaker_id: id }));
+  }
+});
+
+// スピーカー一覧を取得
+async function loadSpeakers() {
+  const resp = await fetch('/api/speakers');
+  const speakers = await resp.json();
+  voiceSelect.innerHTML = '';
+  for (const s of speakers) {
+    for (const st of s.styles) {
+      const opt = document.createElement('option');
+      opt.value = st.id;
+      opt.textContent = `${s.name} - ${st.name}`;
+      if (st.id === 2) opt.selected = true;
+      voiceSelect.appendChild(opt);
+    }
+  }
+}
+
 // 初期化
 speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+loadSpeakers();
 connect();
 </script>
 
