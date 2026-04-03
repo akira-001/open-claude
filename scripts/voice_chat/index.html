@@ -90,10 +90,8 @@
     font-size: 13px;
   }
   .side-btn.on { border-color: #0f3460; color: #7ec8e3; }
-  .bot-btn { border-color: #e94560; color: #e94560; }
-  .bot-btn:hover { background: rgba(233, 69, 96, 0.1); }
-  .bot-btn:disabled { opacity: 0.4; }
-  select, .ctrl-select {
+  .side-btn.proactive-on { border-color: #2ecc71; color: #2ecc71; }
+  select {
     background: #0d1b2a;
     color: #aaa;
     border: 1px solid #555;
@@ -101,7 +99,7 @@
     border-radius: 8px;
     font-size: 13px;
   }
-  select:focus, .ctrl-select:focus { border-color: #0f3460; color: #7ec8e3; outline: none; }
+  select:focus { border-color: #0f3460; color: #7ec8e3; outline: none; }
   #voiceSelect { max-width: 160px; }
   #modelSelect { max-width: 200px; }
   #toolbar {
@@ -161,7 +159,7 @@
   <span class="toolbar-label">Speed</span>
   <select id="speedSelect">
     <option value="0.8">0.8x</option>
-    <option value="1.0" selected>1.0x</option>
+    <option value="1.0">1.0x</option>
     <option value="1.2">1.2x</option>
     <option value="1.5">1.5x</option>
     <option value="2.0">2.0x</option>
@@ -172,7 +170,7 @@
   <select id="meiVoice" class="bot-voice-select"></select>
   <select id="meiSpeed">
     <option value="0.8">0.8x</option>
-    <option value="1.0" selected>1.0x</option>
+    <option value="1.0">1.0x</option>
     <option value="1.2">1.2x</option>
     <option value="1.5">1.5x</option>
     <option value="2.0">2.0x</option>
@@ -184,7 +182,7 @@
   <select id="eveVoice" class="bot-voice-select"></select>
   <select id="eveSpeed">
     <option value="0.8">0.8x</option>
-    <option value="1.0" selected>1.0x</option>
+    <option value="1.0">1.0x</option>
     <option value="1.2">1.2x</option>
     <option value="1.5">1.5x</option>
     <option value="2.0">2.0x</option>
@@ -192,6 +190,7 @@
   <button class="bot-play" onclick="playBotMessage('eve')">Play</button>
 </div>
 <div id="controls">
+  <button id="proactiveBtn" class="side-btn" onclick="toggleProactive()">Proactive OFF</button>
   <button id="previewBtn" class="side-btn" onclick="previewVoice()">Preview</button>
   <button id="talkBtn">TALK</button>
   <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">TTS ON</button>
@@ -204,6 +203,7 @@ const ttsToggle = document.getElementById('ttsToggle');
 const voiceSelect = document.getElementById('voiceSelect');
 const modelSelect = document.getElementById('modelSelect');
 const speedSelect = document.getElementById('speedSelect');
+const proactiveBtn = document.getElementById('proactiveBtn');
 
 let ws = null;
 let micStream = null;
@@ -212,8 +212,70 @@ let audioChunks = [];
 let recording = false;
 let processing = false;
 let ttsEnabled = true;
+let proactiveEnabled = false;
+let proactiveTimer = null;
+let lastSeen = { mei: '', eve: '' };
+let audioQueue = [];
+let isPlaying = false;
 
-// マイクを初回のみ取得して使い回す
+// --- localStorage 永続化 ---
+const STORAGE_KEY = 'voiceChatSettings';
+
+function saveSettings() {
+  const settings = {
+    voiceSelect: voiceSelect.value,
+    modelSelect: modelSelect.value,
+    speedSelect: speedSelect.value,
+    meiVoice: document.getElementById('meiVoice').value,
+    meiSpeed: document.getElementById('meiSpeed').value,
+    eveVoice: document.getElementById('eveVoice').value,
+    eveSpeed: document.getElementById('eveSpeed').value,
+    ttsEnabled,
+    proactiveEnabled,
+    lastSeen,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function applySettings(settings) {
+  if (!settings) return;
+  if (settings.voiceSelect) voiceSelect.value = settings.voiceSelect;
+  if (settings.modelSelect) modelSelect.value = settings.modelSelect;
+  if (settings.speedSelect) speedSelect.value = settings.speedSelect;
+  if (settings.meiVoice) document.getElementById('meiVoice').value = settings.meiVoice;
+  if (settings.meiSpeed) document.getElementById('meiSpeed').value = settings.meiSpeed;
+  if (settings.eveVoice) document.getElementById('eveVoice').value = settings.eveVoice;
+  if (settings.eveSpeed) document.getElementById('eveSpeed').value = settings.eveSpeed;
+  if (settings.ttsEnabled !== undefined) {
+    ttsEnabled = settings.ttsEnabled;
+    ttsToggle.textContent = ttsEnabled ? 'TTS ON' : 'TTS OFF';
+    ttsToggle.className = ttsEnabled ? 'side-btn on' : 'side-btn';
+  }
+  if (settings.lastSeen) lastSeen = settings.lastSeen;
+  if (settings.proactiveEnabled) {
+    proactiveEnabled = true;
+    proactiveBtn.textContent = 'Proactive ON';
+    proactiveBtn.className = 'side-btn proactive-on';
+    startProactivePolling();
+  }
+}
+
+// 全 select に change リスナーを付けて自動保存
+function autoSave() {
+  document.querySelectorAll('select').forEach(el => {
+    el.addEventListener('change', saveSettings);
+  });
+}
+
+// --- マイク ---
 async function getMicStream() {
   if (!micStream || !micStream.active) {
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -221,9 +283,20 @@ async function getMicStream() {
   return micStream;
 }
 
+// --- WebSocket ---
 function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
   ws.binaryType = 'arraybuffer';
+
+  ws.onopen = () => {
+    // 保存済み設定をサーバーに送信
+    const s = loadSettings();
+    if (s) {
+      if (s.voiceSelect) wsSend({ type: 'set_speaker', speaker_id: parseInt(s.voiceSelect) });
+      if (s.speedSelect) wsSend({ type: 'set_speed', speed: parseFloat(s.speedSelect) });
+      if (s.modelSelect) wsSend({ type: 'set_model', model: s.modelSelect });
+    }
+  };
 
   ws.onmessage = (e) => {
     if (e.data instanceof ArrayBuffer) {
@@ -253,14 +326,38 @@ function connect() {
   ws.onclose = () => setTimeout(connect, 2000);
 }
 
+function wsSend(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+// --- 音声再生キュー ---
 function playAudio(arrayBuffer) {
-  const blob = new Blob([arrayBuffer], { type: 'audio/wav' });
+  audioQueue.push(arrayBuffer);
+  processQueue();
+}
+
+function processQueue() {
+  if (isPlaying || audioQueue.length === 0) return;
+  isPlaying = true;
+  const buf = audioQueue.shift();
+  const blob = new Blob([buf], { type: 'audio/wav' });
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
-  audio.onended = () => URL.revokeObjectURL(url);
+  audio.onended = () => {
+    URL.revokeObjectURL(url);
+    isPlaying = false;
+    processQueue();
+  };
+  audio.onerror = () => {
+    isPlaying = false;
+    processQueue();
+  };
   audio.play();
 }
 
+// --- UI ---
 function addMessage(text, type) {
   if (type === 'status') {
     const prev = chat.querySelector('.msg.status');
@@ -289,8 +386,10 @@ function toggleTTS() {
   ttsToggle.textContent = ttsEnabled ? 'TTS ON' : 'TTS OFF';
   ttsToggle.className = ttsEnabled ? 'side-btn on' : 'side-btn';
   if (!ttsEnabled) speechSynthesis.cancel();
+  saveSettings();
 }
 
+// --- 録音 ---
 async function startRecording() {
   const stream = await getMicStream();
   audioChunks = [];
@@ -325,7 +424,6 @@ function stopRecording() {
   }
 }
 
-// Toggle recording on click
 talkBtn.addEventListener('click', (e) => {
   e.preventDefault();
   if (processing) return;
@@ -336,15 +434,21 @@ talkBtn.addEventListener('click', (e) => {
   }
 });
 
-// 音声切り替え
+// --- 音声切り替え（メイン、WebSocket にも送信）---
 voiceSelect.addEventListener('change', () => {
-  const id = parseInt(voiceSelect.value);
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'set_speaker', speaker_id: id }));
-  }
+  wsSend({ type: 'set_speaker', speaker_id: parseInt(voiceSelect.value) });
+  saveSettings();
+});
+speedSelect.addEventListener('change', () => {
+  wsSend({ type: 'set_speed', speed: parseFloat(speedSelect.value) });
+  saveSettings();
+});
+modelSelect.addEventListener('change', () => {
+  wsSend({ type: 'set_model', model: modelSelect.value });
+  saveSettings();
 });
 
-// Bot メッセージ再生
+// --- Bot メッセージ再生 ---
 async function playBotMessage(botId) {
   const btns = document.querySelectorAll('.bot-play');
   btns.forEach(b => b.disabled = true);
@@ -355,8 +459,10 @@ async function playBotMessage(botId) {
       btns.forEach(b => b.disabled = false);
       return;
     }
-    const { text } = await textResp.json();
+    const { text, sentAt } = await textResp.json();
     addMessage(`[${botId}] ${text}`, 'assistant');
+    lastSeen[botId] = sentAt;
+    saveSettings();
 
     const speaker = document.getElementById(`${botId}Voice`).value;
     const speed = document.getElementById(`${botId}Speed`).value;
@@ -369,7 +475,7 @@ async function playBotMessage(botId) {
   btns.forEach(b => b.disabled = false);
 }
 
-// 音声プレビュー
+// --- 音声プレビュー ---
 async function previewVoice() {
   const btn = document.getElementById('previewBtn');
   btn.disabled = true;
@@ -387,27 +493,61 @@ async function previewVoice() {
   btn.textContent = 'Preview';
 }
 
-// スピード切り替え
-speedSelect.addEventListener('change', () => {
-  const speed = parseFloat(speedSelect.value);
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'set_speed', speed }));
+// --- プロアクティブモード ---
+function toggleProactive() {
+  proactiveEnabled = !proactiveEnabled;
+  proactiveBtn.textContent = proactiveEnabled ? 'Proactive ON' : 'Proactive OFF';
+  proactiveBtn.className = proactiveEnabled ? 'side-btn proactive-on' : 'side-btn';
+  if (proactiveEnabled) {
+    startProactivePolling();
+  } else {
+    stopProactivePolling();
   }
-});
+  saveSettings();
+}
 
-// モデル切り替え
-modelSelect.addEventListener('change', () => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: 'set_model', model: modelSelect.value }));
+function startProactivePolling() {
+  if (proactiveTimer) return;
+  proactiveTimer = setInterval(checkProactiveMessages, 30000);
+  // 初回は即実行
+  checkProactiveMessages();
+}
+
+function stopProactivePolling() {
+  if (proactiveTimer) {
+    clearInterval(proactiveTimer);
+    proactiveTimer = null;
   }
-});
+}
 
-// スピーカー一覧を取得
+async function checkProactiveMessages() {
+  for (const botId of ['mei', 'eve']) {
+    try {
+      const resp = await fetch(`/api/bot-text/${botId}`);
+      if (!resp.ok) continue;
+      const { text, sentAt } = await resp.json();
+      if (sentAt && sentAt !== lastSeen[botId]) {
+        lastSeen[botId] = sentAt;
+        saveSettings();
+        addMessage(`[${botId}] ${text}`, 'assistant');
+
+        const speaker = document.getElementById(`${botId}Voice`).value;
+        const speed = document.getElementById(`${botId}Speed`).value;
+        const audioResp = await fetch(`/api/bot-audio/${botId}?speaker=${speaker}&speed=${speed}`);
+        const buf = await audioResp.arrayBuffer();
+        playAudio(buf);
+      }
+    } catch (e) {
+      console.error(`proactive check ${botId}:`, e);
+    }
+  }
+}
+
+// --- スピーカー・モデル読み込み ---
 async function loadSpeakers() {
   const resp = await fetch('/api/speakers');
   const speakers = await resp.json();
 
-  // 全セレクターに反映 (メイン + Mei + Eve)
   const selects = [
     { el: voiceSelect, defaultId: 2 },
     { el: document.getElementById('meiVoice'), defaultId: 2 },
@@ -427,7 +567,6 @@ async function loadSpeakers() {
   }
 }
 
-// モデル一覧を取得
 async function loadModels() {
   const resp = await fetch('/api/models');
   const models = await resp.json();
@@ -441,11 +580,18 @@ async function loadModels() {
   }
 }
 
-// 初期化
-speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-loadSpeakers();
-loadModels();
-connect();
+// --- 初期化 ---
+async function init() {
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  await loadSpeakers();
+  await loadModels();
+  const saved = loadSettings();
+  applySettings(saved);
+  autoSave();
+  connect();
+}
+
+init();
 </script>
 
 </body>
