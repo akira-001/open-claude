@@ -190,6 +190,7 @@
   <button class="bot-play" onclick="playBotMessage('eve')">Play</button>
 </div>
 <div id="controls">
+  <button id="stopBtn" class="side-btn" onclick="stopAudio()">Stop</button>
   <button id="proactiveBtn" class="side-btn" onclick="toggleProactive()">Proactive OFF</button>
   <button id="previewBtn" class="side-btn" onclick="previewVoice()">Preview</button>
   <button id="talkBtn">TALK</button>
@@ -338,6 +339,8 @@ function playAudio(arrayBuffer) {
   processQueue();
 }
 
+let currentAudio = null;
+
 function processQueue() {
   if (isPlaying || audioQueue.length === 0) return;
   isPlaying = true;
@@ -345,16 +348,29 @@ function processQueue() {
   const blob = new Blob([buf], { type: 'audio/wav' });
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  currentAudio = audio;
   audio.onended = () => {
     URL.revokeObjectURL(url);
+    currentAudio = null;
     isPlaying = false;
     processQueue();
   };
   audio.onerror = () => {
+    currentAudio = null;
     isPlaying = false;
     processQueue();
   };
   audio.play();
+}
+
+function stopAudio() {
+  audioQueue.length = 0;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  isPlaying = false;
+  speechSynthesis.cancel();
 }
 
 // --- UI ---
