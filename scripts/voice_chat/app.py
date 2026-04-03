@@ -55,25 +55,31 @@ async def chat_with_llm(messages: list[dict]) -> str:
         return resp.json()["message"]["content"]
 
 
-async def synthesize_speech(text: str) -> bytes:
+async def synthesize_speech(text: str, speaker_id: int) -> bytes:
     """VOICEVOX でテキストを音声に変換"""
     async with httpx.AsyncClient(timeout=60) as client:
-        # 1. 音声クエリ生成
         resp = await client.post(
             f"{VOICEVOX_URL}/audio_query",
-            params={"text": text, "speaker": VOICEVOX_SPEAKER},
+            params={"text": text, "speaker": speaker_id},
         )
         resp.raise_for_status()
         query = resp.json()
 
-        # 2. 音声合成
         resp = await client.post(
             f"{VOICEVOX_URL}/synthesis",
-            params={"speaker": VOICEVOX_SPEAKER},
+            params={"speaker": speaker_id},
             json=query,
         )
         resp.raise_for_status()
         return resp.content
+
+
+@app.get("/api/speakers")
+async def get_speakers():
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(f"{VOICEVOX_URL}/speakers")
+        resp.raise_for_status()
+        return resp.json()
 
 
 @app.get("/")
@@ -85,6 +91,7 @@ async def index():
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
+    speaker_id = VOICEVOX_SPEAKER
     conversation: list[dict] = [
         {"role": "system", "content": (
             "あなたはフレンドリーな日本語の会話アシスタントです。"
@@ -94,8 +101,17 @@ async def websocket_endpoint(ws: WebSocket):
 
     try:
         while True:
-            # クライアントから音声データ受信
-            data = await ws.receive_bytes()
+            msg = await ws.receive()
+
+            # テキストメッセージ = コマンド（スピーカー変更など）
+            if "text" in msg:
+                data = json.loads(msg["text"])
+                if data.get("type") == "set_speaker":
+                    speaker_id = data["speaker_id"]
+                continue
+
+            # バイナリ = 音声データ
+            data = msg["bytes"]
 
             # STT
             await ws.send_json({"type": "status", "text": "文字起こし中..."})
@@ -120,11 +136,10 @@ async def websocket_endpoint(ws: WebSocket):
             # TTS (VOICEVOX)
             await ws.send_json({"type": "status", "text": "音声生成中..."})
             try:
-                audio = await synthesize_speech(reply)
+                audio = await synthesize_speech(reply, speaker_id)
                 await ws.send_json({"type": "assistant_text", "text": reply})
                 await ws.send_bytes(audio)
             except Exception as e:
-                # VOICEVOX 失敗時はテキストのみ返す（ブラウザTTSにフォールバック）
                 await ws.send_json({"type": "assistant_text", "text": reply, "tts_fallback": True})
 
     except WebSocketDisconnect:
