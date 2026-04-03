@@ -112,7 +112,8 @@ async def preview_voice(speaker: int = 2, speed: float = 1.0):
 
 import re
 
-def _get_latest_bot_text(bot_id: str) -> str | None:
+
+def _get_latest_bot_entry(bot_id: str) -> dict | None:
     state_file = BOT_STATE_DIR / f"{bot_id}-state.json"
     if not state_file.exists():
         return None
@@ -124,23 +125,23 @@ def _get_latest_bot_text(bot_id: str) -> str | None:
     text = latest.get("fullText", latest.get("preview", ""))
     text = re.sub(r'\*([^*]+)\*', r'\1', text)
     text = re.sub(r'<[^>]+>', '', text)
-    return text.strip()
+    return {"text": text.strip(), "sentAt": latest.get("sentAt", "")}
 
 
 @app.get("/api/bot-text/{bot_id}")
 async def get_bot_text(bot_id: str):
-    text = _get_latest_bot_text(bot_id)
-    if not text:
+    entry = _get_latest_bot_entry(bot_id)
+    if not entry:
         return Response(status_code=404)
-    return {"text": text}
+    return entry
 
 
 @app.get("/api/bot-audio/{bot_id}")
 async def get_bot_audio(bot_id: str, speaker: int = 2, speed: float = 1.0):
-    text = _get_latest_bot_text(bot_id)
-    if not text:
+    entry = _get_latest_bot_entry(bot_id)
+    if not entry:
         return Response(status_code=404)
-    audio = await synthesize_speech(text, speaker, speed)
+    audio = await synthesize_speech(entry["text"], speaker, speed)
     return Response(content=audio, media_type="audio/wav")
 
 
