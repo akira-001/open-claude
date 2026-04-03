@@ -316,10 +316,10 @@ async def websocket_endpoint(ws: WebSocket):
                 await ws.send_json({"type": "status", "text": f"{bot_id} の返信を待っています..."})
                 reply = await slack_poll_response(bot_id, ts, timeout=120)
                 slack_reply_bot = None  # 1回で終了
-                await ws.send_json({"type": "reply_ended"})
 
                 if not reply:
                     await ws.send_json({"type": "assistant_text", "text": f"[{bot_id} からの返信がタイムアウトしました]"})
+                    await ws.send_json({"type": "reply_ended"})
                     continue
 
                 # TTS
@@ -328,8 +328,10 @@ async def websocket_endpoint(ws: WebSocket):
                     audio = await synthesize_speech(reply, slack_reply_speaker, slack_reply_speed)
                     await ws.send_json({"type": "assistant_text", "text": f"[{bot_id}] {reply}"})
                     await ws.send_bytes(audio)
-                except Exception:
+                except Exception as e:
+                    print(f"TTS error: {e}")
                     await ws.send_json({"type": "assistant_text", "text": f"[{bot_id}] {reply}", "tts_fallback": True})
+                await ws.send_json({"type": "reply_ended"})
                 continue
 
             # 通常モード: LLM

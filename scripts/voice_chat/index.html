@@ -308,6 +308,9 @@ function connect() {
 
   ws.onmessage = (e) => {
     if (e.data instanceof ArrayBuffer) {
+      // ステータスメッセージをクリア
+      const statusEl = chat.querySelector('.msg.status');
+      if (statusEl) statusEl.remove();
       if (ttsEnabled) playAudio(e.data);
       processing = false;
       talkBtn.disabled = false;
