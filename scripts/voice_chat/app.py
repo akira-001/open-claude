@@ -44,7 +44,7 @@ async def chat_with_llm(messages: list[dict]) -> str:
         resp = await client.post(
             "http://localhost:11434/api/chat",
             json={
-                "model": "gemma4:31b",
+                "model": "gemma4:e4b",
                 "messages": messages,
                 "stream": False,
             },
