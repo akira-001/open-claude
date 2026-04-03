@@ -88,6 +88,26 @@ async def get_models():
         ]
 
 
+SAMPLE_TEXTS = [
+    "こんにちは、今日はいい天気ですね。お散歩日和です。",
+    "おはようございます。今日も一日頑張りましょう。",
+    "最近、面白い本を読みました。おすすめですよ。",
+    "今日のお昼ごはんは何にしようかな。ラーメンが食べたいな。",
+    "週末はどこかに出かけませんか？温泉とかいいですね。",
+    "プログラミングって楽しいですよね。新しいことを学ぶのが好きです。",
+    "猫ってかわいいですよね。もふもふしたい。",
+    "コーヒーと紅茶、どっちが好きですか？私はコーヒー派です。",
+]
+
+
+@app.get("/api/preview")
+async def preview_voice(speaker: int = 2, speed: float = 1.0):
+    import random
+    text = random.choice(SAMPLE_TEXTS)
+    audio = await synthesize_speech(text, speaker, speed)
+    return Response(content=audio, media_type="audio/wav")
+
+
 @app.get("/api/speakers")
 async def get_speakers():
     async with httpx.AsyncClient(timeout=10) as client:

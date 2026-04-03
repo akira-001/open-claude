@@ -136,8 +136,9 @@
   </select>
 </div>
 <div id="controls">
-  <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">TTS ON</button>
+  <button id="previewBtn" class="side-btn" onclick="previewVoice()">Preview</button>
   <button id="talkBtn">TALK</button>
+  <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">TTS ON</button>
 </div>
 
 <script>
@@ -286,6 +287,24 @@ voiceSelect.addEventListener('change', () => {
     ws.send(JSON.stringify({ type: 'set_speaker', speaker_id: id }));
   }
 });
+
+// 音声プレビュー
+async function previewVoice() {
+  const btn = document.getElementById('previewBtn');
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const speaker = voiceSelect.value;
+    const speed = speedSelect.value;
+    const resp = await fetch(`/api/preview?speaker=${speaker}&speed=${speed}`);
+    const buf = await resp.arrayBuffer();
+    playAudio(buf);
+  } catch (e) {
+    console.error(e);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Preview';
+}
 
 // スピード切り替え
 speedSelect.addEventListener('change', () => {
