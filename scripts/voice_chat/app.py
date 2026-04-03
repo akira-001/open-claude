@@ -86,7 +86,12 @@ async def websocket_endpoint(ws: WebSocket):
             # LLM
             await ws.send_json({"type": "status", "text": "考え中..."})
             conversation.append({"role": "user", "content": text})
-            reply = await chat_with_llm(conversation)
+            try:
+                reply = await chat_with_llm(conversation)
+            except Exception as e:
+                conversation.pop()
+                await ws.send_json({"type": "assistant_text", "text": f"[LLM エラー: {e}]"})
+                continue
             conversation.append({"role": "assistant", "content": reply})
 
             # 応答送信 (TTS はブラウザ側 SpeechSynthesis)
