@@ -349,45 +349,61 @@ function wsSend(obj) {
   }
 }
 
-// --- 音声再生キュー ---
+// --- 音声再生キュー (AudioContext でバックグラウンド再生対応) ---
+let audioCtx = null;
+let currentSource = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
 function playAudio(arrayBuffer) {
   audioQueue.push(arrayBuffer);
   processQueue();
 }
 
-let currentAudio = null;
-
 function processQueue() {
   if (isPlaying || audioQueue.length === 0) return;
   isPlaying = true;
   const buf = audioQueue.shift();
-  const blob = new Blob([buf], { type: 'audio/wav' });
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
-  currentAudio = audio;
-  audio.onended = () => {
-    URL.revokeObjectURL(url);
-    currentAudio = null;
+  const ctx = getAudioContext();
+  ctx.decodeAudioData(buf.slice(0), (audioBuffer) => {
+    const source = ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(ctx.destination);
+    currentSource = source;
+    source.onended = () => {
+      currentSource = null;
+      isPlaying = false;
+      processQueue();
+    };
+    source.start(0);
+  }, (err) => {
+    console.error('decodeAudioData error:', err);
+    currentSource = null;
     isPlaying = false;
     processQueue();
-  };
-  audio.onerror = () => {
-    currentAudio = null;
-    isPlaying = false;
-    processQueue();
-  };
-  audio.play();
+  });
 }
 
 function stopAudio() {
   audioQueue.length = 0;
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
+  if (currentSource) {
+    try { currentSource.stop(); } catch {}
+    currentSource = null;
   }
   isPlaying = false;
   speechSynthesis.cancel();
 }
+
+// ユーザー操作で AudioContext を初期化（autoplay policy 対策）
+document.addEventListener('click', () => getAudioContext(), { once: true });
 
 // --- UI ---
 function addMessage(text, type) {
