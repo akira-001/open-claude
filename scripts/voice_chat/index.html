@@ -234,6 +234,42 @@
   }
   #sendBtn:hover { background: var(--ember-accent-hover); }
   #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Server status bar */
+  #serverStatus {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 20px;
+    background: var(--ember-surface-alt);
+    border-bottom: 1px solid var(--ember-border);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .srv-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ember-text-muted);
+  }
+  .srv-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+  }
+  .srv-dot.online { background: #22c55e; }
+  .srv-start {
+    padding: 2px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--ember-border);
+    background: transparent;
+    color: var(--ember-text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .srv-start:hover { border-color: var(--ember-accent); color: var(--ember-accent); }
+  .srv-start:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -241,6 +277,23 @@
 <header id="appHeader">
   <h1>Ember Chat</h1>
 </header>
+<div id="serverStatus">
+  <span class="srv-item">
+    <span id="srvWhisperDot" class="srv-dot"></span>
+    <span>Whisper</span>
+    <button id="srvWhisperBtn" class="srv-start" onclick="startServer('whisper')" style="display:none">Start</button>
+  </span>
+  <span class="srv-item">
+    <span id="srvVoicevoxDot" class="srv-dot"></span>
+    <span>VOICEVOX</span>
+    <button id="srvVoicevoxBtn" class="srv-start" onclick="startServer('voicevox')" style="display:none">Start</button>
+  </span>
+  <span class="srv-item">
+    <span id="srvOllamaDot" class="srv-dot"></span>
+    <span>Ollama</span>
+    <button id="srvOllamaBtn" class="srv-start" onclick="startServer('ollama')" style="display:none">Start</button>
+  </span>
+</div>
 <div id="chat">
   <div id="emptyState">
     <div class="empty-icon">&#x1F525;</div>
@@ -300,6 +353,50 @@
 </div>
 
 <script>
+const DASHBOARD_API = 'http://localhost:3456/api';
+
+// --- Server status check ---
+async function checkServerStatus() {
+  try {
+    const res = await fetch(`${DASHBOARD_API}/local-models/server-status`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    updateSrvUI('Whisper', data.whisper?.running ?? false);
+    updateSrvUI('Voicevox', data.voicevox?.running ?? false);
+    updateSrvUI('Ollama', data.ollama?.running ?? false);
+  } catch {
+    updateSrvUI('Whisper', false);
+    updateSrvUI('Voicevox', false);
+    updateSrvUI('Ollama', false);
+  }
+}
+
+function updateSrvUI(name, running) {
+  const dot = document.getElementById(`srv${name}Dot`);
+  const btn = document.getElementById(`srv${name}Btn`);
+  if (dot) dot.classList.toggle('online', running);
+  if (btn) btn.style.display = running ? 'none' : 'inline-block';
+}
+
+async function startServer(server) {
+  const btn = document.getElementById(`srv${server.charAt(0).toUpperCase() + server.slice(1)}Btn`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting...'; }
+  try {
+    await fetch(`${DASHBOARD_API}/local-models/${server}/start`, { method: 'POST' });
+    // Wait for server to come up
+    await new Promise(r => setTimeout(r, 3000));
+    await checkServerStatus();
+  } catch (e) {
+    console.error('Failed to start', server, e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Start'; }
+  }
+}
+
+// Check status on load and every 10s
+checkServerStatus();
+setInterval(checkServerStatus, 10000);
+
 const chat = document.getElementById('chat');
 const talkBtn = document.getElementById('talkBtn');
 const ttsToggle = document.getElementById('ttsToggle');
