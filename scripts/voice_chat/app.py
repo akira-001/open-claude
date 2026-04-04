@@ -177,7 +177,11 @@ async def slack_new_messages(bot_id: str, since: str = ""):
         return {"messages": []}
 
     # since が指定されていれば使う、なければサーバー側の最終既読
+    # 初回（sinceもサーバー側tsも空）は「今」をセットして次回から検知開始
     oldest = since or _last_seen_ts.get(bot_id, "")
+    if not oldest:
+        _last_seen_ts[bot_id] = str(time.time())
+        return {"messages": []}
 
     async with httpx.AsyncClient(timeout=10) as client:
         params = {"channel": channel, "limit": 10}

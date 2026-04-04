@@ -621,7 +621,9 @@ async function checkProactiveMessages() {
   for (const botId of ['mei', 'eve']) {
     try {
       // Slack DM の新着メッセージをチェック
-      const since = lastSeen[botId] || '';
+      // lastSeen が ISO形式の場合は空にリセット（旧形式互換）
+      let since = lastSeen[botId] || '';
+      if (since && !since.match(/^\d+\.\d+$/)) since = '';
       const resp = await fetch(`/api/slack/new-messages/${botId}?since=${encodeURIComponent(since)}`);
       if (!resp.ok) continue;
       const { messages } = await resp.json();
