@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voice Chat</title>
+<title>Ember Chat</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -149,6 +149,37 @@
   #talkBtn.reply-mode { border-color: #f39c12; color: #f39c12; }
   #talkBtn.reply-mode:hover { background: rgba(243, 156, 18, 0.1); }
   #talkBtn.reply-mode.recording { background: #f39c12; color: #fff; }
+  #textInputRow {
+    display: flex;
+    gap: 8px;
+    padding: 8px 20px;
+    background: #16213e;
+    border-top: 1px solid #0d1b2a;
+  }
+  #textInput {
+    flex: 1;
+    background: #0d1b2a;
+    color: #eee;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 15px;
+    outline: none;
+  }
+  #textInput:focus { border-color: #e94560; }
+  #textInput::placeholder { color: #666; }
+  #sendBtn {
+    background: #e94560;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #sendBtn:hover { background: #d63851; }
+  #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -201,6 +232,10 @@
   <button id="talkBtn">TALK</button>
   <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">TTS ON</button>
 </div>
+<div id="textInputRow">
+  <input type="text" id="textInput" placeholder="メッセージを入力..." autocomplete="off">
+  <button id="sendBtn" onclick="sendTextMessage()">Send</button>
+</div>
 
 <script>
 const chat = document.getElementById('chat');
@@ -227,7 +262,7 @@ let lastBotId = null;  // 最後にメッセージを送ったボット
 let replyMode = false; // Slack返信モード
 
 // --- localStorage 永続化 ---
-const STORAGE_KEY = 'voiceChatSettings';
+const STORAGE_KEY = 'emberChatSettings';
 
 function saveSettings() {
   const settings = {
@@ -283,6 +318,33 @@ function autoSave() {
   });
 }
 
+// --- テキスト送信 ---
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function sendTextMessage() {
+  const text = textInput.value.trim();
+  if (!text || processing) return;
+  // 返信モードの場合、先にコマンドを送る
+  if (replyMode && lastBotId) {
+    const speaker = document.getElementById(`${lastBotId}Voice`).value;
+    const speed = document.getElementById(`${lastBotId}Speed`).value;
+    wsSend({ type: 'slack_reply', bot_id: lastBotId, speaker_id: parseInt(speaker), speed: parseFloat(speed) });
+  }
+  wsSend({ type: 'text_message', text });
+  textInput.value = '';
+  processing = true;
+  talkBtn.disabled = true;
+  sendBtn.disabled = true;
+}
+
+textInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.isComposing) {
+    e.preventDefault();
+    sendTextMessage();
+  }
+});
+
 // --- マイク ---
 async function getMicStream() {
   if (!micStream || !micStream.active) {
@@ -314,6 +376,7 @@ function connect() {
       if (ttsEnabled) playAudio(e.data);
       processing = false;
       talkBtn.disabled = false;
+      sendBtn.disabled = false;
       updateTalkBtn();
       return;
     }
@@ -336,6 +399,7 @@ function connect() {
       updateReplyUI();
       processing = false;
       talkBtn.disabled = false;
+      sendBtn.disabled = false;
       updateTalkBtn();
     }
   };

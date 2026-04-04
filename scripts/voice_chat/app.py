@@ -1,4 +1,4 @@
-"""Voice Chat Web App - STT (Whisper) + LLM (Ollama) + TTS (VOICEVOX)"""
+"""Ember Chat Web App - STT (Whisper) + LLM (Ollama) + TTS (VOICEVOX)"""
 import asyncio
 import json
 import os
@@ -337,34 +337,44 @@ async def websocket_endpoint(ws: WebSocket):
         while True:
             msg = await ws.receive()
 
-            # テキストメッセージ = コマンド（スピーカー変更など）
+            # テキストメッセージ = コマンド or テキストチャット
             if "text" in msg:
                 data = json.loads(msg["text"])
                 if data.get("type") == "set_speaker":
                     speaker_id = data["speaker_id"]
+                    continue
                 elif data.get("type") == "set_speed":
                     speed = data["speed"]
+                    continue
                 elif data.get("type") == "set_model":
                     model = data["model"]
+                    continue
                 elif data.get("type") == "slack_reply":
                     slack_reply_bot = data.get("bot_id")
                     slack_reply_speaker = data.get("speaker_id", 2)
                     slack_reply_speed = data.get("speed", 1.0)
+                    continue
                 elif data.get("type") == "cancel_reply":
                     slack_reply_bot = None
+                    continue
+                elif data.get("type") == "text_message":
+                    text = data.get("text", "").strip()
+                    if not text:
+                        continue
+                    await ws.send_json({"type": "user_text", "text": text})
+                else:
+                    continue
+            elif "bytes" in msg:
+                # バイナリ = 音声データ → STT
+                audio_data = msg["bytes"]
+                await ws.send_json({"type": "status", "text": "文字起こし中..."})
+                text = await transcribe(audio_data)
+                if not text:
+                    await ws.send_json({"type": "status", "text": "音声を認識できませんでした"})
+                    continue
+                await ws.send_json({"type": "user_text", "text": text})
+            else:
                 continue
-
-            # バイナリ = 音声データ
-            data = msg["bytes"]
-
-            # STT
-            await ws.send_json({"type": "status", "text": "文字起こし中..."})
-            text = await transcribe(data)
-            if not text:
-                await ws.send_json({"type": "status", "text": "音声を認識できませんでした"})
-                continue
-
-            await ws.send_json({"type": "user_text", "text": text})
 
             # Slack 返信モード
             if slack_reply_bot:
