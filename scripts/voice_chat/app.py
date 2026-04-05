@@ -148,7 +148,7 @@ IRODORI_API_URL = "http://localhost:7860"
 
 
 async def synthesize_speech_irodori(text: str, voice_id: str, speed: float = 1.0) -> bytes:
-    """Irodori-TTS API サーバー経由でテキストを音声に変換"""
+    """Irodori-TTS API サーバー経由でテキストを音声に変換。speed は num_steps として使用"""
     # voice_id からキャプションを取得
     caption = "自然で聞き取りやすい声で読み上げてください。"
     for v in IRODORI_VOICES:
@@ -156,10 +156,12 @@ async def synthesize_speech_irodori(text: str, voice_id: str, speed: float = 1.0
             caption = v["caption"]
             break
 
+    num_steps = int(speed) if speed >= 2 else 10
+
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
             f"{IRODORI_API_URL}/tts",
-            json={"text": text, "caption": caption},
+            json={"text": text, "caption": caption, "num_steps": num_steps},
         )
         resp.raise_for_status()
         return resp.content
