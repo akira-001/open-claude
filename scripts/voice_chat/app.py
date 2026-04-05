@@ -498,4 +498,4 @@ async def websocket_endpoint(ws: WebSocket):
 
 if __name__ == "__main__":
     get_whisper()
-    uvicorn.run(app, host="0.0.0.0", port=8765)
+    uvicorn.run(app, host="0.0.0.0", port=8767)
