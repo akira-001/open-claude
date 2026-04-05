@@ -422,12 +422,24 @@ let recording = false;
 let processing = false;
 let ttsEnabled = true;
 let proactiveEnabled = false;
-let proactiveTimer = null;
+// proactive polling はサーバー側で実行
 let lastSeen = { mei: '', eve: '' };
 let audioQueue = [];
 let isPlaying = false;
 let lastBotId = null;  // 最後にメッセージを送ったボット
 let replyMode = false; // Slack返信モード
+let playedMessageIds = new Set();  // 再生済みメッセージ ID（重複防止）
+
+// --- タブ間排他制御（BroadcastChannel）---
+// 複数タブで開いている場合、1つのタブだけが音声を再生する
+const _bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('ember-audio') : null;
+if (_bc) {
+  _bc.onmessage = (e) => {
+    if (e.data?.type === 'played') {
+      playedMessageIds.add(e.data.id);
+    }
+  };
+}
 
 // --- サーバー同期設定 ---
 let _syncing = false; // サーバーからの同期中フラグ（ループ防止）
@@ -481,8 +493,7 @@ function applySettings(settings) {
     proactiveEnabled = settings.proactiveEnabled;
     proactiveBtn.textContent = proactiveEnabled ? 'Proactive ON' : 'Proactive OFF';
     proactiveBtn.className = proactiveEnabled ? 'side-btn proactive-on' : 'side-btn';
-    if (proactiveEnabled && !wasEnabled) startProactivePolling();
-    if (!proactiveEnabled && wasEnabled) stopProactivePolling();
+    // proactive polling はサーバー側で実行するため、クライアント側の開始/停止は不要
   }
   _syncing = false;
 }
@@ -556,6 +567,17 @@ function connect() {
       return;
     }
     if (msg.type === 'proactive_message') {
+      // ts ベースの重複排除（同一タブ内 + 複数タブ間で二重再生防止）
+      const msgId = msg.ts || `${msg.botId}-${msg.text}`;
+      if (playedMessageIds.has(msgId)) return;
+      playedMessageIds.add(msgId);
+      // 他タブに「再生済み」を通知
+      if (_bc) _bc.postMessage({ type: 'played', id: msgId });
+      // メモリリーク防止
+      if (playedMessageIds.size > 100) {
+        const arr = [...playedMessageIds];
+        playedMessageIds = new Set(arr.slice(-50));
+      }
       handleProactiveMessage(msg.botId, msg.text, msg.speaker, msg.speed);
       return;
     }
@@ -852,61 +874,14 @@ function toggleProactive() {
   proactiveEnabled = !proactiveEnabled;
   proactiveBtn.textContent = proactiveEnabled ? 'Proactive ON' : 'Proactive OFF';
   proactiveBtn.className = proactiveEnabled ? 'side-btn proactive-on' : 'side-btn';
-  if (proactiveEnabled) {
-    startProactivePolling();
-  } else {
-    stopProactivePolling();
-  }
+  // ポーリングはサーバー側で実行。クライアントは設定を保存するだけ
   saveSettings();
-}
-
-function startProactivePolling() {
-  if (proactiveTimer) return;
-  proactiveTimer = setInterval(checkProactiveMessages, 30000);
-  // 初回は即実行
-  checkProactiveMessages();
-}
-
-function stopProactivePolling() {
-  if (proactiveTimer) {
-    clearInterval(proactiveTimer);
-    proactiveTimer = null;
-  }
-}
-
-async function checkProactiveMessages() {
-  for (const botId of ['mei', 'eve']) {
-    try {
-      // Slack DM の新着メッセージをチェック
-      // lastSeen が ISO形式の場合は空にリセット（旧形式互換）
-      let since = lastSeen[botId] || '';
-      if (since && !since.match(/^\d+\.\d+$/)) since = '';
-      const resp = await fetch(`${API_BASE}/slack/new-messages/${botId}?since=${encodeURIComponent(since)}`);
-      if (!resp.ok) continue;
-      const { messages } = await resp.json();
-      if (!messages || messages.length === 0) continue;
-
-      // 古い順に処理
-      const sorted = messages.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
-      for (const msg of sorted) {
-        lastSeen[botId] = msg.ts;
-        lastBotId = botId;
-
-        // 全タブにブロードキャスト（自タブ含む）
-        const speaker = document.getElementById(`${botId}Voice`).value;
-        const speed = document.getElementById(`${botId}Speed`).value;
-        wsSend({ type: 'proactive_message', botId, text: msg.text, speaker, speed });
-      }
-      saveSettings();
-    } catch (e) {
-      console.error(`proactive check ${botId}:`, e);
-    }
-  }
 }
 
 async function handleProactiveMessage(botId, text, speaker, speed) {
   addMessage(`[${botId}] ${text}`, 'assistant');
   lastBotId = botId;
+  lastSeen[botId] = String(Date.now() / 1000);
   updateReplyUI();
 
   // 音声合成して再生

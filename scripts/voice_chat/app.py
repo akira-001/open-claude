@@ -6,6 +6,8 @@ import tempfile
 import time
 from pathlib import Path
 
+from contextlib import asynccontextmanager
+
 import httpx
 import uvicorn
 from dotenv import load_dotenv
@@ -16,7 +18,17 @@ from faster_whisper import WhisperModel
 
 load_dotenv(Path(__file__).parent / ".env")
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _settings
+    _settings = _load_settings()
+    task = asyncio.create_task(_proactive_polling_loop())
+    yield
+    task.cancel()
+
+
+app = FastAPI(lifespan=lifespan)
 
 VOICEVOX_URL = "http://localhost:50021"
 VOICEVOX_SPEAKER = 2  # 四国めたん ノーマル
@@ -63,12 +75,6 @@ async def _broadcast_settings(exclude: WebSocket | None = None):
             await client.send_text(msg)
         except Exception:
             _clients.discard(client)
-
-
-@app.on_event("startup")
-async def _startup():
-    global _settings
-    _settings = _load_settings()
 
 
 # --- Models (lazy load) ---
@@ -409,7 +415,7 @@ async def websocket_endpoint(ws: WebSocket):
                     slack_reply_speaker = data.get("speaker_id", 2)
                     slack_reply_speed = data.get("speed", 1.0)
                     continue
-                elif data.get("type") in ("stop_audio", "proactive_message"):
+                elif data.get("type") == "stop_audio":
                     # 全クライアントへブロードキャスト（送信元含む）
                     broadcast = json.dumps(data)
                     for client in list(_clients):
@@ -494,6 +500,49 @@ async def websocket_endpoint(ws: WebSocket):
 
     except WebSocketDisconnect:
         _clients.discard(ws)
+
+
+async def _proactive_polling_loop():
+    """サーバー側でプロアクティブメッセージをポーリングし、全クライアントへ配信"""
+    while True:
+        await asyncio.sleep(30)
+        if not _settings.get("proactiveEnabled"):
+            continue
+        if not _clients:
+            continue
+        for bot_id in ["mei", "eve"]:
+            try:
+                since = _settings.get("lastSeen", {}).get(bot_id, "") or _last_seen_ts.get(bot_id, "")
+                if since and not re.match(r"^\d+\.\d+$", since):
+                    since = ""
+                resp_data = await slack_new_messages(bot_id, since)
+                messages = resp_data.get("messages", [])
+                if not messages:
+                    continue
+                sorted_msgs = sorted(messages, key=lambda m: float(m["ts"]))
+                speaker = _settings.get(f"{bot_id}Voice", "2")
+                speed = _settings.get(f"{bot_id}Speed", "1.0")
+                for msg_item in sorted_msgs:
+                    payload = json.dumps({
+                        "type": "proactive_message",
+                        "botId": bot_id,
+                        "text": msg_item["text"],
+                        "speaker": speaker,
+                        "speed": speed,
+                        "ts": msg_item["ts"],
+                    })
+                    for client in list(_clients):
+                        try:
+                            await client.send_text(payload)
+                        except Exception:
+                            _clients.discard(client)
+                    # lastSeen を更新
+                    if "lastSeen" not in _settings:
+                        _settings["lastSeen"] = {}
+                    _settings["lastSeen"][bot_id] = msg_item["ts"]
+                _save_settings(_settings)
+            except Exception as e:
+                print(f"proactive poll {bot_id}: {e}")
 
 
 if __name__ == "__main__":
