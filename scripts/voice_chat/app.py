@@ -119,6 +119,7 @@ async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
 async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0, engine: str | None = None) -> bytes:
     """TTS エンジンでテキストを音声に変換"""
     tts_engine = engine or _settings.get("ttsEngine", "voicevox")
+    print(f"[synthesize_speech] engine={tts_engine}, speaker_id={speaker_id}, speed={speed}")
     if tts_engine == "irodori":
         return await synthesize_speech_irodori(text, str(speaker_id), speed)
     return await synthesize_speech_voicevox(text, int(speaker_id), speed)
@@ -157,6 +158,8 @@ async def synthesize_speech_irodori(text: str, voice_id: str, speed: float = 1.0
             break
 
     num_steps = int(speed) if speed >= 2 else 10
+
+    print(f"[IRODORI TTS] voice_id={voice_id}, speed={speed}, num_steps={num_steps}, caption={caption[:30]}..., text_len={len(text)}")
 
     async with httpx.AsyncClient(timeout=120) as client:
         resp = await client.post(
