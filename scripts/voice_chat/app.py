@@ -6,8 +6,6 @@ import tempfile
 import time
 from pathlib import Path
 
-from contextlib import asynccontextmanager
-
 import httpx
 import uvicorn
 from dotenv import load_dotenv
@@ -18,17 +16,7 @@ from faster_whisper import WhisperModel
 
 load_dotenv(Path(__file__).parent / ".env")
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global _settings
-    _settings = _load_settings()
-    task = asyncio.create_task(_proactive_polling_loop())
-    yield
-    task.cancel()
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 VOICEVOX_URL = "http://localhost:50021"
 VOICEVOX_SPEAKER = 2  # 四国めたん ノーマル
@@ -359,10 +347,23 @@ async def index():
     return HTMLResponse(html)
 
 
+_proactive_task: asyncio.Task | None = None
+
+
+def _ensure_proactive_polling():
+    """最初の WebSocket 接続時にポーリングタスクを開始"""
+    global _proactive_task, _settings
+    if _proactive_task is None or _proactive_task.done():
+        _settings = _load_settings()
+        _proactive_task = asyncio.create_task(_proactive_polling_loop())
+        print("Proactive polling started")
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     _clients.add(ws)
+    _ensure_proactive_polling()
 
     # 接続時に現在の設定を送信
     if _settings:
