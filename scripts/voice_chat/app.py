@@ -21,6 +21,10 @@ app = FastAPI()
 # Irodori TTS は GPU 推論のため、同時リクエストで品質が劣化する。排他ロックで直列化。
 _irodori_lock = asyncio.Lock()
 
+# TTS 結果の短期キャッシュ（重複リクエスト防止）
+_tts_cache: dict[str, tuple[float, bytes]] = {}
+_TTS_CACHE_TTL = 30  # seconds
+
 VOICEVOX_URL = "http://localhost:50021"
 VOICEVOX_SPEAKER = 2  # 四国めたん ノーマル
 
@@ -120,11 +124,25 @@ async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
 
 
 async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0, engine: str | None = None) -> bytes:
-    """TTS エンジンでテキストを音声に変換"""
+    """TTS エンジンでテキストを音声に変換（短期キャッシュ付き）"""
     tts_engine = engine or _settings.get("ttsEngine", "voicevox")
+    cache_key = f"{tts_engine}:{speaker_id}:{speed}:{text}"
+    now = time.time()
+    cached = _tts_cache.get(cache_key)
+    if cached and now - cached[0] < _TTS_CACHE_TTL:
+        print(f"[synthesize_speech] cache hit, engine={tts_engine}, speaker_id={speaker_id}")
+        return cached[1]
+    print(f"[synthesize_speech] engine={tts_engine}, speaker_id={speaker_id}, speed={speed}")
     if tts_engine == "irodori":
-        return await synthesize_speech_irodori(text, str(speaker_id), speed)
-    return await synthesize_speech_voicevox(text, int(speaker_id), speed)
+        audio = await synthesize_speech_irodori(text, str(speaker_id), speed)
+    else:
+        audio = await synthesize_speech_voicevox(text, int(speaker_id), speed)
+    _tts_cache[cache_key] = (now, audio)
+    # 古いキャッシュを掃除
+    expired = [k for k, (t, _) in _tts_cache.items() if now - t > _TTS_CACHE_TTL]
+    for k in expired:
+        del _tts_cache[k]
+    return audio
 
 
 async def synthesize_speech_voicevox(text: str, speaker_id: int, speed: float = 1.0) -> bytes:
@@ -595,9 +613,17 @@ async def _proactive_polling_loop():
                         "speed": speed,
                         "ts": msg_item["ts"],
                     })
+                    # サーバー側で1回だけ音声生成し、全クライアントにバイナリ送信
+                    audio_bytes: bytes | None = None
+                    try:
+                        audio_bytes = await synthesize_speech(msg_item["text"], speaker, float(speed))
+                    except Exception as e:
+                        print(f"proactive TTS failed: {e}")
                     for client in list(_clients):
                         try:
                             await client.send_text(payload)
+                            if audio_bytes:
+                                await client.send_bytes(audio_bytes)
                         except Exception:
                             _clients.discard(client)
                     # lastSeen を更新
