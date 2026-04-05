@@ -6,7 +6,7 @@ import sys
 import tomllib
 from pathlib import Path
 
-REGISTRY = Path(__file__).resolve().parent.parent / "ports.toml"
+REGISTRY = Path.home() / ".config" / "ports.toml"
 
 
 def load_registry() -> dict[str, int]:
