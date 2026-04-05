@@ -323,6 +323,38 @@ async def tts_endpoint(text: str, speaker: str = "2", speed: float = 1.0):
     return Response(content=audio, media_type="audio/wav")
 
 
+@app.post("/api/test-proactive")
+async def test_proactive(text: str = "テスト音声です"):
+    """テスト用: プロアクティブメッセージを全クライアントに送信"""
+    speaker = _settings.get("meiVoice", "2")
+    speed = _settings.get("meiSpeed", "1.0")
+    payload = json.dumps({
+        "type": "proactive_message",
+        "botId": "mei",
+        "text": text,
+        "speaker": speaker,
+        "speed": speed,
+        "ts": str(time.time()),
+    })
+    audio_bytes: bytes | None = None
+    try:
+        audio_bytes = await synthesize_speech(text, speaker, float(speed))
+        print(f"[test-proactive] TTS generated {len(audio_bytes)} bytes")
+    except Exception as e:
+        print(f"[test-proactive] TTS failed: {e}")
+    sent = 0
+    for client in list(_clients):
+        try:
+            await client.send_text(payload)
+            if audio_bytes:
+                await client.send_bytes(audio_bytes)
+            sent += 1
+        except Exception as exc:
+            print(f"[test-proactive] WS send failed: {exc}")
+            _clients.discard(client)
+    return {"sent": sent, "clients": len(_clients), "audio_size": len(audio_bytes) if audio_bytes else 0}
+
+
 @app.get("/api/speakers")
 async def get_speakers(engine: str | None = None):
     tts_engine = engine or _settings.get("ttsEngine", "voicevox")
@@ -617,15 +649,21 @@ async def _proactive_polling_loop():
                     audio_bytes: bytes | None = None
                     try:
                         audio_bytes = await synthesize_speech(msg_item["text"], speaker, float(speed))
+                        print(f"[proactive] TTS generated {len(audio_bytes)} bytes for {bot_id}")
                     except Exception as e:
-                        print(f"proactive TTS failed: {e}")
+                        print(f"[proactive] TTS failed: {e}")
+                    active_clients = len(_clients)
+                    sent_count = 0
                     for client in list(_clients):
                         try:
                             await client.send_text(payload)
                             if audio_bytes:
                                 await client.send_bytes(audio_bytes)
-                        except Exception:
+                            sent_count += 1
+                        except Exception as exc:
+                            print(f"[proactive] WS send failed: {exc}")
                             _clients.discard(client)
+                    print(f"[proactive] sent to {sent_count}/{active_clients} clients")
                     # lastSeen を更新
                     if "lastSeen" not in _settings:
                         _settings["lastSeen"] = {}
