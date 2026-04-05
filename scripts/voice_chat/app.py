@@ -21,6 +21,18 @@ app = FastAPI()
 VOICEVOX_URL = "http://localhost:50021"
 VOICEVOX_SPEAKER = 2  # 四国めたん ノーマル
 
+# Irodori-TTS voice presets (caption-based voice design)
+IRODORI_VOICES = [
+    {"id": "irodori-calm-female", "name": "落ち着いた女性", "caption": "落ち着いた女性の声で、近い距離感でやわらかく自然に読み上げてください。"},
+    {"id": "irodori-bright-female", "name": "明るい女性", "caption": "明るく元気な女性の声で、はきはきと楽しそうに読み上げてください。"},
+    {"id": "irodori-cool-female", "name": "クールな女性", "caption": "クールで知的な女性の声で、淡々と落ち着いて読み上げてください。"},
+    {"id": "irodori-tsundere", "name": "ツンデレ女性", "caption": "少しツンとした態度の女性の声で、照れ隠しをしながら読み上げてください。"},
+    {"id": "irodori-gentle-male", "name": "穏やかな男性", "caption": "穏やかで優しい男性の声で、ゆっくりと丁寧に読み上げてください。"},
+    {"id": "irodori-energetic-male", "name": "元気な男性", "caption": "元気で活発な男性の声で、力強く読み上げてください。"},
+    {"id": "irodori-narrator", "name": "ナレーター", "caption": "プロのナレーターのような、落ち着いて聞き取りやすい声で読み上げてください。"},
+    {"id": "irodori-anime-girl", "name": "アニメ風少女", "caption": "かわいらしいアニメの女の子のような声で、元気に読み上げてください。"},
+]
+
 # Slack config
 SLACK_USER_TOKENS = {
     "mei": os.getenv("SLACK_USER_TOKEN_MEI", ""),
@@ -104,7 +116,15 @@ async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
         return resp.json()["message"]["content"]
 
 
-async def synthesize_speech(text: str, speaker_id: int, speed: float = 1.0) -> bytes:
+async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0, engine: str | None = None) -> bytes:
+    """TTS エンジンでテキストを音声に変換"""
+    tts_engine = engine or _settings.get("ttsEngine", "voicevox")
+    if tts_engine == "irodori":
+        return await synthesize_speech_irodori(text, str(speaker_id), speed)
+    return await synthesize_speech_voicevox(text, int(speaker_id), speed)
+
+
+async def synthesize_speech_voicevox(text: str, speaker_id: int, speed: float = 1.0) -> bytes:
     """VOICEVOX でテキストを音声に変換"""
     async with httpx.AsyncClient(timeout=60) as client:
         resp = await client.post(
@@ -119,6 +139,27 @@ async def synthesize_speech(text: str, speaker_id: int, speed: float = 1.0) -> b
             f"{VOICEVOX_URL}/synthesis",
             params={"speaker": speaker_id},
             json=query,
+        )
+        resp.raise_for_status()
+        return resp.content
+
+
+IRODORI_API_URL = "http://localhost:7860"
+
+
+async def synthesize_speech_irodori(text: str, voice_id: str, speed: float = 1.0) -> bytes:
+    """Irodori-TTS API サーバー経由でテキストを音声に変換"""
+    # voice_id からキャプションを取得
+    caption = "自然で聞き取りやすい声で読み上げてください。"
+    for v in IRODORI_VOICES:
+        if v["id"] == voice_id:
+            caption = v["caption"]
+            break
+
+    async with httpx.AsyncClient(timeout=120) as client:
+        resp = await client.post(
+            f"{IRODORI_API_URL}/tts",
+            json={"text": text, "caption": caption},
         )
         resp.raise_for_status()
         return resp.content
@@ -152,7 +193,7 @@ SAMPLE_TEXTS = [
 
 
 @app.get("/api/preview")
-async def preview_voice(speaker: int = 2, speed: float = 1.0):
+async def preview_voice(speaker: str = "2", speed: float = 1.0):
     import random
     text = random.choice(SAMPLE_TEXTS)
     audio = await synthesize_speech(text, speaker, speed)
@@ -186,7 +227,7 @@ async def get_bot_text(bot_id: str):
 
 
 @app.get("/api/bot-audio/{bot_id}")
-async def get_bot_audio(bot_id: str, speaker: int = 2, speed: float = 1.0):
+async def get_bot_audio(bot_id: str, speaker: str = "2", speed: float = 1.0):
     entry = _get_latest_bot_entry(bot_id)
     if not entry:
         return Response(status_code=404)
@@ -252,14 +293,23 @@ async def slack_new_messages(bot_id: str, since: str = ""):
 
 
 @app.get("/api/tts")
-async def tts_endpoint(text: str, speaker: int = 2, speed: float = 1.0):
+async def tts_endpoint(text: str, speaker: str = "2", speed: float = 1.0):
     """任意のテキストを音声合成して返す"""
     audio = await synthesize_speech(text, speaker, speed)
     return Response(content=audio, media_type="audio/wav")
 
 
 @app.get("/api/speakers")
-async def get_speakers():
+async def get_speakers(engine: str | None = None):
+    tts_engine = engine or _settings.get("ttsEngine", "voicevox")
+    if tts_engine == "irodori":
+        return [
+            {
+                "name": v["name"],
+                "styles": [{"id": v["id"], "name": "ノーマル"}],
+            }
+            for v in IRODORI_VOICES
+        ]
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(f"{VOICEVOX_URL}/speakers")
         resp.raise_for_status()
@@ -341,6 +391,11 @@ async def slack_reply(bot_id: str, speaker: int = 2, speed: float = 1.0):
     return {"error": "use websocket"}  # placeholder
 
 
+@app.get("/api/settings")
+async def get_settings():
+    return _settings
+
+
 @app.get("/")
 async def index():
     html = (Path(__file__).parent / "index.html").read_text()
@@ -369,7 +424,8 @@ async def websocket_endpoint(ws: WebSocket):
     if _settings:
         await ws.send_json({"type": "sync_settings", "settings": _settings})
 
-    speaker_id = int(_settings.get("voiceSelect", VOICEVOX_SPEAKER))
+    raw_voice = _settings.get("voiceSelect", VOICEVOX_SPEAKER)
+    speaker_id = int(raw_voice) if str(raw_voice).isdigit() else raw_voice
     speed = float(_settings.get("speedSelect", 1.0))
     model = _settings.get("modelSelect", "gemma4:e4b")
     slack_reply_bot = None  # None = 通常モード, "mei"/"eve" = Slack返信モード
@@ -404,7 +460,8 @@ async def websocket_endpoint(ws: WebSocket):
                     _save_settings(_settings)
                     # サーバー側の変数も更新
                     if "voiceSelect" in data.get("settings", {}):
-                        speaker_id = int(_settings["voiceSelect"])
+                        v = _settings["voiceSelect"]
+                        speaker_id = int(v) if str(v).isdigit() else v
                     if "speedSelect" in data.get("settings", {}):
                         speed = float(_settings["speedSelect"])
                     if "modelSelect" in data.get("settings", {}):
@@ -506,7 +563,7 @@ async def websocket_endpoint(ws: WebSocket):
 async def _proactive_polling_loop():
     """サーバー側でプロアクティブメッセージをポーリングし、全クライアントへ配信"""
     while True:
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         if not _settings.get("proactiveEnabled"):
             continue
         if not _clients:

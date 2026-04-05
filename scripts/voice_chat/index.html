@@ -304,6 +304,11 @@
 <div id="toolbar">
   <span class="toolbar-label">Model</span>
   <select id="modelSelect"></select>
+  <span class="toolbar-label">TTS</span>
+  <select id="ttsEngineSelect">
+    <option value="voicevox">VOICEVOX</option>
+    <option value="irodori">Irodori</option>
+  </select>
   <span class="toolbar-label">Voice</span>
   <select id="voiceSelect"></select>
   <span class="toolbar-label">Speed</span>
@@ -413,6 +418,7 @@ const voiceSelect = document.getElementById('voiceSelect');
 const modelSelect = document.getElementById('modelSelect');
 const speedSelect = document.getElementById('speedSelect');
 const proactiveBtn = document.getElementById('proactiveBtn');
+const ttsEngineSelect = document.getElementById('ttsEngineSelect');
 
 let ws = null;
 let micStream = null;
@@ -443,9 +449,11 @@ if (_bc) {
 
 // --- サーバー同期設定 ---
 let _syncing = false; // サーバーからの同期中フラグ（ループ防止）
+let _lastSaveTime = 0; // saveSettings の最終実行時刻（競合防止）
 
 function getSettingsSnapshot() {
   return {
+    ttsEngine: ttsEngineSelect.value,
     voiceSelect: voiceSelect.value,
     modelSelect: modelSelect.value,
     speedSelect: speedSelect.value,
@@ -461,14 +469,21 @@ function getSettingsSnapshot() {
 
 function saveSettings() {
   if (_syncing) return;
+  _lastSaveTime = Date.now();
   const settings = getSettingsSnapshot();
   // サーバーに送信（全ブラウザに同期される）
   wsSend({ type: 'update_settings', settings });
 }
 
-function applySettings(settings) {
+async function applySettings(settings) {
   if (!settings) return;
+  // 自分が saveSettings した直後の sync_settings は無視（競合防止）
+  if (Date.now() - _lastSaveTime < 500) return;
   _syncing = true;
+  if (settings.ttsEngine && ttsEngineSelect.value !== settings.ttsEngine) {
+    ttsEngineSelect.value = settings.ttsEngine;
+    await loadSpeakers(settings.ttsEngine, settings);
+  }
   if (settings.voiceSelect && voiceSelect.value !== String(settings.voiceSelect)) {
     voiceSelect.value = settings.voiceSelect;
   }
@@ -548,7 +563,7 @@ function connect() {
     // サーバーから sync_settings が送られてくるので待つだけ
   };
 
-  ws.onmessage = (e) => {
+  ws.onmessage = async (e) => {
     if (e.data instanceof ArrayBuffer) {
       // ステータスメッセージをクリア
       const statusEl = chat.querySelector('.msg.status');
@@ -582,9 +597,10 @@ function connect() {
       return;
     }
     if (msg.type === 'sync_settings') {
-      applySettings(msg.settings);
+      await applySettings(msg.settings);
       // サーバー設定でローカルの WS 状態も更新
-      if (msg.settings.voiceSelect) wsSend({ type: 'set_speaker', speaker_id: parseInt(msg.settings.voiceSelect) });
+      const vid = msg.settings.voiceSelect;
+      if (vid) wsSend({ type: 'set_speaker', speaker_id: /^\d+$/.test(vid) ? parseInt(vid) : vid });
       if (msg.settings.speedSelect) wsSend({ type: 'set_speed', speed: parseFloat(msg.settings.speedSelect) });
       if (msg.settings.modelSelect) wsSend({ type: 'set_model', model: msg.settings.modelSelect });
       return;
@@ -769,7 +785,8 @@ talkBtn.addEventListener('click', (e) => {
 
 // --- 音声切り替え（メイン、WebSocket にも送信）---
 voiceSelect.addEventListener('change', () => {
-  wsSend({ type: 'set_speaker', speaker_id: parseInt(voiceSelect.value) });
+  const vid = voiceSelect.value;
+  wsSend({ type: 'set_speaker', speaker_id: /^\d+$/.test(vid) ? parseInt(vid) : vid });
   saveSettings();
 });
 speedSelect.addEventListener('change', () => {
@@ -893,28 +910,38 @@ async function handleProactiveMessage(botId, text, speaker, speed) {
 }
 
 // --- スピーカー・モデル読み込み ---
-async function loadSpeakers() {
-  const resp = await fetch(`${API_BASE}/speakers`);
+async function loadSpeakers(engine, savedSettings) {
+  const eng = engine || ttsEngineSelect.value || 'voicevox';
+  const resp = await fetch(`${API_BASE}/speakers?engine=${eng}`);
   const speakers = await resp.json();
 
+  const isIrodori = eng === 'irodori';
   const selects = [
-    { el: voiceSelect, defaultId: 2 },
-    { el: document.getElementById('meiVoice'), defaultId: 2 },
-    { el: document.getElementById('eveVoice'), defaultId: 13 },
+    { el: voiceSelect, key: 'voiceSelect', defaultId: isIrodori ? 'irodori-calm-female' : 2 },
+    { el: document.getElementById('meiVoice'), key: 'meiVoice', defaultId: isIrodori ? 'irodori-calm-female' : 2 },
+    { el: document.getElementById('eveVoice'), key: 'eveVoice', defaultId: isIrodori ? 'irodori-cool-female' : 13 },
   ];
-  for (const { el, defaultId } of selects) {
+  for (const { el, key, defaultId } of selects) {
+    const savedId = savedSettings && savedSettings[key];
+    const targetId = savedId != null ? savedId : defaultId;
     el.innerHTML = '';
     for (const s of speakers) {
       for (const st of s.styles) {
         const opt = document.createElement('option');
         opt.value = st.id;
         opt.textContent = `${s.name} - ${st.name}`;
-        if (st.id === defaultId) opt.selected = true;
+        if (String(st.id) === String(targetId)) opt.selected = true;
         el.appendChild(opt);
       }
     }
   }
 }
+
+ttsEngineSelect.addEventListener('change', async () => {
+  await loadSpeakers(ttsEngineSelect.value);
+  saveSettings();
+  wsSend({ type: 'update_settings', settings: { ttsEngine: ttsEngineSelect.value, voiceSelect: voiceSelect.value } });
+});
 
 async function loadModels() {
   const resp = await fetch(`${API_BASE}/models`);
@@ -932,8 +959,17 @@ async function loadModels() {
 // --- 初期化 ---
 async function init() {
   speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-  await loadSpeakers();
+  // サーバーから保存済み設定を先に取得してからドロップダウンを初期化
+  let saved = {};
+  try {
+    const r = await fetch(`${API_BASE}/settings`);
+    saved = await r.json();
+  } catch (e) { /* fallback to defaults */ }
+  if (saved.ttsEngine) ttsEngineSelect.value = saved.ttsEngine;
+  await loadSpeakers(saved.ttsEngine, saved);
   await loadModels();
+  if (saved.modelSelect) modelSelect.value = saved.modelSelect;
+  if (saved.speedSelect) speedSelect.value = saved.speedSelect;
   autoSave();
   connect(); // 接続後にサーバーから設定が sync_settings で届く
 }
