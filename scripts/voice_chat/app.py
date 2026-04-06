@@ -6,6 +6,7 @@ import tempfile
 import time
 from pathlib import Path
 
+import emoji as emoji_lib
 import httpx
 import uvicorn
 from dotenv import load_dotenv
@@ -38,6 +39,14 @@ IRODORI_VOICES = [
     {"id": "irodori-energetic-male", "name": "元気な男性", "caption": "元気で活発な男性の声で、力強く読み上げてください。"},
     {"id": "irodori-narrator", "name": "ナレーター", "caption": "プロのナレーターのような、落ち着いて聞き取りやすい声で読み上げてください。"},
     {"id": "irodori-anime-girl", "name": "アニメ風少女", "caption": "かわいらしいアニメの女の子のような声で、元気に読み上げてください。"},
+    {"id": "irodori-emilia", "name": "銀髪のお嬢様", "caption": "透明感のある澄んだ女性の声で、品がありつつも芯の強さを感じさせる、少しおっとりした丁寧な話し方で読み上げてください。"},
+]
+
+# GPT-SoVITS config
+GPTSOVITS_API_URL = "http://localhost:9880"
+GPTSOVITS_REF_DIR = "/Users/akira/workspace/GPT-SoVITS/ref_audio"
+GPTSOVITS_VOICES = [
+    {"id": "sovits-emilia", "name": "エミリア", "ref_audio": "emilia.wav", "prompt_text": "ルグニカ王国次期王候補の一人なの。なんだか力がみなぎって、もっともっと強くなりたい。"},
 ]
 
 # Slack config
@@ -142,6 +151,8 @@ async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0
         print(f"[synthesize_speech] engine={tts_engine}, speaker_id={speaker_id}, speed={speed}")
         if tts_engine == "irodori":
             audio = await _synthesize_irodori_unlocked(text, str(speaker_id), speed)
+        elif tts_engine == "gptsovits":
+            audio = await synthesize_speech_gptsovits(text, str(speaker_id))
         else:
             audio = await synthesize_speech_voicevox(text, int(speaker_id), speed)
         _tts_cache[cache_key] = (time.time(), audio)
@@ -175,6 +186,9 @@ async def synthesize_speech_voicevox(text: str, speaker_id: int, speed: float = 
 IRODORI_API_URL = "http://localhost:7860"
 
 
+
+
+
 async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 1.0) -> bytes:
     """Irodori-TTS（ロックなし版 — 呼び出し元でロック取得済み前提）"""
     caption = "自然で聞き取りやすい声で読み上げてください。"
@@ -183,7 +197,16 @@ async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 
             caption = v["caption"]
             break
 
-    num_steps = int(speed) if speed >= 2 else 10
+    if speed == 0:
+        # auto: テキスト長に応じてステップ数を自動決定
+        if len(text) > 120:
+            num_steps = 40
+        elif len(text) > 80:
+            num_steps = 30
+        else:
+            num_steps = 20
+    else:
+        num_steps = int(speed) if speed >= 2 else 10
 
     print(f"[IRODORI TTS] voice_id={voice_id}, speed={speed}, num_steps={num_steps}, caption={caption[:30]}..., text_len={len(text)}")
 
@@ -191,6 +214,49 @@ async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 
         resp = await client.post(
             f"{IRODORI_API_URL}/tts",
             json={"text": text, "caption": caption, "num_steps": num_steps},
+        )
+        resp.raise_for_status()
+        return resp.content
+
+
+
+_gptsovits_model_loaded = False
+
+async def _ensure_gptsovits_model():
+    """初回呼び出し時に v2ProPlus モデルに切り替え"""
+    global _gptsovits_model_loaded
+    if _gptsovits_model_loaded:
+        return
+    async with httpx.AsyncClient(timeout=60) as client:
+        await client.get(f"{GPTSOVITS_API_URL}/set_gpt_weights?weights_path=GPT_SoVITS/pretrained_models/s1v3.ckpt")
+        await client.get(f"{GPTSOVITS_API_URL}/set_sovits_weights?weights_path=GPT_SoVITS/pretrained_models/v2Pro/s2Gv2ProPlus.pth")
+    _gptsovits_model_loaded = True
+    print("[GPT-SoVITS] Loaded v2ProPlus model")
+
+async def synthesize_speech_gptsovits(text: str, voice_id: str) -> bytes:
+    """GPT-SoVITS でゼロショット音声クローン"""
+    await _ensure_gptsovits_model()
+    ref_audio = "emilia.wav"
+    prompt_text = "ルグニカ王国次期王候補の一人なの。なんだか力がみなぎって、もっともっと強くなりたい。"
+    for v in GPTSOVITS_VOICES:
+        if v["id"] == voice_id:
+            ref_audio = v["ref_audio"]
+            prompt_text = v["prompt_text"]
+            break
+    ref_path = os.path.join(GPTSOVITS_REF_DIR, ref_audio)
+    print(f"[GPT-SoVITS] voice_id={voice_id}, ref={ref_audio}, text_len={len(text)}")
+    async with httpx.AsyncClient(timeout=120) as client:
+        resp = await client.post(
+            f"{GPTSOVITS_API_URL}/tts",
+            json={
+                "text": text,
+                "text_lang": "ja",
+                "ref_audio_path": ref_path,
+                "prompt_text": prompt_text,
+                "prompt_lang": "ja",
+                "media_type": "wav",
+                "streaming_mode": False,
+            },
         )
         resp.raise_for_status()
         return resp.content
@@ -224,10 +290,11 @@ SAMPLE_TEXTS = [
 
 
 @app.get("/api/preview")
-async def preview_voice(speaker: str = "2", speed: float = 1.0):
+async def preview_voice(speaker: str = "2", speed: str = "auto"):
     import random
     text = random.choice(SAMPLE_TEXTS)
-    audio = await synthesize_speech(text, speaker, speed)
+    spd = 0 if speed == "auto" else float(speed)
+    audio = await synthesize_speech(text, speaker, spd)
     return Response(content=audio, media_type="audio/wav")
 
 
@@ -258,11 +325,12 @@ async def get_bot_text(bot_id: str):
 
 
 @app.get("/api/bot-audio/{bot_id}")
-async def get_bot_audio(bot_id: str, speaker: str = "2", speed: float = 1.0):
+async def get_bot_audio(bot_id: str, speaker: str = "2", speed: str = "auto", engine: str | None = None):
     entry = _get_latest_bot_entry(bot_id)
     if not entry:
         return Response(status_code=404)
-    audio = await synthesize_speech(entry["text"], speaker, speed)
+    spd = 0 if speed == "auto" else float(speed)
+    audio = await synthesize_speech(entry["text"], speaker, spd, engine=engine)
     return Response(content=audio, media_type="audio/wav")
 
 
@@ -311,6 +379,7 @@ async def slack_new_messages(bot_id: str, since: str = ""):
         text = msg.get("text", "")
         text = re.sub(r'\*([^*]+)\*', r'\1', text)
         text = re.sub(r'<[^>]+>', '', text)
+        text = emoji_lib.emojize(text, language='alias')
         text = text.strip()
         if text:
             results.append({"text": text, "ts": msg.get("ts", "")})
@@ -324,9 +393,10 @@ async def slack_new_messages(bot_id: str, since: str = ""):
 
 
 @app.get("/api/tts")
-async def tts_endpoint(text: str, speaker: str = "2", speed: float = 1.0):
+async def tts_endpoint(text: str, speaker: str = "2", speed: str = "auto"):
     """任意のテキストを音声合成して返す"""
-    audio = await synthesize_speech(text, speaker, speed)
+    spd = 0 if speed == "auto" else float(speed)
+    audio = await synthesize_speech(text, speaker, spd)
     return Response(content=audio, media_type="audio/wav")
 
 
@@ -341,6 +411,14 @@ async def get_speakers(engine: str | None = None):
                 "styles": [{"id": v["id"], "name": "ノーマル"}],
             }
             for v in IRODORI_VOICES
+        ]
+    if tts_engine == "gptsovits":
+        return [
+            {
+                "name": v["name"],
+                "styles": [{"id": v["id"], "name": "ノーマル"}],
+            }
+            for v in GPTSOVITS_VOICES
         ]
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.get(f"{VOICEVOX_URL}/speakers")
@@ -459,7 +537,8 @@ async def websocket_endpoint(ws: WebSocket):
 
     raw_voice = _settings.get("voiceSelect", VOICEVOX_SPEAKER)
     speaker_id = int(raw_voice) if str(raw_voice).isdigit() else raw_voice
-    speed = float(_settings.get("speedSelect", 1.0))
+    _spd_raw = _settings.get("speedSelect", "auto")
+    speed = 0 if _spd_raw == "auto" else float(_spd_raw)
     model = _settings.get("modelSelect", "gemma4:e4b")
     slack_reply_bot = None  # None = 通常モード, "mei"/"eve" = Slack返信モード
     slack_reply_speaker = 2
@@ -482,7 +561,8 @@ async def websocket_endpoint(ws: WebSocket):
                     speaker_id = data["speaker_id"]
                     continue
                 elif data.get("type") == "set_speed":
-                    speed = data["speed"]
+                    _sv2 = data["speed"]
+                    speed = 0 if _sv2 == "auto" else float(_sv2)
                     continue
                 elif data.get("type") == "set_model":
                     model = data["model"]
@@ -496,7 +576,8 @@ async def websocket_endpoint(ws: WebSocket):
                         v = _settings["voiceSelect"]
                         speaker_id = int(v) if str(v).isdigit() else v
                     if "speedSelect" in data.get("settings", {}):
-                        speed = float(_settings["speedSelect"])
+                        _sv = _settings["speedSelect"]
+                        speed = 0 if _sv == "auto" else float(_sv)
                     if "modelSelect" in data.get("settings", {}):
                         model = _settings["modelSelect"]
                     await _broadcast_settings(exclude=ws)
@@ -504,7 +585,8 @@ async def websocket_endpoint(ws: WebSocket):
                 elif data.get("type") == "slack_reply":
                     slack_reply_bot = data.get("bot_id")
                     slack_reply_speaker = data.get("speaker_id", 2)
-                    slack_reply_speed = data.get("speed", 1.0)
+                    _srv = data.get("speed", "auto")
+                    slack_reply_speed = 0 if _srv == "auto" else float(_srv)
                     continue
                 elif data.get("type") == "stop_audio":
                     # 全クライアントへブロードキャスト（送信元含む）
@@ -612,9 +694,12 @@ async def _proactive_polling_loop():
                 if not messages:
                     continue
                 sorted_msgs = sorted(messages, key=lambda m: float(m["ts"]))
+                engine = _settings.get(f"{bot_id}Engine", _settings.get("ttsEngine", "voicevox"))
                 speaker = _settings.get(f"{bot_id}Voice", "2")
                 speed = _settings.get(f"{bot_id}Speed", "1.0")
-                for msg_item in sorted_msgs:
+                # 最新メッセージだけ TTS（複数検知時の GPU 過負荷防止）
+                latest_idx = len(sorted_msgs) - 1
+                for i, msg_item in enumerate(sorted_msgs):
                     payload = json.dumps({
                         "type": "proactive_message",
                         "botId": bot_id,
@@ -623,13 +708,15 @@ async def _proactive_polling_loop():
                         "speed": speed,
                         "ts": msg_item["ts"],
                     })
-                    # サーバー側で1回だけ音声生成し、全クライアントにバイナリ送信
                     audio_bytes: bytes | None = None
-                    try:
-                        audio_bytes = await synthesize_speech(msg_item["text"], speaker, float(speed))
-                        print(f"[proactive] TTS generated {len(audio_bytes)} bytes for {bot_id}")
-                    except Exception as e:
-                        print(f"[proactive] TTS failed: {e}")
+                    if i == latest_idx:
+                        try:
+                            audio_bytes = await synthesize_speech(msg_item["text"], speaker, 0 if speed == "auto" else float(speed), engine=engine)
+                            print(f"[proactive] TTS generated {len(audio_bytes)} bytes for {bot_id}")
+                        except Exception as e:
+                            print(f"[proactive] TTS failed: {e}")
+                    else:
+                        print(f"[proactive] skipping TTS for older msg ({i+1}/{len(sorted_msgs)}) {bot_id}")
                     active_clients = len(_clients)
                     sent_count = 0
                     for client in list(_clients):
@@ -641,7 +728,7 @@ async def _proactive_polling_loop():
                         except Exception as exc:
                             print(f"[proactive] WS send failed: {exc}")
                             _clients.discard(client)
-                    print(f"[proactive] sent to {sent_count}/{active_clients} clients (audio+text)")
+                    print(f"[proactive] sent to {sent_count}/{active_clients} clients ({'audio+text' if audio_bytes else 'text only'})")
                     # lastSeen を更新
                     if "lastSeen" not in _settings:
                         _settings["lastSeen"] = {}
@@ -649,6 +736,21 @@ async def _proactive_polling_loop():
                 _save_settings(_settings)
             except Exception as e:
                 print(f"proactive poll {bot_id}: {e}")
+
+
+async def _warmup_irodori():
+    """起動時にダミー推論してGPUウォームアップ"""
+    try:
+        print("[warmup] Irodori TTS warming up...")
+        await _synthesize_irodori_unlocked("ウォームアップ", "irodori-bright-female", 20.0)
+        print("[warmup] Irodori TTS ready")
+    except Exception as e:
+        print(f"[warmup] Irodori TTS warmup failed (non-fatal): {e}")
+
+
+@app.on_event("startup")
+async def on_startup():
+    await _warmup_irodori()
 
 
 if __name__ == "__main__":
