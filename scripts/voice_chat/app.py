@@ -20,8 +20,12 @@ load_dotenv(Path(__file__).parent / ".env")
 
 app = FastAPI()
 
-# Irodori TTS は GPU 推論のため、同時リクエストで品質が劣化する。排他ロックで直列化。
-_irodori_lock = asyncio.Lock()
+_tts_locks: dict[str, asyncio.Lock] = {}
+
+def _get_tts_lock(engine: str) -> asyncio.Lock:
+    if engine not in _tts_locks:
+        _tts_locks[engine] = asyncio.Lock()
+    return _tts_locks[engine]
 
 # TTS 結果の短期キャッシュ（重複リクエスト防止）
 _tts_cache: dict[str, tuple[float, bytes]] = {}
@@ -187,8 +191,8 @@ async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0
     if cached and now - cached[0] < _TTS_CACHE_TTL:
         print(f"[synthesize_speech] cache hit, engine={tts_engine}, speaker_id={speaker_id}")
         return cached[1]
-    # ロック内で再チェック（同時リクエストの重複推論を防止）
-    async with _irodori_lock:
+    lock = _get_tts_lock(tts_engine)
+    async with lock:
         now = time.time()
         cached = _tts_cache.get(cache_key)
         if cached and now - cached[0] < _TTS_CACHE_TTL:
