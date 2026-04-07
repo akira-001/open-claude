@@ -40,6 +40,7 @@ IRODORI_VOICES = [
     {"id": "irodori-narrator", "name": "ナレーター", "caption": "プロのナレーターのような、落ち着いて聞き取りやすい声で読み上げてください。"},
     {"id": "irodori-anime-girl", "name": "アニメ風少女", "caption": "かわいらしいアニメの女の子のような声で、元気に読み上げてください。"},
     {"id": "irodori-emilia", "name": "銀髪のお嬢様", "caption": "透明感のある澄んだ女性の声で、品がありつつも芯の強さを感じさせる、少しおっとりした丁寧な話し方で読み上げてください。"},
+    {"id": "irodori-lora-emilia", "name": "エミリア(LoRA)", "lora": True},
 ]
 
 # GPT-SoVITS config
@@ -191,11 +192,25 @@ IRODORI_API_URL = "http://localhost:7860"
 
 async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 1.0) -> bytes:
     """Irodori-TTS（ロックなし版 — 呼び出し元でロック取得済み前提）"""
+    # LoRA ボイスの場合は /tts-ref エンドポイントを使用
+    voice_entry = next((v for v in IRODORI_VOICES if v["id"] == voice_id), None)
+    if voice_entry and voice_entry.get("lora"):
+        if speed == 0:
+            num_steps = 40 if len(text) > 120 else 30 if len(text) > 80 else 20
+        else:
+            num_steps = int(speed) if speed >= 2 else 20
+        print(f"[IRODORI TTS LoRA] voice_id={voice_id}, num_steps={num_steps}, text_len={len(text)}")
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"{IRODORI_API_URL}/tts-ref",
+                json={"text": text, "num_steps": num_steps},
+            )
+            resp.raise_for_status()
+            return resp.content
+
     caption = "自然で聞き取りやすい声で読み上げてください。"
-    for v in IRODORI_VOICES:
-        if v["id"] == voice_id:
-            caption = v["caption"]
-            break
+    if voice_entry:
+        caption = voice_entry.get("caption", caption)
 
     if speed == 0:
         # auto: テキスト長に応じてステップ数を自動決定
