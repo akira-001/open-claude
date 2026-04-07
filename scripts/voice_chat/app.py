@@ -158,7 +158,10 @@ def _clean_text_for_tts(text: str) -> str:
     text = emoji_lib.replace_emoji(text, replace='')
     text = re.sub(r'\n{3,}', '\n\n', text)
     for pattern, yomi in _YOMIGANA_MAP:
-        text = pattern.sub(yomi, text)
+        if pattern.search(text):
+            before = text
+            text = pattern.sub(yomi, text)
+            print(f"[YOMIGANA] '{pattern.pattern}' -> '{yomi}' | before='{before[:60]}' | after='{text[:60]}'")
     return text.strip()
 
 
