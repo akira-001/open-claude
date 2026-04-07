@@ -143,11 +143,18 @@ class TTSQualityError(Exception):
         super().__init__(message)
 
 
+_YOMIGANA_MAP: list[tuple[re.Pattern, str]] = [
+    (re.compile(r'Akira', re.IGNORECASE), 'あきら'),
+]
+
+
 def _clean_text_for_tts(text: str) -> str:
-    """TTS 用テキスト前処理: URL・絵文字を除去し空行を整理"""
+    """TTS 用テキスト前処理: URL・絵文字を除去し空行を整理、名前を読み仮名に変換"""
     text = re.sub(r'https?://\S+', '', text)
     text = emoji_lib.replace_emoji(text, replace='')
     text = re.sub(r'\n{3,}', '\n\n', text)
+    for pattern, yomi in _YOMIGANA_MAP:
+        text = pattern.sub(yomi, text)
     return text.strip()
 
 
