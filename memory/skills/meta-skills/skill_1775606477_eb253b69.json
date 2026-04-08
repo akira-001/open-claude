@@ -1,0 +1,48 @@
+{
+  "id": "skill_1775606477_eb253b69",
+  "name": "\u60c5\u5831\u306e\u6b63\u78ba\u6027\u30eb\u30fc\u30eb Skill",
+  "category": "meta-skills",
+  "description": "\u60c5\u5831\u306e\u6b63\u78ba\u6027\u30eb\u30fc\u30eb: ",
+  "execution_pattern": "# \u60c5\u5831\u306e\u6b63\u78ba\u6027\u30eb\u30fc\u30eb: \n\n<!-- Use /skill-creator to develop full execution steps -->",
+  "success_metrics": [
+    {
+      "name": "Effectiveness",
+      "description": "Overall success rate of skill execution",
+      "measurement_method": "User feedback and performance metrics",
+      "target_value": 0.8,
+      "current_value": 0.5
+    },
+    {
+      "name": "User Satisfaction",
+      "description": "User satisfaction score based on reactions and feedback",
+      "measurement_method": "User reactions, feedback, and ratings",
+      "target_value": 0.8,
+      "current_value": 0.5
+    },
+    {
+      "name": "Execution Speed",
+      "description": "Time to complete the task successfully",
+      "measurement_method": "Automated timing and performance monitoring",
+      "target_value": 800.0,
+      "current_value": 1000.0
+    },
+    {
+      "name": "Error Rate",
+      "description": "Frequency of errors during skill execution",
+      "measurement_method": "Error detection and logging",
+      "target_value": 0.1,
+      "current_value": 0.0
+    }
+  ],
+  "improvement_history": [],
+  "usage_stats": {
+    "total_executions": 0,
+    "successful_executions": 0,
+    "average_effectiveness": 0.5,
+    "last_used_at": null,
+    "frequency": 0.0
+  },
+  "created_at": "2026-04-08T09:01:17.684107",
+  "updated_at": "2026-04-08T09:01:17.684115",
+  "version": 1
+}
