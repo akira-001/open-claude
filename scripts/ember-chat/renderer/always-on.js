@@ -164,6 +164,9 @@ class AlwaysOnListener {
       setTimeout(() => {
         if (this.state === 'processing') this._setState('listening');
       }, 3000);
+    } else if (msg.type === 'always_on_result' && !msg.wake) {
+      if (this._processingTimeout) { clearTimeout(this._processingTimeout); this._processingTimeout = null; }
+      this._setState('listening');
     }
   }
 
