@@ -11,12 +11,12 @@ class WakeWordResult:
 
 
 _WAKE_PATTERNS = [
-    re.compile(r'^(?:ねぇ|ねえ|ねー|ね)\s*メイ[、,。．.\s]*(.*)$', re.DOTALL),
+    re.compile(r'^(?:ねぇ|ねえ|ねー|ね)[、,\s]*メイ[、,。．.\s]*(.*)$', re.DOTALL),
     re.compile(r'^メイ[、,。．.\s]+(.*)$', re.DOTALL),
-    re.compile(r'^メイ$'),
-    re.compile(r'^(?:ねぇ|ねえ|ねー|ね)\s*[Mm]ei[、,。．.\s]*(.*)$', re.DOTALL | re.IGNORECASE),
+    re.compile(r'^メイ[、,。．.\s]*$'),
+    re.compile(r'^(?:ねぇ|ねえ|ねー|ね)[、,\s]*[Mm]ei[、,。．.\s]*(.*)$', re.DOTALL | re.IGNORECASE),
     re.compile(r'^[Mm]ei[、,。．.\s]+(.*)$', re.DOTALL | re.IGNORECASE),
-    re.compile(r'^[Mm]ei$', re.IGNORECASE),
+    re.compile(r'^[Mm]ei[、,。．.\s]*$', re.IGNORECASE),
 ]
 
 
