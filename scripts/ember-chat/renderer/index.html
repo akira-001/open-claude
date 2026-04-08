@@ -324,9 +324,41 @@
     border-bottom: 1px solid var(--ember-border);
   }
   #playbackMode .native { color: var(--ember-success); }
+
+  /* Always-On indicator */
+  #alwaysOnIndicator { cursor: pointer; }
+  #alwaysOnDot.listening {
+    background: var(--ember-success);
+    animation: pulse-green 2s ease-in-out infinite;
+  }
+  #alwaysOnDot.processing {
+    background: var(--ember-warm);
+    animation: pulse-warm 1s ease-in-out infinite;
+  }
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+  }
+  @keyframes pulse-warm {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0); }
+  }
 </style>
 </head>
 <body>
+
+<div id="consentOverlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); align-items:center; justify-content:center;">
+  <div style="background:var(--ember-surface); border-radius:16px; padding:32px; max-width:360px; text-align:center;">
+    <div style="font-size:32px; margin-bottom:16px;">&#x1F399;</div>
+    <h2 style="font-size:16px; margin-bottom:12px; color:var(--ember-text);">Always-On Listening</h2>
+    <p style="font-size:13px; color:var(--ember-text-muted); line-height:1.6; margin-bottom:20px;">
+      Ember Chat は常時マイクを使用して音声を監視します。<br>
+      音声はローカルでのみ処理され、外部に送信されません。
+    </p>
+    <button id="consentAccept" style="background:var(--ember-gradient); color:#fff; border:none; border-radius:8px; padding:10px 24px; font-size:14px; cursor:pointer; margin-right:8px;">許可する</button>
+    <button id="consentDecline" style="background:var(--ember-border); color:var(--ember-text-muted); border:none; border-radius:8px; padding:10px 24px; font-size:14px; cursor:pointer;">後で</button>
+  </div>
+</div>
 
 <div id="titlebar">
   <div class="logo">
@@ -359,7 +391,11 @@
     <span id="srvOllamaDot" class="srv-dot"></span>
     <span>Ollama</span>
   </span>
-  <span class="srv-item" style="margin-left:auto">
+  <span class="srv-item" id="alwaysOnIndicator" style="margin-left:auto; cursor:pointer;" title="Toggle Always-On Listening">
+    <span id="alwaysOnDot" class="srv-dot"></span>
+    <span id="alwaysOnLabel">Muted</span>
+  </span>
+  <span class="srv-item">
     <span id="wsStatusDot" class="srv-dot"></span>
     <span>WS</span>
   </span>
@@ -430,6 +466,7 @@
   <button id="sendBtn" onclick="sendTextMessage()">Send</button>
 </div>
 
+<script src="always-on.js"></script>
 <script>
 const API_BASE = 'http://localhost:8767/api';
 const WS_HOST = 'localhost:8767';
@@ -588,7 +625,10 @@ async function getMicStream() {
 function connect() {
   ws = new WebSocket(`ws://${WS_HOST}/ws`);
   ws.binaryType = 'arraybuffer';
-  ws.onopen = () => wsStatusDot.classList.add('online');
+  ws.onopen = () => {
+    wsStatusDot.classList.add('online');
+    if (!alwaysOn) maybeStartAlwaysOn();
+  };
   ws.onclose = () => { wsStatusDot.classList.remove('online'); setTimeout(connect, 2000); };
 
   ws.onmessage = async (e) => {
@@ -600,10 +640,15 @@ function connect() {
       talkBtn.disabled = false;
       sendBtn.disabled = false;
       updateTalkBtn();
+      if (alwaysOn) alwaysOn.returnToListening();
       return;
     }
     const msg = JSON.parse(e.data);
     if (msg.type === 'stop_audio') { stopAudio(false); return; }
+    if (msg.type === 'wake_detected') {
+      if (alwaysOn) alwaysOn.handleServerMessage(msg);
+      return;
+    }
     if (msg.type === 'proactive_message') {
       const msgId = msg.ts || `${msg.botId}-${msg.text}`;
       if (playedMessageIds.has(msgId)) return;
@@ -971,6 +1016,78 @@ async function init() {
 }
 
 init();
+
+// --- Always-On Listener ---
+let alwaysOn = null;
+
+async function checkAndShowConsent() {
+  if (!window.emberBridge?.checkConsent) return true;
+  const consented = await window.emberBridge.checkConsent();
+  if (consented) return true;
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('consentOverlay');
+    overlay.style.display = 'flex';
+    document.getElementById('consentAccept').onclick = async () => {
+      await window.emberBridge.saveConsent();
+      overlay.style.display = 'none';
+      resolve(true);
+    };
+    document.getElementById('consentDecline').onclick = () => {
+      overlay.style.display = 'none';
+      resolve(false);
+    };
+  });
+}
+
+function initAlwaysOn() {
+  const dot = document.getElementById('alwaysOnDot');
+  const label = document.getElementById('alwaysOnLabel');
+  const indicator = document.getElementById('alwaysOnIndicator');
+
+  alwaysOn = new AlwaysOnListener({
+    wsSend,
+    wsRef: () => ws,
+    onStateChange: (state) => {
+      dot.className = 'srv-dot';
+      if (state === 'listening') {
+        dot.classList.add('online', 'listening');
+        label.textContent = 'Listening';
+      } else if (state === 'processing' || state === 'detected') {
+        dot.classList.add('processing');
+        label.textContent = 'Processing...';
+      } else {
+        label.textContent = 'Muted';
+      }
+      if (window.emberBridge?.setAlwaysOn) {
+        window.emberBridge.setAlwaysOn(state === 'listening' || state === 'detected' || state === 'processing');
+      }
+    },
+    onWakeDetected: (msg) => {
+      if (msg.response_text) addMessage(`[MEI] ${msg.response_text}`, 'assistant');
+    },
+    playAudio,
+    addMessage,
+  });
+
+  indicator.addEventListener('click', () => alwaysOn.toggle());
+
+  if (window.emberBridge?.onAlwaysOnToggle) {
+    window.emberBridge.onAlwaysOnToggle((listening) => {
+      if (listening && !alwaysOn.enabled) alwaysOn.start();
+      else if (!listening && alwaysOn.enabled) alwaysOn.stop();
+    });
+  }
+}
+
+async function maybeStartAlwaysOn() {
+  const granted = await checkAndShowConsent();
+  if (granted) {
+    initAlwaysOn();
+    alwaysOn.start();
+  } else {
+    initAlwaysOn();
+  }
+}
 </script>
 
 </body>
