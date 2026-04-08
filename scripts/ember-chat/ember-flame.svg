@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="85%" r="60%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bg-glow" cx="50%" cy="55%" r="50%">
+      <stop offset="0%" stop-color="#FFF5EB" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#F0E0D0" stop-opacity="1"/>
+    </radialGradient>
+    <linearGradient id="flame-outer" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="40%" stop-color="#ea580c"/>
+      <stop offset="70%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="flame-mid" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#fdba74"/>
+    </linearGradient>
+    <linearGradient id="flame-inner" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="40%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fde68a"/>
+    </linearGradient>
+    <linearGradient id="flame-core" x1="0.5" y1="1" x2="0.5" y2="0">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background fills full canvas, macOS clips to squircle -->
+  <rect width="256" height="256" fill="#FFFFFF"/>
+  <!-- Flame group centered in icon -->
+  <g transform="translate(128,134) scale(0.82) translate(-128,-128)">
+    <!-- Subtle glow -->
+    <ellipse cx="128" cy="200" rx="70" ry="30" fill="url(#glow)"/>
+    <!-- Outer flame -->
+    <path d="M128 28
+      C128 28 188 80 192 140
+      C194 165 182 192 164 208
+      C158 213 148 220 128 224
+      C108 220 98 213 92 208
+      C74 192 62 165 64 140
+      C68 80 128 28 128 28Z"
+      fill="url(#flame-outer)"/>
+    <!-- Right flicker -->
+    <path d="M160 60
+      C160 60 196 100 194 142
+      C193 158 184 178 170 194
+      C162 202 150 210 140 214
+      C152 208 148 196 150 180
+      C154 156 160 60 160 60Z"
+      fill="url(#flame-mid)" opacity="0.7"/>
+    <!-- Left flicker -->
+    <path d="M96 70
+      C96 70 60 108 62 148
+      C63 162 72 182 86 196
+      C94 204 106 212 116 216
+      C104 210 100 198 102 182
+      C104 158 96 70 96 70Z"
+      fill="url(#flame-mid)" opacity="0.5"/>
+    <!-- Mid flame -->
+    <path d="M128 60
+      C128 60 172 104 174 148
+      C175 168 166 190 152 204
+      C144 210 136 216 128 218
+      C120 216 112 210 104 204
+      C90 190 81 168 82 148
+      C84 104 128 60 128 60Z"
+      fill="url(#flame-mid)"/>
+    <!-- Inner flame -->
+    <path d="M128 96
+      C128 96 158 128 160 158
+      C161 172 154 190 144 200
+      C140 204 134 208 128 210
+      C122 208 116 204 112 200
+      C102 190 95 172 96 158
+      C98 128 128 96 128 96Z"
+      fill="url(#flame-inner)"/>
+    <!-- Core -->
+    <path d="M128 140
+      C128 140 146 158 146 174
+      C146 184 140 196 134 202
+      C132 204 130 206 128 206
+      C126 206 124 204 122 202
+      C116 196 110 184 110 174
+      C110 158 128 140 128 140Z"
+      fill="url(#flame-core)"/>
+  </g>
+</svg>

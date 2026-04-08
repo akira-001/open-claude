@@ -1,0 +1,32 @@
+{
+  "name": "ember-chat",
+  "version": "1.0.0",
+  "description": "Ember Chat - Voice & Text chat with AI assistants",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "dev": "NODE_ENV=development electron ."
+  },
+  "author": "Akira",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.ember.chat",
+    "productName": "Ember Chat",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dir",
+      "icon": "/Applications/Ember Chat.app/Contents/Resources/AppIcon.icns"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ]
+  }
+}

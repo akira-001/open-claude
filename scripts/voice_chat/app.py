@@ -384,7 +384,7 @@ SAMPLE_TEXTS = [
 async def preview_voice(speaker: str = "2", speed: str = "auto"):
     import random
     text = random.choice(SAMPLE_TEXTS)
-    spd = 0 if speed == "auto" else float(speed)
+    spd = 0 if (speed or "auto") == "auto" else float(speed)
     audio = await synthesize_speech(text, speaker, spd)
     return Response(content=audio, media_type="audio/wav")
 
@@ -418,7 +418,7 @@ async def get_bot_audio(bot_id: str, speaker: str = "2", speed: str = "auto", en
     entry = _get_latest_bot_entry(bot_id)
     if not entry:
         return Response(status_code=404)
-    spd = 0 if speed == "auto" else float(speed)
+    spd = 0 if (speed or "auto") == "auto" else float(speed)
     try:
         audio = await synthesize_speech(entry["text"], speaker, spd, engine=engine)
     except TTSQualityError as e:
@@ -491,7 +491,7 @@ async def slack_new_messages(bot_id: str, since: str = ""):
 @app.get("/api/tts")
 async def tts_endpoint(text: str, speaker: str = "2", speed: str = "auto"):
     """任意のテキストを音声合成して返す"""
-    spd = 0 if speed == "auto" else float(speed)
+    spd = 0 if (speed or "auto") == "auto" else float(speed)
     audio = await synthesize_speech(text, speaker, spd)
     return Response(content=audio, media_type="audio/wav")
 
@@ -633,7 +633,7 @@ async def websocket_endpoint(ws: WebSocket):
 
     raw_voice = _settings.get("voiceSelect", VOICEVOX_SPEAKER)
     speaker_id = int(raw_voice) if str(raw_voice).isdigit() else raw_voice
-    _spd_raw = _settings.get("speedSelect", "auto")
+    _spd_raw = _settings.get("speedSelect", "auto") or "auto"
     speed = 0 if _spd_raw == "auto" else float(_spd_raw)
     model = _settings.get("modelSelect", "gemma4:e4b")
     slack_reply_bot = None  # None = 通常モード, "mei"/"eve" = Slack返信モード
@@ -657,7 +657,7 @@ async def websocket_endpoint(ws: WebSocket):
                     speaker_id = data["speaker_id"]
                     continue
                 elif data.get("type") == "set_speed":
-                    _sv2 = data["speed"]
+                    _sv2 = data["speed"] or "auto"
                     speed = 0 if _sv2 == "auto" else float(_sv2)
                     continue
                 elif data.get("type") == "set_model":
@@ -672,7 +672,7 @@ async def websocket_endpoint(ws: WebSocket):
                         v = _settings["voiceSelect"]
                         speaker_id = int(v) if str(v).isdigit() else v
                     if "speedSelect" in data.get("settings", {}):
-                        _sv = _settings["speedSelect"]
+                        _sv = _settings["speedSelect"] or "auto"
                         speed = 0 if _sv == "auto" else float(_sv)
                     if "modelSelect" in data.get("settings", {}):
                         model = _settings["modelSelect"]
@@ -681,7 +681,7 @@ async def websocket_endpoint(ws: WebSocket):
                 elif data.get("type") == "slack_reply":
                     slack_reply_bot = data.get("bot_id")
                     slack_reply_speaker = data.get("speaker_id", 2)
-                    _srv = data.get("speed", "auto")
+                    _srv = data.get("speed", "auto") or "auto"
                     slack_reply_speed = 0 if _srv == "auto" else float(_srv)
                     continue
                 elif data.get("type") == "stop_audio":
@@ -814,7 +814,8 @@ async def _proactive_polling_loop():
                     audio_bytes: bytes | None = None
                     if i == latest_idx:
                         try:
-                            audio_bytes = await synthesize_speech(msg_item["text"], speaker, 0 if speed == "auto" else float(speed), engine=engine)
+                            _spd_p = speed or "auto"
+                            audio_bytes = await synthesize_speech(msg_item["text"], speaker, 0 if _spd_p == "auto" else float(_spd_p), engine=engine)
                             logger.info(f"[proactive] TTS generated {len(audio_bytes)} bytes for {bot_id}")
                         except TTSQualityError as e:
                             logger.warning(f"[proactive] TTS quality error for {bot_id}: {e}")
