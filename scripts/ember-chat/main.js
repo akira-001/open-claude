@@ -9,6 +9,12 @@ const VOICE_CHAT_PORT = 8767;
 const APP_ICON_PATH = path.join(__dirname, 'icon-1024.png');
 app.setName('Ember Chat');
 
+// Single instance lock — prevent multiple windows
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 // Set Dock icon explicitly with high-res image
 if (app.dock) {
   const dockIcon = nativeImage.createFromPath(APP_ICON_PATH);
@@ -134,6 +140,14 @@ function createTray() {
   ]);
   tray.setContextMenu(contextMenu);
 }
+
+app.on('second-instance', () => {
+  // Focus existing window when second instance is launched
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
 
 app.whenReady().then(() => {
   try {
