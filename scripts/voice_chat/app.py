@@ -32,6 +32,8 @@ from faster_whisper import WhisperModel
 from wake_detect import detect_wake_word
 from wake_response import WakeResponseCache
 import wake_response as _wake_response_module
+from ambient_commands import detect_ambient_command
+from ambient_listener import AmbientListener
 
 load_dotenv(Path(__file__).parent / ".env")
 
@@ -626,6 +628,8 @@ _always_on_conversation_until: float = 0  # conversation window after wake
 _always_on_conversation: list[dict] = [
     {"role": "system", "content": "あなたはメイという名前のフレンドリーな日本語の会話アシスタントです。音声会話なので、簡潔に1-2文で返答してください。"}
 ]
+_ambient_listener: AmbientListener | None = None
+_ambient_batch_task: asyncio.Task | None = None
 
 
 async def _always_on_llm_reply(ws: WebSocket, text: str):
@@ -675,14 +679,41 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes):
         if time.time() < _always_on_echo_suppress_until:
             return
 
-        # In conversation window? Send directly to LLM without wake word
+        # --- Ambient command detection (highest priority) ---
+        cmd = detect_ambient_command(text)
+        if cmd.type == "stop":
+            logger.info(f"[ambient] STOP command: '{text}'")
+            _always_on_conversation_until = 0
+            if _ambient_listener:
+                _ambient_listener.state = "listening"
+            for client in list(_clients):
+                try:
+                    await client.send_json({"type": "stop_audio"})
+                except Exception:
+                    pass
+            return
+
+        if cmd.type in ("quiet", "talk_more") and _ambient_listener:
+            logger.info(f"[ambient] mode command: {cmd.type} delta={cmd.level_delta}")
+            _ambient_listener.apply_override(
+                level_delta=cmd.level_delta,
+                duration_sec=cmd.duration_sec,
+                trigger=text,
+            )
+            ack_texts = {
+                "quiet": "わかった、静かにするね",
+                "talk_more": "了解、もっと話しかけるね",
+            }
+            await _ambient_broadcast_text(ack_texts.get(cmd.type, ""), ws)
+            await _broadcast_ambient_state()
+            return
+
+        # --- Wake word detection ---
         in_conversation = time.time() < _always_on_conversation_until
         wake_result = detect_wake_word(text)
 
         if wake_result.detected:
             logger.info(f"[always_on] WAKE DETECTED: '{text}' → remaining: '{wake_result.remaining_text}'")
-
-            # Send wake response
             wake_resp = _wake_cache.get_random()
             if wake_resp:
                 resp_text, resp_audio = wake_resp
@@ -691,11 +722,7 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes):
                 _always_on_echo_suppress_until = time.time() + 3.0
             else:
                 await ws.send_json({"type": "wake_detected", "keyword": wake_result.keyword, "response_text": ""})
-
-            # Start conversation window
             _always_on_conversation_until = time.time() + 30.0
-
-            # Process remaining text through LLM
             remaining = wake_result.remaining_text
             if remaining and remaining not in ("メイ", "メイ。", "mei", "Mei"):
                 await _always_on_llm_reply(ws, remaining)
@@ -703,10 +730,142 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes):
             logger.info(f"[always_on] conversation: '{text[:50]}'")
             await _always_on_llm_reply(ws, text)
         else:
-            logger.info(f"[always_on] heard: '{text[:50]}' (no wake word)")
+            # --- Ambient processing ---
+            if _ambient_listener and _ambient_listener.effective_reactivity > 0:
+                _ambient_listener.add_to_buffer(text)
+                kw_match = _ambient_listener.check_keywords(text)
+                if kw_match and not _ambient_listener.is_llm_in_cooldown():
+                    logger.info(f"[ambient] keyword hit: {kw_match['category']} in '{text[:50]}'")
+                    _ambient_listener.record_cooldown(kw_match["category"])
+                    await _ambient_llm_reply(ws, text, method="keyword", keyword=kw_match["category"])
+                else:
+                    logger.info(f"[ambient] buffered: '{text[:50]}'")
             await ws.send_json({"type": "always_on_result", "wake": False})
     except Exception as e:
         logger.warning(f"[always_on] processing error: {e}")
+
+
+async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "keyword", keyword: str = ""):
+    """Generate ambient response via LLM and broadcast to all clients."""
+    global _always_on_echo_suppress_until
+    if not _ambient_listener:
+        return
+    try:
+        _ambient_listener.state = "processing"
+        prompt = _ambient_listener.build_llm_prompt()
+        model = _settings.get("modelSelect", "gemma4:e4b")
+        messages = [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": f"直近の発話: {trigger_text}"},
+        ]
+        reply = await chat_with_llm(messages, model)
+
+        if reply.strip().upper() == "SKIP":
+            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword)
+            _ambient_listener.state = "listening"
+            await _broadcast_ambient_state()
+            return
+
+        _ambient_listener.record_judgment(method=method, result="speak", keyword=keyword, utterance=reply)
+        _ambient_listener.record_llm_cooldown()
+
+        mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+        mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+        mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+        try:
+            audio = await synthesize_speech(reply, mei_speaker, mei_speed)
+            payload = json.dumps({"type": "ambient_response", "text": reply, "method": method})
+            for client in list(_clients):
+                try:
+                    await client.send_text(payload)
+                    await client.send_bytes(audio)
+                except Exception:
+                    _clients.discard(client)
+            _always_on_echo_suppress_until = time.time() + 4.0
+        except Exception as e:
+            logger.warning(f"[ambient] TTS error: {e}")
+            payload = json.dumps({"type": "ambient_response", "text": reply, "method": method, "tts_fallback": True})
+            for client in list(_clients):
+                try:
+                    await client.send_text(payload)
+                except Exception:
+                    _clients.discard(client)
+
+        _ambient_listener.state = "listening"
+        await _broadcast_ambient_state()
+    except Exception as e:
+        logger.warning(f"[ambient] LLM error: {e}")
+        if _ambient_listener:
+            _ambient_listener.state = "listening"
+
+
+async def _ambient_broadcast_text(text: str, ws: WebSocket):
+    """Send a short text response (e.g., command ack) with TTS to all clients."""
+    global _always_on_echo_suppress_until
+    if not text:
+        return
+    mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+    mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+    mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+    try:
+        audio = await synthesize_speech(text, mei_speaker, mei_speed)
+        payload = json.dumps({"type": "ambient_response", "text": text, "method": "command"})
+        for client in list(_clients):
+            try:
+                await client.send_text(payload)
+                await client.send_bytes(audio)
+            except Exception:
+                _clients.discard(client)
+        _always_on_echo_suppress_until = time.time() + 3.0
+    except Exception as e:
+        logger.warning(f"[ambient] ack TTS error: {e}")
+
+
+async def _broadcast_ambient_state():
+    """Push ambient state to all connected clients."""
+    if not _ambient_listener:
+        return
+    snap = _ambient_listener.get_state_snapshot()
+    msg = json.dumps({"type": "ambient_state", "data": snap})
+    for client in list(_clients):
+        try:
+            await client.send_text(msg)
+        except Exception:
+            _clients.discard(client)
+
+
+async def _ambient_batch_loop():
+    """Periodic LLM batch judgment for ambient audio."""
+    while True:
+        try:
+            if not _ambient_listener or not _clients:
+                await asyncio.sleep(5)
+                continue
+
+            interval = _ambient_listener.config["batch_interval_sec"]
+            if interval <= 0:
+                await asyncio.sleep(5)
+                continue
+
+            await asyncio.sleep(interval)
+
+            # Periodic state broadcast
+            await _broadcast_ambient_state()
+
+            if not _ambient_listener.text_buffer:
+                continue
+            if _ambient_listener.is_llm_in_cooldown():
+                continue
+
+            logger.info(f"[ambient] batch judgment ({len(_ambient_listener.text_buffer)} texts)")
+            ws = next(iter(_clients), None)
+            if ws:
+                trigger = " ".join(e["text"] for e in _ambient_listener.text_buffer[-3:])
+                await _ambient_llm_reply(ws, trigger, method="llm_batch")
+                _ambient_listener.flush_buffer()
+        except Exception as e:
+            logger.warning(f"[ambient] batch loop error: {e}")
+            await asyncio.sleep(5)
 
 
 def _ensure_proactive_polling():
@@ -979,6 +1138,20 @@ async def on_startup():
         logger.info(f"[startup] Wake response cache ready ({_wake_cache.is_ready})")
     except Exception as e:
         logger.warning(f"[startup] Wake response cache warmup failed: {e}")
+
+    # Initialize ambient listener
+    global _ambient_listener, _ambient_batch_task
+    _rules_path = Path(__file__).parent / "ambient_rules.json"
+    _examples_path = Path(__file__).parent / "ambient_examples.json"
+    _ambient_reactivity = _settings.get("ambient_reactivity", 3)
+    _ambient_listener = AmbientListener(
+        rules_path=_rules_path,
+        examples_path=_examples_path,
+        reactivity=_ambient_reactivity,
+    )
+    _ambient_listener.state = "listening"
+    _ambient_batch_task = asyncio.create_task(_ambient_batch_loop())
+    logger.info(f"[startup] Ambient listener ready (reactivity={_ambient_reactivity})")
 
 
 if __name__ == "__main__":
