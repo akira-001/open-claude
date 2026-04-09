@@ -130,6 +130,7 @@ async def _broadcast_settings(exclude: WebSocket | None = None):
 
 # --- Models (lazy load) ---
 _whisper_model = None
+_whisper_model_fast = None
 
 
 def get_whisper():
@@ -139,6 +140,16 @@ def get_whisper():
         _whisper_model = WhisperModel("large-v3", device="cpu", compute_type="int8")
         print("Whisper 準備完了")
     return _whisper_model
+
+
+def get_whisper_fast():
+    """Small model for always-on wake word detection — ~10x faster than large-v3."""
+    global _whisper_model_fast
+    if _whisper_model_fast is None:
+        print("Whisper small 読み込み中 (always-on用)...")
+        _whisper_model_fast = WhisperModel("small", device="cpu", compute_type="int8")
+        print("Whisper small 準備完了")
+    return _whisper_model_fast
 
 
 async def transcribe(audio_bytes: bytes, fast: bool = False) -> str:
@@ -159,7 +170,7 @@ def _transcribe_sync(audio_bytes: bytes, fast: bool) -> str:
     with tempfile.NamedTemporaryFile(suffix=".webm", delete=True) as f:
         f.write(audio_bytes)
         f.flush()
-        model = get_whisper()
+        model = get_whisper_fast() if fast else get_whisper()
         segments, info = model.transcribe(
             f.name, language="ja",
             beam_size=1 if fast else 5,
@@ -1065,8 +1076,11 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
         _whisper_busy = True
         try:
             # Run Whisper STT and speaker ID in parallel
+            # Always use small model for always-on (speed > accuracy)
+            # large-v3 is reserved for non-always-on transcription
+            use_fast = True
             loop = asyncio.get_event_loop()
-            whisper_task = asyncio.ensure_future(transcribe(audio_data, fast=True))
+            whisper_task = asyncio.ensure_future(transcribe(audio_data, fast=use_fast))
             speaker_task = loop.run_in_executor(
                 None, _identify_speaker_sync, audio_data
             ) if _speaker_id and _speaker_id.profiles else None
@@ -1097,12 +1111,13 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
             return
 
         # Format speech timestamp for debug display
+        model_tag = "small" if use_fast else "large-v3"
         if speech_ts:
             speech_time = datetime.fromtimestamp(speech_ts / 1000).strftime("%H:%M:%S")
             stt_delay = round(time.time() - speech_ts / 1000, 1)
-            await _send_debug(ws, f"[STT] '{text}' (spoke@{speech_time}, +{stt_delay}s)")
+            await _send_debug(ws, f"[STT/{model_tag}] '{text}' (spoke@{speech_time}, +{stt_delay}s)")
         else:
-            await _send_debug(ws, f"[STT] '{text}'")
+            await _send_debug(ws, f"[STT/{model_tag}] '{text}'")
 
         # --- Ambient command detection (highest priority) ---
         cmd = detect_ambient_command(text)
@@ -1685,4 +1700,5 @@ async def on_startup():
 
 if __name__ == "__main__":
     get_whisper()
+    get_whisper_fast()
     uvicorn.run(app, host="0.0.0.0", port=8767)

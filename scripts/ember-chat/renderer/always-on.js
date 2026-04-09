@@ -63,10 +63,10 @@ class AlwaysOnListener {
         this._handleSpeechSegment(audio);
       },
       positiveSpeechThreshold: 0.8,
-      negativeSpeechThreshold: 0.3,
-      minSpeechFrames: 5,
-      preSpeechPadFrames: 10,
-      redemptionFrames: 8,
+      negativeSpeechThreshold: 0.35,
+      minSpeechFrames: 4,
+      preSpeechPadFrames: 8,
+      redemptionFrames: 5,
     });
     this.vad.start();
   }
