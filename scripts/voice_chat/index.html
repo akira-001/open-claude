@@ -297,6 +297,9 @@
   .ambient-log-entry .method { color: var(--ember-warm); }
   .ambient-log-entry .result-speak { color: #2ecc71; }
   .ambient-log-entry .result-skip { color: var(--ember-text-dim); }
+  .ambient-log-entry .intervention-backchannel { color: #f5a623; }
+  .ambient-log-entry .intervention-reply { color: #22c55e; }
+  .ambient-log-entry .intervention-skip { color: var(--ember-text-dim); }
   .ambient-list { max-height: 200px; overflow-y: auto; }
   .ambient-list-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--ember-border); font-size: 13px; }
   .ambient-list-item .toggle { cursor: pointer; opacity: 0.7; }
@@ -1211,6 +1214,21 @@ function handleAmbientWS(msg) {
   if (msg.type === 'ambient_state') {
     const d = msg.data;
     const cfg = {1:'\u9759\u304b',2:'\u63a7\u3048\u3081',3:'\u666e\u901a',4:'\u7a4d\u6975\u7684',5:'\u8a71\u597d\u304d'};
+    const sourceLabel = {
+      user_identified: '本人(声紋一致)',
+      user_initiative: '本人(呼びかけ)',
+      user_response: '本人(会話継続)',
+      user_likely: '本人らしい',
+      user_in_conversation: '複数人会話',
+      media_likely: 'メディア音声',
+      fragmentary: '断片/ノイズ',
+      unknown: '不明',
+    };
+    const interventionLabel = {
+      reply: '返答',
+      backchannel: '相槌',
+      skip: '見守り',
+    };
     const eff = d.effective_reactivity || d.reactivity;
     document.getElementById('ambStatusLevel').textContent = eff + ' (' + (cfg[eff] || '?') + ')';
     document.getElementById('ambStatusState').textContent = d.listener_state || '-';
@@ -1222,7 +1240,11 @@ function handleAmbientWS(msg) {
       document.getElementById('ambStatusOverride').textContent = '-';
     }
     if (d.last_judgment) {
-      document.getElementById('ambStatusLast').textContent = d.last_judgment.method + ': ' + d.last_judgment.result;
+      const intervention = d.last_judgment.intervention ? ' / ' + (interventionLabel[d.last_judgment.intervention] || d.last_judgment.intervention) : '';
+      const source = d.last_judgment.source_hint ? ' / ' + (sourceLabel[d.last_judgment.source_hint] || d.last_judgment.source_hint) : '';
+      document.getElementById('ambStatusLast').textContent = d.last_judgment.method + ': ' + d.last_judgment.result + intervention + source;
+    } else {
+      document.getElementById('ambStatusLast').textContent = '-';
     }
     document.querySelectorAll('#reactivityBtns button').forEach((btn, i) => {
       btn.classList.toggle('active', i + 1 === d.reactivity);
@@ -1231,11 +1253,30 @@ function handleAmbientWS(msg) {
   if (msg.type === 'ambient_log') {
     const log = document.getElementById('ambientLog');
     const d = msg.data;
+    const sourceLabel = {
+      user_identified: '本人(声紋一致)',
+      user_initiative: '本人(呼びかけ)',
+      user_response: '本人(会話継続)',
+      user_likely: '本人らしい',
+      user_in_conversation: '複数人会話',
+      media_likely: 'メディア音声',
+      fragmentary: '断片/ノイズ',
+      unknown: '不明',
+    };
+    const interventionLabel = {
+      reply: '返答',
+      backchannel: '相槌',
+      skip: '見守り',
+    };
     const cls = d.result === 'speak' ? 'result-speak' : 'result-skip';
-    const extra = d.utterance ? ' \u2192 ' + d.utterance : (d.keyword ? ' (' + d.keyword + ')' : '');
+    const intervention = d.intervention || (d.result === 'skip' ? 'skip' : '');
+    const interventionCls = 'intervention-' + intervention;
+    const interventionText = intervention ? ' [' + (interventionLabel[intervention] || intervention) + ']' : '';
+    const sourceText = d.source_hint ? ' {' + (sourceLabel[d.source_hint] || d.source_hint) + '}' : '';
+    const extra = (d.utterance ? ' \u2192 ' + d.utterance : (d.keyword ? ' (' + d.keyword + ')' : '')) + sourceText;
     const entry = document.createElement('div');
     entry.className = 'ambient-log-entry';
-    entry.innerHTML = '<span class="time">' + d.timestamp + '</span> <span class="method">' + d.method + '</span> <span class="' + cls + '">' + d.result + '</span>' + extra;
+    entry.innerHTML = '<span class="time">' + d.timestamp + '</span> <span class="method">' + d.method + '</span> <span class="' + cls + '">' + d.result + '</span> <span class="' + interventionCls + '">' + interventionText + '</span>' + extra;
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
     while (log.children.length > 20) log.removeChild(log.firstChild);

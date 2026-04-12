@@ -433,6 +433,110 @@
     padding-top: 12px;
     border-top: 1px solid var(--ember-border);
   }
+  .recording-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--ember-border);
+    text-align: left;
+  }
+  .recording-label {
+    font-size: 10px;
+    color: var(--ember-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  .recording-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .recording-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+  }
+  .recording-field label {
+    font-size: 10px;
+    color: var(--ember-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .recording-field input,
+  .recording-field select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--ember-border);
+    border-radius: 10px;
+    background: var(--ember-bg);
+    color: var(--ember-text);
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+  .recording-script {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .recording-script .title {
+    font-size: 10px;
+    color: var(--ember-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .recording-script .body {
+    font-size: 16px;
+    color: var(--ember-text);
+    line-height: 1.55;
+    font-weight: 600;
+  }
+  .recording-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .recording-actions button {
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #fixtureRecBtn {
+    background: var(--ember-gradient);
+    color: #fff;
+    border: none;
+    font-weight: 700;
+  }
+  #fixtureSaveBadge {
+    background: transparent;
+    border: 1px solid var(--ember-border);
+    color: var(--ember-text-dim);
+  }
+  .recording-status {
+    font-size: 12px;
+    color: var(--ember-text-dim);
+    margin-top: 10px;
+    line-height: 1.5;
+    min-height: 18px;
+  }
+  .recording-paths {
+    display: none;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--ember-text-dim);
+    line-height: 1.45;
+    word-break: break-all;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
 
   /* Always-On indicator */
   #alwaysOnIndicator { cursor: pointer; }
@@ -471,8 +575,8 @@
 
 <div id="enrollOverlay">
   <div class="enroll-modal">
-    <h2 id="enrollTitle">Voice ID</h2>
-    <div id="enrollStatusText" class="enroll-status">声紋を登録すると、あなたの声とTV音声を区別できます</div>
+    <h2 id="enrollTitle">録音</h2>
+    <div id="enrollStatusText" class="enroll-status">声紋登録とテスト音声作成を、ここでまとめて進められます</div>
     <div id="enrollPrompt" class="enroll-prompt"></div>
     <div class="enroll-progress">
       <div class="enroll-dot" id="eDot0"></div>
@@ -489,6 +593,42 @@
       <button class="enroll-cancel" id="enrollDeleteBtn" style="display:none" onclick="enrollDelete()">削除</button>
     </div>
     <div id="enrollProfileInfo" class="enroll-profile-info"></div>
+    <div class="recording-section">
+      <div class="recording-label">Test Audio</div>
+      <div class="enroll-status" style="margin-bottom:8px;">
+        自由に考えなくて大丈夫。カテゴリを選んで、下の台本や手順をそのまま実行するだけでいいよ。
+      </div>
+      <div class="recording-grid">
+        <div class="recording-field">
+          <label for="fixtureCategory">カテゴリ</label>
+          <select id="fixtureCategory"></select>
+        </div>
+        <div class="recording-field">
+          <label for="fixtureScene">scene</label>
+          <input id="fixtureScene" type="text">
+        </div>
+      </div>
+      <div class="recording-script">
+        <div class="title" id="fixtureScriptTitle">この文をそのまま読む</div>
+        <div class="body" id="fixtureScriptBody">「今日の予定どうしようかな？」</div>
+      </div>
+      <div class="recording-grid">
+        <div class="recording-field">
+          <label for="fixtureTranscript">transcript</label>
+          <input id="fixtureTranscript" type="text">
+        </div>
+        <div class="recording-field">
+          <label for="fixtureNotes">notes</label>
+          <input id="fixtureNotes" type="text">
+        </div>
+      </div>
+      <div class="recording-actions">
+        <button id="fixtureRecBtn">テスト録音</button>
+        <button id="fixtureSaveBadge" disabled>incoming 自動保存</button>
+      </div>
+      <div id="fixtureStatus" class="recording-status"></div>
+      <div id="fixturePaths" class="recording-paths"></div>
+    </div>
   </div>
 </div>
 
@@ -595,7 +735,17 @@
   <button id="talkBtn">TALK</button>
   <button id="ttsToggle" class="side-btn on" onclick="toggleTTS()">Sound</button>
   <button id="debugBtn" class="side-btn" onclick="toggleDebug()">Debug</button>
-  <button id="voiceIdBtn" class="side-btn" onclick="openEnroll()">Voice ID</button>
+  <button id="voiceIdBtn" class="side-btn" onclick="openEnroll()">録音</button>
+</div>
+<div id="improveLoopPanel" style="display:none; padding:4px 8px; background:#1a1a1a; border-top:1px solid #333; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+  <span style="color:#888; font-size:11px;">改善ループ</span>
+  <button id="improveLoopBtn" class="side-btn" onclick="toggleImproveLoop()" style="font-size:11px; padding:2px 8px;">Loop OFF</button>
+  <select id="improveLoopSpan" onchange="updateImproveLoopSpan()" style="background:#222; color:#ccc; border:1px solid #444; border-radius:4px; font-size:11px; padding:2px 4px;">
+    <option value="30">30分</option>
+    <option value="60" selected>1時間</option>
+    <option value="120">2時間</option>
+  </select>
+  <span id="improveLoopStatus" style="color:#666; font-size:11px;"></span>
 </div>
 <div id="textInputRow">
   <input type="text" id="textInput" placeholder="Type a message..." autocomplete="off">
@@ -617,6 +767,16 @@ const speedSelect = document.getElementById('speedSelect');
 const proactiveBtn = document.getElementById('proactiveBtn');
 const ttsEngineSelect = document.getElementById('ttsEngineSelect');
 const wsStatusDot = document.getElementById('wsStatusDot');
+const fixtureCategorySelect = document.getElementById('fixtureCategory');
+const fixtureSceneInput = document.getElementById('fixtureScene');
+const fixtureTranscriptInput = document.getElementById('fixtureTranscript');
+const fixtureNotesInput = document.getElementById('fixtureNotes');
+const fixtureScriptTitle = document.getElementById('fixtureScriptTitle');
+const fixtureScriptBody = document.getElementById('fixtureScriptBody');
+const fixtureRecBtn = document.getElementById('fixtureRecBtn');
+const fixtureSaveBadge = document.getElementById('fixtureSaveBadge');
+const fixtureStatus = document.getElementById('fixtureStatus');
+const fixturePaths = document.getElementById('fixturePaths');
 
 let ws = null;
 let micStream = null;
@@ -644,6 +804,153 @@ if (_bc) {
 
 let _syncing = false;
 let _lastSaveTime = 0;
+let fixtureState = { recording: false, recorder: null, chunks: [], wavBuffer: null, savedBaseName: null };
+
+const FIXTURE_PRESETS = {
+  question: {
+    label: '名前なし相談',
+    scriptTitle: 'この文をそのまま読む',
+    script: '今日の予定どうしようかな？',
+    scene: 'schedule_planning',
+    expectedSource: 'user_likely',
+    expectedIntervention: 'reply',
+    notes: '名前なしの相談。人間なら返して自然',
+  },
+  monologue: {
+    label: '独り言',
+    scriptTitle: 'この文をそのまま読む',
+    script: '疲れたなあ、ちょっと休もうかな。',
+    scene: 'tired_after_work',
+    expectedSource: 'user_likely',
+    expectedIntervention: 'backchannel',
+    notes: 'PC作業中の独り言。短い相槌が自然',
+  },
+  wake: {
+    label: '明示呼びかけ',
+    scriptTitle: 'この文をそのまま読む',
+    script: 'メイ、おはよう。',
+    scene: 'good_morning',
+    expectedSource: 'user_initiative',
+    expectedIntervention: 'reply',
+    notes: '明示呼びかけ。会話開始として拾いたい',
+  },
+  media: {
+    label: 'TV / 動画音声',
+    scriptTitle: 'この文をナレーションっぽく読む',
+    script: 'この動画をご視聴いただきありがとうございました。また次回の動画でお会いしましょう。',
+    scene: 'youtube_outro',
+    expectedSource: 'media_likely',
+    expectedIntervention: 'skip',
+    notes: '動画や配信の締めっぽい音声',
+  },
+  keyboard: {
+    label: 'キーボード / 生活音',
+    scriptTitle: 'この手順どおりに録音',
+    script: '無言のまま、キーボードを3回打って、1秒置いて、マウスを1回クリックしてください。',
+    scene: 'mechanical_short',
+    expectedSource: 'fragmentary',
+    expectedIntervention: 'skip',
+    notes: 'キーボードや机の打鍵音っぽい短い断片',
+  },
+};
+
+function slugify(text) {
+  return String(text || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '') || 'sample';
+}
+
+function getFixtureBaseName() {
+  return `${slugify(fixtureCategorySelect.value)}__${slugify(fixtureSceneInput.value)}__01`;
+}
+
+function getFixtureSidecar() {
+  const preset = FIXTURE_PRESETS[fixtureCategorySelect.value];
+  return {
+    category: slugify(fixtureCategorySelect.value),
+    scene: slugify(fixtureSceneInput.value),
+    variant: '01',
+    id: `${slugify(fixtureCategorySelect.value)}_${slugify(fixtureSceneInput.value)}_01`,
+    transcript: fixtureTranscriptInput.value.trim(),
+    expected_source: preset.expectedSource,
+    expected_intervention: preset.expectedIntervention,
+    notes: fixtureNotesInput.value.trim(),
+  };
+}
+
+function applyFixturePreset(category) {
+  const preset = FIXTURE_PRESETS[category];
+  fixtureCategorySelect.value = category;
+  fixtureSceneInput.value = preset.scene;
+  fixtureTranscriptInput.value = preset.script;
+  fixtureNotesInput.value = preset.notes;
+  fixtureScriptTitle.textContent = preset.scriptTitle;
+  fixtureScriptBody.textContent = `「${preset.script}」`;
+  fixtureState.wavBuffer = null;
+  fixtureState.savedBaseName = null;
+  fixtureSaveBadge.textContent = 'incoming 自動保存';
+  fixturePaths.style.display = 'none';
+  fixturePaths.textContent = '';
+  fixtureStatus.textContent = 'カテゴリごとの台本を表示してあるよ。そのまま読めば大丈夫。';
+}
+
+function encodeWavFromAudioBuffer(audioBuffer) {
+  const source = audioBuffer.getChannelData(0);
+  const bytesPerSample = 2;
+  const buffer = new ArrayBuffer(44 + source.length * bytesPerSample);
+  const view = new DataView(buffer);
+  function writeString(offset, value) {
+    for (let i = 0; i < value.length; i += 1) view.setUint8(offset + i, value.charCodeAt(i));
+  }
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + source.length * bytesPerSample, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, audioBuffer.sampleRate, true);
+  view.setUint32(28, audioBuffer.sampleRate * bytesPerSample, true);
+  view.setUint16(32, bytesPerSample, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, source.length * bytesPerSample, true);
+  let offset = 44;
+  for (let i = 0; i < source.length; i += 1) {
+    const sample = Math.max(-1, Math.min(1, source[i]));
+    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+    offset += bytesPerSample;
+  }
+  return buffer;
+}
+
+async function convertBlobToWavBuffer(blob) {
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  try {
+    const decoded = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    return encodeWavFromAudioBuffer(decoded);
+  } finally {
+    await audioContext.close();
+  }
+}
+
+async function saveFixtureIncoming() {
+  if (!fixtureState.wavBuffer || !window.emberBridge?.saveIncomingAudioFixture) return;
+  const result = await window.emberBridge.saveIncomingAudioFixture({
+    baseName: getFixtureBaseName(),
+    previousBaseName: fixtureState.savedBaseName,
+    wavBuffer: Array.from(new Uint8Array(fixtureState.wavBuffer)),
+    sidecar: getFixtureSidecar(),
+  });
+  fixtureState.savedBaseName = getFixtureBaseName();
+  fixtureSaveBadge.textContent = 'incoming 保存済み';
+  fixturePaths.style.display = 'block';
+  fixturePaths.textContent = `${result.saved.wav}\n${result.saved.json}`;
+}
 
 function getSettingsSnapshot() {
   return {
@@ -963,7 +1270,53 @@ function toggleDebug() {
   const debugBtn = document.getElementById('debugBtn');
   debugBtn.textContent = listeningDebug ? 'Debug ON' : 'Debug';
   debugBtn.className = listeningDebug ? 'side-btn on' : 'side-btn';
+  document.getElementById('improveLoopPanel').style.display = listeningDebug ? 'flex' : 'none';
   saveSettings();
+}
+
+// --- 改善ループ ---
+let improveLoopEnabled = false;
+let improveLoopTimer = null;
+let improveLoopSpanMin = 60;
+
+function toggleImproveLoop() {
+  improveLoopEnabled = !improveLoopEnabled;
+  const btn = document.getElementById('improveLoopBtn');
+  btn.textContent = improveLoopEnabled ? 'Loop ON' : 'Loop OFF';
+  btn.className = improveLoopEnabled ? 'side-btn on' : 'side-btn';
+  if (improveLoopEnabled) {
+    scheduleImproveLoop();
+    document.getElementById('improveLoopStatus').textContent = `次回: ${improveLoopSpanMin}分後`;
+  } else {
+    clearTimeout(improveLoopTimer);
+    document.getElementById('improveLoopStatus').textContent = '';
+  }
+}
+
+function updateImproveLoopSpan() {
+  improveLoopSpanMin = parseInt(document.getElementById('improveLoopSpan').value);
+  if (improveLoopEnabled) {
+    clearTimeout(improveLoopTimer);
+    scheduleImproveLoop();
+    document.getElementById('improveLoopStatus').textContent = `次回: ${improveLoopSpanMin}分後`;
+  }
+}
+
+function scheduleImproveLoop() {
+  clearTimeout(improveLoopTimer);
+  improveLoopTimer = setTimeout(async () => {
+    if (!improveLoopEnabled) return;
+    document.getElementById('improveLoopStatus').textContent = '分析中...';
+    try {
+      await fetch('/api/improve_loop/run', { method: 'POST' });
+      const next = new Date(Date.now() + improveLoopSpanMin * 60000);
+      document.getElementById('improveLoopStatus').textContent =
+        `実行済 | 次回: ${next.getHours()}:${String(next.getMinutes()).padStart(2,'0')}`;
+    } catch (e) {
+      document.getElementById('improveLoopStatus').textContent = 'エラー';
+    }
+    scheduleImproveLoop();
+  }, improveLoopSpanMin * 60 * 1000);
 }
 
 // --- Recording ---
@@ -1290,6 +1643,7 @@ async function openEnroll() {
     }
   } catch { }
   enrollReset();
+  applyFixturePreset(fixtureCategorySelect.value || 'question');
 }
 
 function enrollReset() {
@@ -1305,6 +1659,60 @@ function enrollReset() {
     document.getElementById(`eDot${i}`).className = 'enroll-dot';
   }
 }
+
+fixtureCategorySelect.innerHTML = Object.entries(FIXTURE_PRESETS)
+  .map(([key, preset]) => `<option value="${key}">${preset.label}</option>`)
+  .join('');
+applyFixturePreset('question');
+
+async function startFixtureRecording() {
+  const stream = await getMicStream();
+  fixtureState.chunks = [];
+  fixtureState.recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+  fixtureState.recorder.ondataavailable = (e) => { if (e.data.size > 0) fixtureState.chunks.push(e.data); };
+  fixtureState.recorder.onstop = async () => {
+    try {
+      fixtureStatus.textContent = 'WAV に変換して incoming へ自動保存しているよ...';
+      const blob = new Blob(fixtureState.chunks, { type: 'audio/webm' });
+      fixtureState.wavBuffer = await convertBlobToWavBuffer(blob);
+      await saveFixtureIncoming();
+      fixtureStatus.textContent = '録音できたよ。incoming に WAV と JSON を自動保存したわ。';
+    } catch (err) {
+      fixtureStatus.textContent = `保存に失敗したわ: ${err.message || err}`;
+    }
+  };
+  fixtureState.recorder.start();
+  fixtureState.recording = true;
+  fixtureRecBtn.textContent = '停止';
+  fixtureStatus.textContent = '台本どおりに録って、終わったら停止してね。';
+}
+
+function stopFixtureRecording() {
+  if (fixtureState.recorder && fixtureState.recorder.state === 'recording') {
+    fixtureState.recorder.stop();
+  }
+  fixtureState.recording = false;
+  fixtureRecBtn.textContent = 'テスト録音';
+}
+
+fixtureRecBtn.addEventListener('click', async () => {
+  if (fixtureState.recording) stopFixtureRecording();
+  else await startFixtureRecording();
+});
+
+fixtureCategorySelect.addEventListener('change', () => applyFixturePreset(fixtureCategorySelect.value));
+[fixtureSceneInput, fixtureTranscriptInput, fixtureNotesInput].forEach((el) => {
+  el.addEventListener('change', async () => {
+    if (!fixtureState.wavBuffer) return;
+    fixtureStatus.textContent = '修正内容を incoming に反映しているよ...';
+    try {
+      await saveFixtureIncoming();
+      fixtureStatus.textContent = '修正内容を incoming に反映したよ。';
+    } catch (err) {
+      fixtureStatus.textContent = `更新に失敗したわ: ${err.message || err}`;
+    }
+  });
+});
 
 async function enrollStart() {
   try {

@@ -1,4 +1,6 @@
 import pytest
+import asyncio
+import inspect
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -23,3 +25,24 @@ def mock_synthesize():
     wav += data_size.to_bytes(4, 'little')
     wav += b'\x00' * data_size
     return bytes(wav)
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "asyncio: run async test via asyncio.run")
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pyfunc_call(pyfuncitem):
+    if "asyncio" not in pyfuncitem.keywords:
+        return None
+
+    test_func = pyfuncitem.obj
+    if not inspect.iscoroutinefunction(test_func):
+        return None
+
+    kwargs = {
+        name: pyfuncitem.funcargs[name]
+        for name in pyfuncitem._fixtureinfo.argnames
+    }
+    asyncio.run(test_func(**kwargs))
+    return True

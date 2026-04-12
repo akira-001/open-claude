@@ -1,0 +1,18 @@
+[
+  {
+    "pattern": "(?i)Akira",
+    "replacement": "あきら"
+  },
+  {
+    "pattern": "大谷翔平",
+    "replacement": "おおたにしょうへい"
+  },
+  {
+    "pattern": "大谷",
+    "replacement": "おおたに"
+  },
+  {
+    "pattern": "翔平",
+    "replacement": "しょうへい"
+  }
+]

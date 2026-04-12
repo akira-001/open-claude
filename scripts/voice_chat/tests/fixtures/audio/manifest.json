@@ -1,0 +1,74 @@
+[
+  {
+    "id": "keyboard_clicks",
+    "file": "samples/keyboard_clicks.wav",
+    "transcript": "カタ",
+    "expected_source": "fragmentary",
+    "expected_intervention": "skip",
+    "notes": "キーボードや机の打鍵音っぽい短い断片"
+  },
+  {
+    "id": "desk_monologue",
+    "file": "samples/desk_monologue.wav",
+    "transcript": "疲れたなあ",
+    "expected_source": "user_likely",
+    "expected_intervention": "backchannel",
+    "notes": "PC作業中の独り言。短い相槌が自然"
+  },
+  {
+    "id": "direct_question",
+    "file": "samples/direct_question.wav",
+    "transcript": "今日の予定どうしようかな？",
+    "expected_source": "user_likely",
+    "expected_intervention": "reply",
+    "notes": "名前は呼ばないが、相談として返してよい質問"
+  },
+  {
+    "id": "tv_outro",
+    "file": "samples/tv_outro.wav",
+    "transcript": "この動画をご視聴いただきありがとうございました",
+    "expected_source": "media_likely",
+    "expected_intervention": "skip",
+    "notes": "動画や配信の締めっぽい音声"
+  },
+  {
+    "id": "keyboard_mechanical_short_01",
+    "file": "samples/keyboard__mechanical_short__01.wav",
+    "transcript": "無言のまま、キーボードを3回打って、1秒置いて、マウスを1回クリックしてください。",
+    "expected_source": "fragmentary",
+    "expected_intervention": "skip",
+    "notes": "キーボードや机の打鍵音っぽい短い断片"
+  },
+  {
+    "id": "media_youtube_outro_01",
+    "file": "samples/media__youtube_outro__01.wav",
+    "transcript": "この動画をご視聴いただきありがとうございました。また次回の動画でお会いしましょう。",
+    "expected_source": "media_likely",
+    "expected_intervention": "skip",
+    "notes": "動画や配信の締めっぽい音声"
+  },
+  {
+    "id": "monologue_tired_after_work_01",
+    "file": "samples/monologue__tired_after_work__01.wav",
+    "transcript": "疲れたなあ、ちょっと休もうかな。",
+    "expected_source": "user_likely",
+    "expected_intervention": "backchannel",
+    "notes": "PC作業中の独り言。短い相槌が自然"
+  },
+  {
+    "id": "question_schedule_planning_01",
+    "file": "samples/question__schedule_planning__01.wav",
+    "transcript": "今日の予定どうしようかな？",
+    "expected_source": "user_likely",
+    "expected_intervention": "reply",
+    "notes": "名前なしの相談。人間なら返して自然"
+  },
+  {
+    "id": "wake_good_morning_01",
+    "file": "samples/wake__good_morning__01.wav",
+    "transcript": "メイ、おはよう。",
+    "expected_source": "user_initiative",
+    "expected_intervention": "reply",
+    "notes": "明示呼びかけ。会話開始として拾いたい"
+  }
+]

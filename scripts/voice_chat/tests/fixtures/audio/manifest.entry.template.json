@@ -1,0 +1,8 @@
+{
+  "id": "question_schedule_planning",
+  "file": "samples/question__schedule_planning__01.wav",
+  "transcript": "今日の予定どうしようかな？",
+  "expected_source": "user_likely",
+  "expected_intervention": "reply",
+  "notes": "名前なしの相談。人間なら返して自然"
+}

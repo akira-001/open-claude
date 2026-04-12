@@ -40,3 +40,15 @@ class TestDetectWakeWord:
         result = detect_wake_word("Mei、調べて")
         assert result.detected is True
         assert result.remaining_text == "調べて"
+
+    def test_ignores_main_prefix(self):
+        result = detect_wake_word("メインの音が大きい")
+        assert result.detected is False
+
+    def test_ignores_make_prefix(self):
+        result = detect_wake_word("メイクの話をしてる")
+        assert result.detected is False
+
+    def test_ignores_mei_car_prefix(self):
+        result = detect_wake_word("メイカーの新製品")
+        assert result.detected is False

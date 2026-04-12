@@ -9,6 +9,15 @@
             "command": "cogmem hook skill-gate"
           }
         ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cogmem hook pre-compress"
+          }
+        ]
       }
     ],
     "PostToolUse": [

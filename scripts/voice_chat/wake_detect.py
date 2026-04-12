@@ -15,8 +15,8 @@ _WAKE_PATTERNS = [
     re.compile(r'^(?:ねぇ|ねえ|ねー|ね)[、,\s]*メイ[、,。．.\s]*(.*)$', re.DOTALL),
     re.compile(r'^メイ[、,。．.\s]+(.*)$', re.DOTALL),
     re.compile(r'^メイ[、,。．.\s]*$'),
-    # No separator (e.g. "メイ聞こえる?")
-    re.compile(r'^メイ([^\s、,。．.].+)$', re.DOTALL),
+    # No separator (e.g. "メイ聞こえる?") but avoid common non-wake words like "メイン"
+    re.compile(r'^メイ(?!ン|ド|ク|カ|カー)([^\s、,。．.].+)$', re.DOTALL),
     # Romaji
     re.compile(r'^(?:ねぇ|ねえ|ねー|ね)[、,\s]*[Mm]ei[、,。．.\s]*(.*)$', re.DOTALL | re.IGNORECASE),
     re.compile(r'^[Mm]ei[、,。．.\s]+(.*)$', re.DOTALL | re.IGNORECASE),
@@ -28,12 +28,19 @@ _WAKE_PATTERNS = [
     re.compile(r'^ね[ぇえー][、,\s]*目[、,。．.\s]*(.*)$', re.DOTALL),
 ]
 
+_FALSE_WAKE_PREFIX = re.compile(
+    r'^(メイン|メイド|メイク|メイカー|メイプル|明治|名医)',
+    re.IGNORECASE,
+)
+
 
 def detect_wake_word(text: str) -> WakeWordResult:
     text = text.strip()
     # Strip leading symbols that Whisper sometimes prepends (※, ♪, *, etc.)
     text = re.sub(r'^[※♪♫★☆●○◆◇■□▲△▼▽*#→←↑↓・]+\s*', '', text)
     if not text:
+        return WakeWordResult(detected=False)
+    if _FALSE_WAKE_PREFIX.match(text):
         return WakeWordResult(detected=False)
 
     for pattern in _WAKE_PATTERNS:

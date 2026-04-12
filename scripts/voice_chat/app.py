@@ -1,13 +1,17 @@
 """Ember Chat Web App - STT (Whisper) + LLM (Ollama) + TTS (VOICEVOX)"""
 import asyncio
+import difflib
 import json
 import logging
+import math
 import os
 import re
 import struct
 import sys
 import tempfile
 import time
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -59,6 +63,7 @@ from wake_response import WakeResponseCache
 import wake_response as _wake_response_module
 from ambient_commands import detect_ambient_command
 from ambient_listener import AmbientListener
+from ambient_policy import normalize_ambient_reply, should_apply_stt_correction
 from speaker_id import SpeakerIdentifier, audio_bytes_to_wav, compute_embedding
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -131,6 +136,7 @@ SLACK_BOT_TOKENS = {
 
 # --- Shared settings (cross-browser sync) ---
 SETTINGS_FILE = Path(__file__).parent / "settings.json"
+YOMIGANA_FILE = Path(__file__).parent / "yomigana_map.json"
 _settings: dict = {}
 _clients: set[WebSocket] = set()
 
@@ -148,6 +154,63 @@ def _save_settings(s: dict):
     SETTINGS_FILE.write_text(json.dumps(s, ensure_ascii=False))
 
 
+def _load_public_yomigana_map() -> list[tuple[re.Pattern, str]]:
+    """共有 TTS 読み仮名辞書を JSON から読み込む。"""
+    try:
+        raw = json.loads(YOMIGANA_FILE.read_text())
+    except (FileNotFoundError, OSError, json.JSONDecodeError) as e:
+        logger.warning(f"[yomigana] failed to load {YOMIGANA_FILE.name}: {e}")
+        return []
+
+    entries: list[tuple[re.Pattern, str]] = []
+    if not isinstance(raw, list):
+        logger.warning(f"[yomigana] invalid format in {YOMIGANA_FILE.name}: expected list")
+        return []
+
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        pattern = item.get("pattern")
+        replacement = item.get("replacement")
+        if not isinstance(pattern, str) or not isinstance(replacement, str):
+            continue
+        try:
+            entries.append((re.compile(pattern), replacement))
+        except re.error as e:
+            logger.warning(f"[yomigana] invalid regex '{pattern}': {e}")
+    return entries
+
+
+def _load_personal_yomigana_map() -> list[tuple[re.Pattern, str]]:
+    """個人設定に保存された読み仮名辞書を読み込む。"""
+    raw = _settings.get("yomiganaPersonalEntries", [])
+    if not isinstance(raw, list):
+        return []
+
+    entries: list[tuple[re.Pattern, str]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        pattern = item.get("from")
+        replacement = item.get("to")
+        if not isinstance(pattern, str) or not isinstance(replacement, str):
+            continue
+        pattern = pattern.strip()
+        replacement = replacement.strip()
+        if not pattern or not replacement:
+            continue
+        try:
+            entries.append((re.compile(pattern), replacement))
+        except re.error as e:
+            logger.warning(f"[yomigana] invalid personal regex '{pattern}': {e}")
+    return entries
+
+
+def _get_yomigana_map() -> list[tuple[re.Pattern, str]]:
+    """共有辞書と個人辞書を合わせた読み仮名辞書を返す。"""
+    return _load_public_yomigana_map() + _load_personal_yomigana_map()
+
+
 async def _broadcast_settings(exclude: WebSocket | None = None):
     msg = json.dumps({"type": "sync_settings", "settings": _settings})
     for client in list(_clients):
@@ -155,6 +218,21 @@ async def _broadcast_settings(exclude: WebSocket | None = None):
             continue
         try:
             await client.send_text(msg)
+        except Exception:
+            _clients.discard(client)
+
+
+def _render_diagnostic_text(info: str) -> str:
+    rendered = info if re.match(r"^\d{2}:\d{2}:\d{2}\s", info) else f"{_debug_ts()} {info}"
+    return rendered.strip()
+
+
+async def _send_diagnostic_event(rendered_text: str, target: WebSocket | None = None):
+    payload = json.dumps({"type": "diagnostic", "text": rendered_text}, ensure_ascii=False)
+    targets = [target] if target else list(_clients)
+    for client in targets:
+        try:
+            await client.send_text(payload)
         except Exception:
             _clients.discard(client)
 
@@ -228,6 +306,32 @@ def _transcribe_sync(audio_bytes: bytes, fast: bool) -> str:
     return text
 
 
+def _transcribe_sync_with_metrics(audio_bytes: bytes, fast: bool) -> dict:
+    """Whisper推論（同期）+ 軽量メトリクス。"""
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:
+        f.write(audio_bytes)
+        f.flush()
+        model = get_whisper_fast() if fast else get_whisper()
+        segments, info = model.transcribe(
+            f.name,
+            language="ja",
+            beam_size=1 if fast else 5,
+            vad_filter=False,
+            initial_prompt="ねぇメイ、メイ、今日のスケジュールは？",
+        )
+        seg_list = list(segments)
+        text = "".join(seg.text for seg in seg_list).strip()
+
+    avg_no_speech = (sum(s.no_speech_prob for s in seg_list) / len(seg_list)) if seg_list else 0.0
+    confidence = max(0.0, min(1.0, 1.0 - avg_no_speech))
+    return {
+        "text": text,
+        "avg_no_speech": avg_no_speech,
+        "confidence": confidence,
+        "language": getattr(info, "language", "ja"),
+    }
+
+
 async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
     """Ollama でチャット応答を取得"""
     async with httpx.AsyncClient(timeout=300) as client:
@@ -243,6 +347,489 @@ async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
         return resp.json()["message"]["content"]
 
 
+# --- STT Post-Correction (Aqua Voice inspired) ---
+
+# 辞書ベース高速置換（LLM より先に適用、レイテンシゼロ）
+# (誤認識パターン, 正しいテキスト) — 音韻的に近い誤認識を収録
+_STT_DICT: list[tuple[re.Pattern, str]] = [
+    # 企業・サービス名
+    (re.compile(r'アンソロピック|アンスロピック|アンソロッピック|アントロピック'), 'Anthropic'),
+    (re.compile(r'クロード'), 'Claude'),
+    (re.compile(r'オープンエーアイ|オープンAI'), 'OpenAI'),
+    (re.compile(r'ジェミニ|ジェミナイ'), 'Gemini'),
+    (re.compile(r'チャットGPT|チャットジーピーティー'), 'ChatGPT'),
+    (re.compile(r'ギットハブ|ギッドハブ'), 'GitHub'),
+    (re.compile(r'スラック'), 'Slack'),
+    (re.compile(r'ノーション'), 'Notion'),
+    # 技術用語
+    (re.compile(r'デンダー'), 'カレンダー'),
+    (re.compile(r'ウィスパー'), 'Whisper'),
+    (re.compile(r'エンバー'), 'Ember'),
+    (re.compile(r'プロアクティ[ヴブ]'), 'プロアクティブ'),
+    (re.compile(r'アンビエン[スト]'), 'アンビエント'),
+    (re.compile(r'ウェブソケッ[トツ]'), 'WebSocket'),
+    (re.compile(r'エレクトロン'), 'Electron'),
+    (re.compile(r'タイプスクリプト'), 'TypeScript'),
+    (re.compile(r'ジャバスクリプト'), 'JavaScript'),
+    (re.compile(r'パイソン'), 'Python'),
+    # 人名
+    (re.compile(r'あきら(?!さん)'), 'Akiraさん'),
+]
+
+
+def _apply_stt_dict(text: str) -> str:
+    """辞書ベースの高速 STT 補正。マッチしたら置換して返す。"""
+    corrected = text
+    for pattern, replacement in _STT_DICT:
+        corrected = pattern.sub(replacement, corrected)
+    return corrected
+
+
+# 明らかに補正不要なパターン（短い相槌、感嘆詞、コマンド系）
+_STT_SKIP_CORRECTION = re.compile(
+    r'^(うん|ええ|はい|いいえ|そう|ね|へー|ふーん|おー|あー|なるほど'
+    r'|ありがとう|おはよう|おやすみ|こんにちは|こんばんは'
+    r'|メイ|めい|ストップ|とめて|止めて|静かに|もっと話して)$'
+)
+
+
+async def _correct_stt_text(text: str, context_texts: list[str] | None = None) -> str:
+    """Whisper STT の誤認識を補正。2段構成:
+    1. 辞書ベース高速置換（レイテンシゼロ）
+    2. LLM 補正（辞書で直らなかった未知の誤認識用）
+    """
+    # 短すぎる / 明らかに補正不要なテキストはスキップ
+    if len(text) < 3 or _STT_SKIP_CORRECTION.match(text.strip()):
+        return text
+
+    # Stage 1: 辞書ベース置換
+    dict_corrected = _apply_stt_dict(text)
+    if dict_corrected != text:
+        logger.info(f"[stt_dict] '{text}' → '{dict_corrected}'")
+        text = dict_corrected
+
+    # Stage 2: LLM 補正（辞書で解決しなかった誤認識を拾う）
+    context_block = ""
+    if context_texts:
+        recent = context_texts[-3:]  # 直近3発話
+        context_block = f"\n直近の会話:\n" + "\n".join(f"- {t}" for t in recent) + "\n"
+
+    messages = [
+        {"role": "system", "content": (
+            "あなたは音声認識テキストの校正者です。\n"
+            "音声認識の出力を正しい日本語に修正してください。\n"
+            "意味が通じない単語は音の類似性と文脈から正しい単語に推測・置換してください。\n"
+            "例: デンダー→カレンダー、コンピュー→コンピュータ、ジェンメイ→人名\n"
+            "修正後のテキストだけを返してください。説明や補足は一切不要です。\n"
+            "修正不要ならそのまま返してください。"
+            f"{context_block}"
+        )},
+        {"role": "user", "content": text},
+    ]
+    try:
+        corrected = await asyncio.wait_for(
+            chat_with_llm(messages, "gemma4:e4b"),
+            timeout=3.0,
+        )
+        corrected = corrected.strip().strip('"\'「」')
+        if corrected and corrected != text:
+            logger.info(f"[stt_correct] '{text}' → '{corrected}'")
+            return corrected
+        return text
+    except Exception as e:
+        logger.debug(f"[stt_correct] failed ({e}), using original text")
+        return text
+
+
+# ---------------------------------------------------------------------------
+# Co-view (Listening mode) — MediaContext + constants
+# ---------------------------------------------------------------------------
+
+_CO_VIEW_COMMENT_COOLDOWN   = 300    # 5分: コメント間隔
+_CO_VIEW_INFERENCE_MIN_SNIP = 3      # 推論トリガーに必要な最低スニペット数
+_CO_VIEW_ASK_USER_COOLDOWN  = 1800   # 30分: 「何見てるの？」問い合わせ間隔
+_CO_VIEW_ASK_USER_MIN_SNIP  = 5      # 問い合わせ前に必要な最低スニペット数
+_CO_VIEW_ENRICH_COOLDOWN    = 600    # 10分: 外部情報再取得間隔
+
+_SLACK_BOT_DATA_DIR = Path(
+    os.getenv("SLACK_BOT_DATA_DIR",
+              str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data"))
+)
+
+
+@dataclass
+class _MediaContext:
+    media_buffer: list = field(default_factory=list)   # [{"text": str, "ts": float}]
+    inferred_type: str = "unknown"     # baseball|golf|youtube_talk|news|drama|music|other|unknown
+    inferred_topic: str = ""
+    confidence: float = 0.0
+    enriched_info: str = ""
+    keywords: list = field(default_factory=list)
+    last_inferred_at: float = 0.0
+    last_enriched_at: float = 0.0
+    co_view_last_at: float = 0.0
+    ask_user_last_at: float = 0.0
+    snippets_since_infer: int = 0
+
+    def add_snippet(self, text: str):
+        self.media_buffer.append({"text": text, "ts": time.time()})
+        self.snippets_since_infer += 1
+        if len(self.media_buffer) > 20:
+            self.media_buffer = self.media_buffer[-20:]
+
+    def get_buffer_text(self, last_n: int = 10) -> str:
+        return "\n".join(e["text"] for e in self.media_buffer[-last_n:])
+
+    def reset(self):
+        self.media_buffer.clear()
+        self.inferred_type = "unknown"
+        self.inferred_topic = ""
+        self.confidence = 0.0
+        self.enriched_info = ""
+        self.keywords.clear()
+        self.snippets_since_infer = 0
+
+
+_media_ctx = _MediaContext()
+
+# TV guide cache
+_tv_guide_cache: dict = {"data": "", "fetched_at": 0.0}
+
+
+def _load_youtube_titles() -> list:
+    try:
+        data = json.loads((_SLACK_BOT_DATA_DIR / "youtube-history-cache.json").read_text())
+        return [e["title"] for e in data.get("entries", []) if e.get("title")]
+    except Exception:
+        return []
+
+
+def _load_interest_priorities() -> dict:
+    try:
+        data = json.loads((_SLACK_BOT_DATA_DIR / "interest-cache.json").read_text())
+        return data.get("priorities", {})
+    except Exception:
+        return {}
+
+
+_youtube_titles: list = _load_youtube_titles()
+_interest_priorities: dict = _load_interest_priorities()
+
+
+def _find_matching_yt_titles(buffer_text: str, top_n: int = 5) -> list:
+    """バッファテキストに単語レベルでマッチするYouTubeタイトルを返す。"""
+    if not _youtube_titles:
+        return []
+    words = set(re.findall(r'[^\s、。！？!?]{2,}', buffer_text))
+    scored = []
+    for title in _youtube_titles:
+        score = sum(1 for w in words if w in title)
+        if score > 0:
+            scored.append((score, title))
+    scored.sort(key=lambda x: -x[0])
+    return [t for _, t in scored[:top_n]]
+
+
+async def _fetch_tv_guide() -> str:
+    """NHK RSS + Google News でTV番組表を取得（1時間キャッシュ）。"""
+    now = time.time()
+    if now - _tv_guide_cache["fetched_at"] < 3600 and _tv_guide_cache["data"]:
+        return _tv_guide_cache["data"]
+    results: list = []
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            # Google News で今日のTV・番組情報
+            rss_url = "https://news.google.com/rss/search?q=TV番組+今日&hl=ja&gl=JP&ceid=JP:ja"
+            resp = await client.get(rss_url)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                for item in root.findall('.//item')[:5]:
+                    title = item.findtext('title', '')
+                    if title:
+                        results.append(title)
+    except Exception as e:
+        logger.debug(f"[tv_guide] fetch failed: {e}")
+    data = "\n".join(results)
+    _tv_guide_cache["data"] = data
+    _tv_guide_cache["fetched_at"] = now
+    return data
+
+
+# ---------------------------------------------------------------------------
+# Co-view async functions
+# ---------------------------------------------------------------------------
+
+_YT_AD_NARRATION = re.compile(
+    r'(続きはチャットで確認|チャットで確認してね|次はチャット|チャットで確認|'
+    r'詳しくはこちら|今すぐダウンロード|今すぐ登録|無料で始め|アプリをダウンロード|'
+    r'リンクは概要欄)',
+)
+
+
+async def _correct_media_transcript(text: str) -> str:
+    """メディア音声(実況・YouTubeなど)向けSTT補正。"""
+    text = _YT_AD_NARRATION.sub('', text).strip()
+    if not text:
+        return ""
+    dict_corrected = _apply_stt_dict(text)
+    if dict_corrected != text:
+        logger.info(f"[co_view/stt_dict] '{text}' → '{dict_corrected}'")
+        text = dict_corrected
+    if len(text) < 4 or _STT_SKIP_CORRECTION.match(text.strip()):
+        return text
+    context = [e["text"] for e in _media_ctx.media_buffer[-3:]]
+    context_block = ("\n直近の音声:\n" + "\n".join(f"- {t}" for t in context)) if context else ""
+    messages = [
+        {"role": "system", "content": (
+            "あなたはメディア音声（スポーツ実況・YouTubeコメンタリー・ニュース）の音声認識校正者です。\n"
+            "音声認識の出力を正しい日本語に修正してください。\n"
+            "特にスポーツ実況: 選手名（大谷、フリーマン、シェフラー等）、チーム名（ドジャース等）を正確に。\n"
+            "意味が通じない単語は音の類似性と文脈から推測・置換してください。\n"
+            "修正後のテキストだけを返してください。説明不要。"
+            f"{context_block}"
+        )},
+        {"role": "user", "content": text},
+    ]
+    try:
+        corrected = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
+        corrected = corrected.strip().strip('"\'「」')
+        if corrected and corrected != text:
+            if not corrected or corrected in ("（沈黙）", "(沈黙)", "…", "...", ""):
+                logger.info(f"[co_view/stt] hallucination(empty): '{text}' → '{corrected}' → keep original")
+                return text
+            if len(corrected) > len(text) * 3:
+                logger.info(f"[co_view/stt] hallucination(3x): '{text}'({len(text)}) → '{corrected}'({len(corrected)}) → keep original")
+                return text
+            logger.info(f"[co_view/stt] '{text}' → '{corrected}'")
+            return corrected
+    except Exception as e:
+        logger.debug(f"[co_view/stt] failed: {e}")
+    return text
+
+
+async def _infer_media_content() -> dict:
+    """バッファ済み音声テキストから視聴コンテンツを推測する。"""
+    buffer_text = _media_ctx.get_buffer_text(last_n=10)
+    if not buffer_text:
+        return {"content_type": "unknown", "topic": "", "keywords": [], "confidence": 0.0}
+
+    matched_titles = _find_matching_yt_titles(buffer_text, top_n=5)
+    yt_hint = ""
+    if matched_titles:
+        yt_hint = "\n\nYouTube視聴履歴マッチ(参考):\n" + "\n".join(f"- {t}" for t in matched_titles)
+    elif _youtube_titles:
+        sample = _youtube_titles[:20]
+        yt_hint = "\n\nYouTube視聴履歴(参考):\n" + "\n".join(f"- {t}" for t in sample)
+
+    interest_hint = ""
+    if _interest_priorities:
+        top = sorted(_interest_priorities.items(), key=lambda x: -x[1])[:5]
+        interest_hint = "\n\nユーザーの興味(優先度順):\n" + "\n".join(f"- {k}: {v:.2f}" for k, v in top)
+
+    tv_guide = await _fetch_tv_guide()
+    tv_hint = f"\n\nTV番組表(参考):\n{tv_guide[:300]}" if tv_guide else ""
+
+    messages = [
+        {"role": "system", "content": (
+            "あなたはメディアコンテンツ分析者です。音声認識テキストから視聴コンテンツを推測してください。\n"
+            "以下のJSONのみ返してください。余分なテキスト不要。\n"
+            '{"content_type":"baseball|golf|youtube_talk|news|drama|music|other|unknown",'
+            '"topic":"具体的なトピック(例:ドジャースvsパドレス)",'
+            '"keywords":["検索キーワード1","キーワード2"],'
+            '"matched_title":"一致したYouTubeタイトル(なければ空文字)",'
+            '"confidence":0.0から1.0}\n\n'
+            "注意: 野球実況(特にドジャース)はconfidence高め。ゴルフ(マスターズ等)はgolf。"
+            "音楽BGMのみはconfidence低め。材料不足は0.3以下。"
+            f"{yt_hint}{interest_hint}{tv_hint}"
+        )},
+        {"role": "user", "content": f"音声テキスト:\n{buffer_text}"},
+    ]
+    try:
+        raw = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r'^```\w*\n?', '', raw)
+            raw = re.sub(r'\n?```$', '', raw)
+        result = json.loads(raw)
+        logger.info(f"[co_view/infer] type={result.get('content_type')} topic='{result.get('topic')}' conf={result.get('confidence')}")
+        return result
+    except Exception as e:
+        logger.warning(f"[co_view/infer] failed: {e}")
+        return {"content_type": "unknown", "topic": "", "keywords": [], "confidence": 0.0}
+
+
+async def _enrich_media_context() -> str:
+    """inferred contentに基づき外部情報(GoogleNews RSS / Wikipedia)を取得・キャッシュ。"""
+    now = time.time()
+    if now - _media_ctx.last_enriched_at < _CO_VIEW_ENRICH_COOLDOWN:
+        return _media_ctx.enriched_info
+
+    results: list = []
+    content_type = _media_ctx.inferred_type
+    keywords = _media_ctx.keywords
+
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            is_baseball = (content_type == "baseball"
+                           or any("ドジャース" in k or "dodger" in k.lower() or "野球" in k for k in keywords))
+            is_golf = (content_type == "golf"
+                       or any("ゴルフ" in k or "マスターズ" in k or "golf" in k.lower() for k in keywords))
+
+            if is_baseball:
+                rss_url = "https://news.google.com/rss/search?q=ドジャース+試合&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    for item in root.findall('.//item')[:3]:
+                        title = item.findtext('title', '')
+                        if title:
+                            results.append(f"ニュース: {title}")
+            elif is_golf:
+                rss_url = "https://news.google.com/rss/search?q=マスターズ+ゴルフ&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    for item in root.findall('.//item')[:3]:
+                        title = item.findtext('title', '')
+                        if title:
+                            results.append(f"ニュース: {title}")
+
+            if _media_ctx.inferred_topic and content_type not in ("music", "unknown"):
+                wiki = await _tool_wikipedia_summary(_media_ctx.inferred_topic)
+                if wiki:
+                    results.append(wiki)
+
+            if not results and keywords:
+                query = "+".join(keywords[:2])
+                rss_url = f"https://news.google.com/rss/search?q={query}&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    for item in root.findall('.//item')[:2]:
+                        title = item.findtext('title', '')
+                        if title:
+                            results.append(f"関連: {title}")
+    except Exception as e:
+        logger.warning(f"[co_view/enrich] failed: {e}")
+
+    enriched = "\n".join(results)
+    _media_ctx.enriched_info = enriched
+    _media_ctx.last_enriched_at = now
+    logger.info(f"[co_view/enrich] {len(results)} results")
+    return enriched
+
+
+async def _handle_co_view(ws, trigger_text: str, method: str, keyword: str):
+    """co_view モード: メディア音声を蓄積→コンテンツ推測→外部補完→コメント生成。"""
+    if not _ambient_listener:
+        return
+    now = time.time()
+
+    # Step 1: 補正してバッファに追加
+    corrected = await _correct_media_transcript(trigger_text)
+    if not corrected:
+        return
+    _media_ctx.add_snippet(corrected)
+    await _broadcast_debug(f"[co_view] buf={len(_media_ctx.media_buffer)} '{corrected[:40]}'")
+
+    # メディアが5分以上途切れていたらコンテキストリセット
+    if len(_media_ctx.media_buffer) >= 2:
+        if now - _media_ctx.media_buffer[-2]["ts"] > 300:
+            logger.info("[co_view] 5min gap → reset context")
+            _media_ctx.reset()
+            _media_ctx.add_snippet(corrected)
+
+    # Step 2: コメントクールダウンチェック
+    if now - _media_ctx.co_view_last_at < _CO_VIEW_COMMENT_COOLDOWN:
+        remaining = int(_CO_VIEW_COMMENT_COOLDOWN - (now - _media_ctx.co_view_last_at))
+        await _broadcast_debug(f"[co_view] cooldown {remaining}s")
+        return
+
+    # Step 3: コンテンツ推論 (新スニペットが閾値以上の時だけ)
+    if _media_ctx.snippets_since_infer >= _CO_VIEW_INFERENCE_MIN_SNIP:
+        inferred = await _infer_media_content()
+        _media_ctx.inferred_type  = inferred.get("content_type", "unknown")
+        _media_ctx.inferred_topic = inferred.get("topic", "")
+        _media_ctx.confidence     = float(inferred.get("confidence", 0.0))
+        _media_ctx.keywords       = inferred.get("keywords", [])
+        _media_ctx.last_inferred_at = now
+        _media_ctx.snippets_since_infer = 0
+        await _broadcast_debug(
+            f"[co_view] inferred: {_media_ctx.inferred_type} "
+            f"'{_media_ctx.inferred_topic}' conf={_media_ctx.confidence:.2f}"
+        )
+
+    # Step 4: 低信頼度 → ユーザーに聞くか、蓄積継続
+    if _media_ctx.confidence < 0.4:
+        if (len(_media_ctx.media_buffer) >= _CO_VIEW_ASK_USER_MIN_SNIP
+                and now - _media_ctx.ask_user_last_at > _CO_VIEW_ASK_USER_COOLDOWN):
+            _media_ctx.ask_user_last_at = now
+            _media_ctx.co_view_last_at  = now
+            mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+            mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+            mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+            await _ambient_broadcast_reply("ちなみに何見てるの？", "co_view_ask", method, keyword, mei_speaker, mei_speed)
+            logger.info("[co_view] asked user: 何見てるの？")
+        else:
+            await _broadcast_debug(f"[co_view] low conf={_media_ctx.confidence:.2f}, accumulating")
+        return
+
+    # Step 5: 外部情報を取得（コメント生成には使わず、reply時の参照用のみキャッシュ）
+    await _enrich_media_context()
+
+    # Step 6: Claude でコメント生成（enriched dataは渡さない — 報告調になるため）
+    buffer_text = _media_ctx.get_buffer_text(last_n=5)
+    system_prompt = (
+        "あなたはMEI。Akiraさんの同居人として、一緒にテレビ/YouTubeを見ている。\n"
+        f"視聴中: {_media_ctx.inferred_type} — {_media_ctx.inferred_topic}\n"
+        f"\n最近の音声:\n{buffer_text}\n"
+    )
+    if _media_ctx.inferred_type == "baseball":
+        system_prompt += "\nAkiraさんはドジャースの大ファン。試合展開・選手プレー・スコアに自然にリアクション。\n"
+    elif _media_ctx.inferred_type == "golf":
+        system_prompt += "\nゴルフ観戦中。ショットや選手の動きに自然にリアクション。\n"
+    system_prompt += (
+        "\n指示:\n"
+        "- 一緒に見ている同居人として、自然な1-2文のコメント\n"
+        "- 例: 「お、大谷打った！」「このYouTuber面白いね」「へー、そうなんだ」\n"
+        "- 解説・情報提供ではなく感想・リアクション・共感を\n"
+        "- 疑問文で終わらせない。一緒に見ているので内容は知っている前提。「〜見てるの？」「〜ってどういうこと？」はNG\n"
+        "- 声に出す言葉だけ。ト書き・括弧付き説明は禁止\n"
+        "- コメントする価値がなければ \"SKIP\" と返す\n"
+    )
+
+    try:
+        speaker = _ambient_listener.current_speaker if _ambient_listener else None
+        co_reply = await asyncio.wait_for(
+            _ask_slack_bot(
+                f"視聴中のコンテンツにコメントして: {_media_ctx.inferred_topic}\n音声: {buffer_text[:200]}",
+                speaker,
+                system_prompt=system_prompt,
+            ),
+            timeout=30,
+        )
+        if not co_reply or co_reply.strip().upper() == "SKIP":
+            await _broadcast_debug("[co_view] → SKIP")
+            return
+
+        co_reply = re.sub(r'[（(][^）)]*[）)]', '', co_reply).strip()
+        if not co_reply or co_reply.strip().upper() == "SKIP":
+            return
+
+        logger.info(f"[co_view] comment: '{co_reply[:60]}'")
+        mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+        mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+        mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+        await _ambient_broadcast_reply(co_reply, "co_view", method, keyword, mei_speaker, mei_speed)
+        _media_ctx.co_view_last_at = now
+
+    except asyncio.TimeoutError:
+        logger.warning("[co_view] Claude timeout (30s)")
+        await _broadcast_debug("[co_view] TIMEOUT")
+    except Exception as e:
+        logger.warning(f"[co_view] error: {e}")
+
+
 class TTSQualityError(Exception):
     """TTS 生成結果が品質基準を満たさない場合の例外"""
     def __init__(self, message: str, duration: float, size: int, text_len: int):
@@ -250,11 +837,6 @@ class TTSQualityError(Exception):
         self.size = size
         self.text_len = text_len
         super().__init__(message)
-
-
-_YOMIGANA_MAP: list[tuple[re.Pattern, str]] = [
-    (re.compile(r'Akira', re.IGNORECASE), 'あきら'),
-]
 
 
 _TTS_MAX_CHARS = 80
@@ -270,13 +852,34 @@ _INSTRUCTION_PATTERN = re.compile(
     r'|(?:どこに|どうやって|どうすれば).*(?:ますか|ですか|する|した))',
 )
 
+# Claude Code向け指示かどうかを判断するための開発文脈キーワード
+_DEV_CONTEXT_PATTERN = re.compile(
+    r'(?:claude\s*code|コード|ファイル|関数|変数|api|sdk|mcp|'
+    r'サーバー?|データベース|db|エンドポイント|ログ|エラー|'
+    r'スタックトレース|テスト|ビルド|コミット|ブランチ|'
+    r'リポジトリ|ディレクトリ|パス|slack\s*bot|openai|llm|'
+    r'python|javascript|typescript|react|css|html|app\.py|'
+    r'wake_detect)',
+    re.IGNORECASE,
+)
+
+
+def _is_claude_code_instruction(text: str) -> bool:
+    """Claude Codeに向けた開発/操作指示かを判定する。"""
+    if not text:
+        return False
+    # まずは依頼文らしい形かを確認
+    if not _INSTRUCTION_PATTERN.search(text):
+        return False
+    # 開発文脈がない一般質問（例: 今日の予定を教えて）は除外
+    return bool(_DEV_CONTEXT_PATTERN.search(text))
 
 def _clean_text_for_tts(text: str) -> str:
     """TTS 用テキスト前処理: URL・絵文字を除去し空行を整理、名前を読み仮名に変換、長文を切り詰め"""
     text = re.sub(r'https?://\S+', '', text)
     text = emoji_lib.replace_emoji(text, replace='')
     text = re.sub(r'\n{3,}', '\n\n', text)
-    for pattern, yomi in _YOMIGANA_MAP:
+    for pattern, yomi in _get_yomigana_map():
         if pattern.search(text):
             before = text
             text = pattern.sub(yomi, text)
@@ -308,6 +911,119 @@ def _wav_duration(audio: bytes) -> float:
         return 0.0
     data_size = len(audio) - 44
     return data_size / (sample_rate * (bits // 8) * channels)
+
+
+def _wav_peak_db(audio: bytes) -> float | None:
+    """WAVのピーク音量をdBFSで返す。16-bit PCM以外は None。"""
+    if len(audio) < 44 or audio[:4] != b'RIFF':
+        return None
+    bits = struct.unpack_from('<H', audio, 34)[0]
+    if bits != 16:
+        return None
+    pcm = audio[44:]
+    if not pcm:
+        return None
+    peak = 0
+    limit = len(pcm) - (len(pcm) % 2)
+    for (sample,) in struct.iter_unpack('<h', pcm[:limit]):
+        value = abs(sample)
+        if value > peak:
+            peak = value
+    if peak <= 0:
+        return -96.0
+    return 20.0 * math.log10(peak / 32767.0)
+
+
+def _apply_wav_peak_guard(audio: bytes, target_db: float = -1.5, trigger_db: float = -0.5) -> tuple[bytes, float | None]:
+    """16-bit PCM WAVのピークが高すぎる場合に、全体ゲインを下げてクリップを回避する。"""
+    peak_db = _wav_peak_db(audio)
+    if peak_db is None or peak_db <= trigger_db:
+        return audio, None
+    gain_db = target_db - peak_db
+    scale = 10 ** (gain_db / 20.0)
+    pcm = audio[44:]
+    limit = len(pcm) - (len(pcm) % 2)
+    if limit <= 0:
+        return audio, None
+
+    out = bytearray(limit)
+    offset = 0
+    for (sample,) in struct.iter_unpack('<h', pcm[:limit]):
+        scaled = int(round(sample * scale))
+        if scaled > 32767:
+            scaled = 32767
+        elif scaled < -32768:
+            scaled = -32768
+        struct.pack_into('<h', out, offset, scaled)
+        offset += 2
+
+    adjusted = audio[:44] + bytes(out) + pcm[limit:]
+    return adjusted, gain_db
+
+
+def _normalize_compare_text(text: str) -> str:
+    lowered = text.lower()
+    lowered = re.sub(r'https?://\S+', '', lowered)
+    lowered = re.sub(r'[\s　、。！？!?,.…「」『』（）()\-]+', '', lowered)
+    return lowered.strip()
+
+
+def _reading_match_status(input_text: str, retranscribed_text: str, similarity: float) -> str:
+    if similarity >= 0.92:
+        return "ok"
+    if similarity >= 0.75:
+        return "warn"
+    expected_terms = []
+    for pattern, replacement in _get_yomigana_map():
+        if pattern.search(input_text):
+            expected_terms.append(replacement)
+    if expected_terms and any(term in retranscribed_text for term in expected_terms):
+        return "warn"
+    return "fail"
+
+
+def _tts_risk(similarity: float, reading_match: str, duration: float, peak_db: float | None, clipped: bool) -> str:
+    if clipped or similarity < 0.70 or reading_match == "fail":
+        return "high"
+    if similarity < 0.88 or reading_match == "warn" or duration < 1.0 or (peak_db is not None and peak_db < -30.0):
+        return "medium"
+    return "low"
+
+
+async def _emit_tts_diagnostic(text: str, audio: bytes):
+    """TTS出力を再STTして発声品質を可視化する。"""
+    if not _clients:
+        return
+    cleaned = _clean_text_for_tts(text)
+    if len(cleaned) < 4:
+        return
+    loop = asyncio.get_event_loop()
+    try:
+        metrics = await loop.run_in_executor(None, _transcribe_sync_with_metrics, audio, True)
+        retranscribed = metrics.get("text", "")
+        normalized_input = _normalize_compare_text(cleaned)
+        normalized_output = _normalize_compare_text(retranscribed)
+        similarity = difflib.SequenceMatcher(None, normalized_input, normalized_output).ratio() if normalized_input or normalized_output else 0.0
+        duration = _wav_duration(audio)
+        peak_db = _wav_peak_db(audio)
+        clipped = peak_db is not None and peak_db >= -0.3
+        reading_match = _reading_match_status(cleaned, retranscribed, similarity)
+        risk = _tts_risk(similarity, reading_match, duration, peak_db, clipped)
+        peak_part = f"{peak_db:.1f}" if peak_db is not None else "n/a"
+        diag = (
+            f"[tts_eval] input='{cleaned[:80]}' "
+            f"retranscribed='{retranscribed[:80]}' "
+            f"similarity={similarity:.2f} "
+            f"reading={reading_match} "
+            f"duration={duration:.1f} "
+            f"peak_db={peak_part} "
+            f"risk={risk} "
+            f"clipped={'true' if clipped else 'false'}"
+        )
+        logger.info(diag)
+        await _broadcast_debug(diag)
+    except Exception as e:
+        logger.warning(f"[tts_eval] failed: {e}")
 
 
 _MIN_DURATION_SEC = 3.0
@@ -344,6 +1060,16 @@ async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0
             audio = await synthesize_speech_gptsovits(text, str(speaker_id))
         else:
             audio = await synthesize_speech_voicevox(text, int(speaker_id), speed)
+
+        adjusted_audio, gain_db = _apply_wav_peak_guard(audio)
+        if gain_db is not None:
+            before_peak = _wav_peak_db(audio)
+            after_peak = _wav_peak_db(adjusted_audio)
+            logger.info(
+                f"[TTS] peak_guard gain_db={gain_db:.1f} "
+                f"peak_before={before_peak:.1f} peak_after={after_peak:.1f}"
+            )
+        audio = adjusted_audio
 
         # --- 品質チェック: 長いテキストに対して短すぎる音声を検出 ---
         if len(text) >= _MIN_TEXT_LEN_FOR_CHECK:
@@ -725,6 +1451,42 @@ async def get_settings():
     return _settings
 
 
+@app.get("/api/yomigana")
+async def get_yomigana_dictionary():
+    return {
+        "entries": [
+            {"pattern": pattern.pattern, "replacement": replacement}
+            for pattern, replacement in _load_public_yomigana_map()
+        ]
+    }
+
+
+@app.put("/api/yomigana")
+async def update_yomigana_dictionary(body: dict):
+    entries = body.get("entries", [])
+    if not isinstance(entries, list):
+        return {"error": "entries must be a list"}
+
+    normalized: list[dict[str, str]] = []
+    for item in entries:
+        if not isinstance(item, dict):
+            continue
+        pattern = str(item.get("pattern", "")).strip()
+        replacement = str(item.get("replacement", "")).strip()
+        if not pattern or not replacement:
+            continue
+        if len(pattern) > 128 or len(replacement) > 64:
+            return {"error": "pattern or replacement too long"}
+        try:
+            re.compile(pattern)
+        except re.error as e:
+            return {"error": f"invalid regex: {pattern} ({e})"}
+        normalized.append({"pattern": pattern, "replacement": replacement})
+
+    YOMIGANA_FILE.write_text(json.dumps(normalized, ensure_ascii=False, indent=2) + "\n")
+    return {"ok": True, "count": len(normalized)}
+
+
 # --- Ambient REST API ---
 
 @app.get("/api/ambient/rules")
@@ -879,6 +1641,73 @@ async def index():
     return HTMLResponse(html)
 
 
+@app.post("/api/improve_loop/run")
+async def improve_loop_run():
+    """co_view改善ループ: cmux右ペインYouTubeを正解ラベルとして精度を評価しSlackに投稿。
+
+    正解ラベル取得: cmux browser snapshot (テスト・改善ループ専用)
+    通常運用: iPad/TVからの外部音声に依存 → このパスは使わない
+    """
+    import subprocess, datetime
+    now_str = datetime.datetime.now().strftime("%H:%M")
+
+    try:
+        # 1. cmux右ペインのYouTubeタイトルを正解ラベルとして取得
+        ground_truth = ""
+        try:
+            gt_result = subprocess.run(
+                ["cmux", "browser", "snapshot", "--surface", "surface:32"],
+                capture_output=True, text=True, timeout=10
+            )
+            for line in gt_result.stdout.splitlines():
+                if "document" in line and "YouTube" in line:
+                    # 'document "タイトル - YouTube"' からタイトル抽出
+                    import re as _re
+                    m = _re.search(r'document "(.+?) - YouTube"', line)
+                    if m:
+                        ground_truth = m.group(1)
+                        break
+        except Exception as e:
+            logger.debug(f"[improve_loop] cmux snapshot failed: {e}")
+
+        # 2. 直近co_viewログ取得
+        log_result = subprocess.run(
+            ["grep", "-E", r"\[co_view\]|\[co_view/infer\]|\[co_view/stt\]",
+             "/tmp/whisper-serve.log"],
+            capture_output=True, text=True, timeout=5
+        )
+        lines = log_result.stdout.strip().splitlines()[-30:] if log_result.stdout else []
+        log_summary = "\n".join(lines) if lines else "(ログなし)"
+
+        # 3. 現在の推論結果と正解を比較
+        inferred = f"{_media_ctx.inferred_type} / {_media_ctx.inferred_topic} (conf={_media_ctx.confidence:.2f})"
+        accuracy = ""
+        if ground_truth and _media_ctx.inferred_topic:
+            accuracy = f"\n\n🎯 精度確認:\n正解: {ground_truth}\n推論: {inferred}"
+        elif ground_truth:
+            accuracy = f"\n\n🎯 正解ラベル: {ground_truth}\n推論: 未取得"
+
+        # 4. Slackに投稿
+        slack_text = (
+            f"🎬 co_view 改善ループ [{now_str}]{accuracy}\n\n"
+            f"📋 直近ログ:\n```\n{log_summary[:600]}\n```\n\n"
+            f"改善案があれば 👍 で適用します。"
+        )
+        async with httpx.AsyncClient(timeout=10) as client:
+            slack_token = os.getenv("SLACK_BOT_TOKEN", "")
+            if slack_token:
+                await client.post(
+                    "https://slack.com/api/chat.postMessage",
+                    headers={"Authorization": f"Bearer {slack_token}"},
+                    json={"channel": "C0AP2BD5HBJ", "text": slack_text}
+                )
+                logger.info(f"[improve_loop] posted. ground_truth='{ground_truth}' inferred='{_media_ctx.inferred_type}'")
+        return {"ok": True, "ground_truth": ground_truth}
+    except Exception as e:
+        logger.warning(f"[improve_loop] failed: {e}")
+        return {"ok": False, "error": str(e)}
+
+
 _proactive_task: asyncio.Task | None = None
 
 
@@ -902,10 +1731,175 @@ _TOOL_NEEDED_KEYWORDS = re.compile(
 )
 
 _SLACK_BOT_API = "http://127.0.0.1:3457"
+_TOOL_ROUTE_FAIL_COUNT = 0
+_TOOL_ROUTE_COOLDOWN_UNTIL = 0.0
+_TOOL_ROUTE_FAIL_THRESHOLD = 2
+_TOOL_ROUTE_COOLDOWN_SEC = 90.0
+_LOCAL_TOOL_WEATHER_LAT = float(os.getenv("LOCAL_TOOL_WEATHER_LAT", "35.6764"))   # Tokyo
+_LOCAL_TOOL_WEATHER_LON = float(os.getenv("LOCAL_TOOL_WEATHER_LON", "139.6500"))  # Tokyo
+_LOCAL_TOOL_WEATHER_LABEL = os.getenv("LOCAL_TOOL_WEATHER_LABEL", "東京")
+
+_TIME_QUERY_RE = re.compile(r'何時|なんじ|時刻|今何時|いま何時|日時|今日|明日|曜日')
+_WEATHER_QUERY_RE = re.compile(r'天気|気温|降水|雨|晴れ|曇り|風')
+_SEARCH_QUERY_RE = re.compile(r'調べて|検索して|教えて|とは|って何|について')
+_UNSUPPORTED_LOCAL_TOOLS_RE = re.compile(r'メール|リマインダー|タイマー|カレンダー|予定|スケジュール')
+
+_WEATHER_CODE_MAP = {
+    0: "快晴",
+    1: "晴れ",
+    2: "薄曇り",
+    3: "曇り",
+    45: "霧",
+    48: "霧氷",
+    51: "弱い霧雨",
+    53: "霧雨",
+    55: "強い霧雨",
+    61: "弱い雨",
+    63: "雨",
+    65: "強い雨",
+    71: "弱い雪",
+    73: "雪",
+    75: "強い雪",
+    80: "にわか雨",
+    81: "強いにわか雨",
+    82: "激しいにわか雨",
+    95: "雷雨",
+}
+
+
+def _tool_route_in_cooldown() -> float:
+    return _TOOL_ROUTE_COOLDOWN_UNTIL - time.time()
+
+
+def _extract_search_query(text: str) -> str:
+    """簡易検索用に発話からクエリを抽出。"""
+    cleaned = text.strip()
+    cleaned = re.sub(r'^(?:ねぇ|ねえ|メイ|めい)[、,\s]*', '', cleaned)
+    cleaned = re.sub(r'[？?！!。]+$', '', cleaned)
+    cleaned = re.sub(r'(調べて|検索して|教えて)$', '', cleaned).strip()
+    return cleaned[:80]
+
+
+async def _tool_weather_summary() -> str | None:
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            resp = await client.get(
+                "https://api.open-meteo.com/v1/forecast",
+                params={
+                    "latitude": _LOCAL_TOOL_WEATHER_LAT,
+                    "longitude": _LOCAL_TOOL_WEATHER_LON,
+                    "current": "temperature_2m,weather_code,wind_speed_10m",
+                    "timezone": "Asia/Tokyo",
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json().get("current", {})
+            temp = data.get("temperature_2m")
+            wcode = data.get("weather_code")
+            wind = data.get("wind_speed_10m")
+            weather = _WEATHER_CODE_MAP.get(wcode, f"code={wcode}")
+            return f"{_LOCAL_TOOL_WEATHER_LABEL}の現在: {weather}, 気温{temp}°C, 風速{wind}m/s"
+    except Exception as e:
+        logger.warning(f"[local_tool] weather fetch failed: {e}")
+        return None
+
+
+async def _tool_wikipedia_summary(query_text: str) -> str | None:
+    if not query_text:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            search_resp = await client.get(
+                "https://ja.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "list": "search",
+                    "srsearch": query_text,
+                    "format": "json",
+                    "utf8": 1,
+                },
+            )
+            search_resp.raise_for_status()
+            results = search_resp.json().get("query", {}).get("search", [])
+            if not results:
+                return None
+            title = results[0].get("title", "")
+            detail_resp = await client.get(
+                "https://ja.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "prop": "extracts",
+                    "exintro": 1,
+                    "explaintext": 1,
+                    "titles": title,
+                    "format": "json",
+                    "utf8": 1,
+                },
+            )
+            detail_resp.raise_for_status()
+            pages = detail_resp.json().get("query", {}).get("pages", {})
+            page = next(iter(pages.values()), {})
+            extract = (page.get("extract", "") or "").strip().replace("\n", " ")
+            if not extract:
+                return f"Wikipedia候補: {title}"
+            return f"Wikipedia: {title} — {extract[:140]}"
+    except Exception as e:
+        logger.warning(f"[local_tool] wikipedia fetch failed: {e}")
+        return None
+
+
+async def _local_tool_evidence(text: str) -> list[str]:
+    """ローカルで実行できるツール結果を収集。"""
+    evidence: list[str] = []
+    if _TIME_QUERY_RE.search(text):
+        now = datetime.now()
+        evidence.append(f"現在日時: {now.strftime('%Y-%m-%d %H:%M:%S (%a)')}")
+    if _WEATHER_QUERY_RE.search(text):
+        weather = await _tool_weather_summary()
+        if weather:
+            evidence.append(weather)
+    if _SEARCH_QUERY_RE.search(text):
+        query_text = _extract_search_query(text)
+        wiki = await _tool_wikipedia_summary(query_text)
+        if wiki:
+            evidence.append(wiki)
+    if _UNSUPPORTED_LOCAL_TOOLS_RE.search(text):
+        evidence.append("注意: ローカルフォールバックではメール/カレンダー等の個人データ参照は不可")
+    return evidence
+
+
+async def _local_llm_with_tools_reply(text: str, model: str) -> str | None:
+    """tool_route失敗時に、ローカルツール結果を添えてローカルLLMで返答。"""
+    evidence = await _local_tool_evidence(text)
+    if not evidence:
+        return None
+    tool_block = "\n".join(f"- {item}" for item in evidence)
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "あなたは日本語の会話アシスタントです。"
+                "以下のツール結果を優先して、音声向けに簡潔な1-2文で返答してください。"
+                "推測で断定せず、足りない情報は不足と明示してください。"
+            ),
+        },
+        {"role": "user", "content": f"質問: {text}\n\nローカルツール結果:\n{tool_block}"},
+    ]
+    try:
+        reply = await chat_with_llm(messages, model)
+        return emoji_lib.replace_emoji(reply, replace='').strip()
+    except Exception as e:
+        logger.warning(f"[local_tool] local LLM fallback failed: {e}")
+        return None
 
 
 async def _ask_slack_bot(question: str, speaker: str | None = None, *, system_prompt: str | None = None) -> str | None:
     """Route question to Slack Bot (Claude + MCP tools) for tool-assisted answers."""
+    global _TOOL_ROUTE_FAIL_COUNT, _TOOL_ROUTE_COOLDOWN_UNTIL
+    remaining = _tool_route_in_cooldown()
+    if remaining > 0:
+        logger.info(f"[tool_route] bypass in cooldown ({remaining:.0f}s left)")
+        return None
     try:
         payload: dict = {"question": question, "speaker": speaker}
         if system_prompt:
@@ -917,13 +1911,28 @@ async def _ask_slack_bot(question: str, speaker: str | None = None, *, system_pr
             )
             data = resp.json()
             if data.get("ok"):
+                _TOOL_ROUTE_FAIL_COUNT = 0
+                _TOOL_ROUTE_COOLDOWN_UNTIL = 0.0
                 logger.info(f"[tool_route] Slack Bot replied in {data.get('durationMs')}ms")
                 return data["reply"]
             else:
-                logger.warning(f"[tool_route] Slack Bot error: {data.get('error')}")
+                _TOOL_ROUTE_FAIL_COUNT += 1
+                if _TOOL_ROUTE_FAIL_COUNT >= _TOOL_ROUTE_FAIL_THRESHOLD:
+                    _TOOL_ROUTE_COOLDOWN_UNTIL = time.time() + _TOOL_ROUTE_COOLDOWN_SEC
+                    logger.warning(
+                        f"[tool_route] Slack Bot error: {data.get('error')} "
+                        f"(cooldown {_TOOL_ROUTE_COOLDOWN_SEC:.0f}s)"
+                    )
+                else:
+                    logger.warning(f"[tool_route] Slack Bot error: {data.get('error')}")
                 return None
     except Exception as e:
-        logger.warning(f"[tool_route] Slack Bot unreachable: {e}")
+        _TOOL_ROUTE_FAIL_COUNT += 1
+        if _TOOL_ROUTE_FAIL_COUNT >= _TOOL_ROUTE_FAIL_THRESHOLD:
+            _TOOL_ROUTE_COOLDOWN_UNTIL = time.time() + _TOOL_ROUTE_COOLDOWN_SEC
+            logger.warning(f"[tool_route] Slack Bot unreachable: {e} (cooldown {_TOOL_ROUTE_COOLDOWN_SEC:.0f}s)")
+        else:
+            logger.warning(f"[tool_route] Slack Bot unreachable: {e}")
         return None
 
 
@@ -941,7 +1950,7 @@ async def _always_on_llm_reply(ws: WebSocket, text: str):
         needs_tool = bool(_TOOL_NEEDED_KEYWORDS.search(text))
         reply = None
 
-        if needs_tool:
+        if needs_tool and _tool_route_in_cooldown() <= 0:
             logger.info(f"[tool_route] routing to Slack Bot: '{text[:50]}'")
             await _send_debug(ws, f"[tool] Slack Bot に問い合わせ中...")
 
@@ -956,10 +1965,20 @@ async def _always_on_llm_reply(ws: WebSocket, text: str):
 
             speaker = _ambient_listener.current_speaker if _ambient_listener else None
             reply = await _ask_slack_bot(text, speaker)
+        elif needs_tool:
+            remaining = _tool_route_in_cooldown()
+            logger.info(f"[tool_route] skipped by cooldown ({remaining:.0f}s left)")
 
         if not reply:
             model = _settings.get("modelSelect", "gemma4:e4b")
-            reply = await chat_with_llm(_always_on_conversation, model)
+            if needs_tool:
+                local_tool_reply = await _local_llm_with_tools_reply(text, model)
+                if local_tool_reply:
+                    reply = local_tool_reply
+                    logger.info("[tool_route] local tool fallback used")
+                    await _send_debug(ws, "[tool] local fallback used")
+            if not reply:
+                reply = await chat_with_llm(_always_on_conversation, model)
         reply = emoji_lib.replace_emoji(reply, replace='').strip()
         if not reply:
             reply = "ちょっとわからなかった"
@@ -979,6 +1998,7 @@ async def _always_on_llm_reply(ws: WebSocket, text: str):
             await ws.send_bytes(audio)
             duration = _wav_duration(audio)
             _always_on_echo_suppress_until = time.time() + max(3.0, duration + 2.0)
+            asyncio.create_task(_emit_tts_diagnostic(reply, audio))
         except Exception as e:
             _always_on_echo_suppress_until = 0
             await ws.send_json({"type": "assistant_text", "text": reply, "tts_fallback": True})
@@ -998,7 +2018,10 @@ async def _send_debug(ws: WebSocket, info: str):
     """Send listening debug info to client if debug mode is enabled."""
     if _settings.get("listeningDebug"):
         try:
-            await ws.send_json({"type": "listening_debug", "text": f"{_debug_ts()} {info}"})
+            rendered = _render_diagnostic_text(info)
+            await ws.send_json({"type": "listening_debug", "text": rendered})
+            if "[" in info and "]" in info:
+                await _send_diagnostic_event(rendered, target=ws)
         except Exception:
             pass
 
@@ -1007,12 +2030,15 @@ async def _broadcast_debug(info: str):
     """Broadcast listening debug info to all clients."""
     if not _settings.get("listeningDebug"):
         return
-    payload = json.dumps({"type": "listening_debug", "text": f"{_debug_ts()} {info}"})
+    rendered = _render_diagnostic_text(info)
+    payload = json.dumps({"type": "listening_debug", "text": rendered})
     for client in list(_clients):
         try:
             await client.send_text(payload)
         except Exception:
             _clients.discard(client)
+    if "[" in info and "]" in info:
+        await _send_diagnostic_event(rendered)
 
 
 def _identify_speaker_sync(audio_data: bytes) -> dict | None:
@@ -1229,19 +2255,43 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
 
         # Strip TTS echo from STT result (e.g. proactive "続きはチャットで確認してね" captured by mic)
         if _last_tts_text and len(_last_tts_text) >= 6:
-            tts_clean = _last_tts_text.replace(" ", "").replace("　", "")
-            text_clean = text.replace(" ", "").replace("　", "")
-            # Check if TTS text appears as prefix of STT result
-            for prefix_len in range(min(len(tts_clean), len(text_clean)), 5, -1):
+            tts_clean = _last_tts_text.replace(" ", "").replace("　", "").replace("、", "").replace("。", "")
+            text_clean = text.replace(" ", "").replace("　", "").replace("、", "").replace("。", "")
+            # Check if STT text is a substring of the TTS text (echo of any part)
+            if len(text_clean) >= 5 and text_clean in tts_clean:
+                logger.info(f"[echo_strip] entire text was TTS echo: '{text[:40]}'")
+                return
+            # Check if TTS text tail appears as prefix of STT result (partial echo + user speech)
+            for prefix_len in range(min(len(tts_clean), len(text_clean)), 4, -1):
                 if text_clean[:prefix_len] == tts_clean[-prefix_len:]:
                     stripped = text[prefix_len:].strip()
                     if stripped:
-                        logger.info(f"[echo_strip] removed TTS echo prefix: '{text[:prefix_len]}' → remaining: '{stripped}'")
+                        logger.info(f"[echo_strip] removed TTS echo prefix ({prefix_len} chars) → remaining: '{stripped}'")
                         text = stripped
                     else:
                         logger.info(f"[echo_strip] entire text was TTS echo: '{text[:40]}'")
                         return
                     break
+
+        in_conversation = time.time() < _always_on_conversation_until
+        wake_result = detect_wake_word(text)
+        should_correct = should_apply_stt_correction(
+            text,
+            speaker_identified=bool(speaker_result and speaker_result.get("speaker")),
+            wake_detected=wake_result.detected,
+            in_conversation=in_conversation,
+            instruction_pattern=_INSTRUCTION_PATTERN,
+        )
+        if should_correct:
+            context_texts = None
+            if _ambient_listener and _ambient_listener.text_buffer:
+                context_texts = [e["text"] for e in _ambient_listener.text_buffer[-3:]]
+            original_text = text
+            text = await _correct_stt_text(text, context_texts)
+            if text != original_text:
+                await _send_debug(ws, f"[stt_correct] '{original_text}' → '{text}'")
+        else:
+            await _send_debug(ws, f"[stt_correct] skipped for low-confidence ambient text")
 
         # Log speaker identification and track for multi-speaker detection
         spk_name_global = None
@@ -1303,9 +2353,6 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
             return
 
         # --- Wake word detection ---
-        in_conversation = time.time() < _always_on_conversation_until
-        wake_result = detect_wake_word(text)
-
         if wake_result.detected:
             logger.info(f"[always_on] WAKE DETECTED: '{text}' → remaining: '{wake_result.remaining_text}'")
             await _send_debug(ws, f"[wake] keyword='{wake_result.keyword}' remaining='{wake_result.remaining_text}'")
@@ -1330,7 +2377,7 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
                 await _send_debug(ws, f"[conversation] echo filtered")
                 return
             # Instruction detection: Claude Code向けの指示は会話モードでも拒否
-            if _INSTRUCTION_PATTERN.search(text):
+            if _is_claude_code_instruction(text):
                 logger.info(f"[always_on] conversation instruction filtered: '{text[:50]}'")
                 await _send_debug(ws, f"[conversation] instruction → decline")
                 # 短く断って会話を続行可能にする
@@ -1347,6 +2394,7 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
                     _always_on_echo_suppress_until = time.time() + max(3.0, duration + 2.0)
                     if _ambient_listener:
                         _ambient_listener.record_mei_utterance(decline_reply)
+                    asyncio.create_task(_emit_tts_diagnostic(decline_reply, audio))
                 except Exception:
                     pass
                 return
@@ -1395,31 +2443,53 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
     try:
         _ambient_listener.state = "processing"
         source_hint = _ambient_listener.classify_source(trigger_text)
-        logger.info(f"[ambient] source: {source_hint} | '{trigger_text[:40]}'")
+        intervention = _ambient_listener.decide_intervention(trigger_text, source_hint)
+        logger.info(f"[ambient] source: {source_hint} intervention={intervention} | '{trigger_text[:40]}'")
         source_label = {"user_response": "User(応答)", "user_initiative": "User(呼びかけ)",
                         "user_likely": "User(推定)", "user_identified": "User(声紋)",
-                        "media_likely": "Media(TV等)", "unknown": "不明",
+                        "media_likely": "Media(TV等)", "fragmentary": "Fragment", "unknown": "不明",
                         "user_in_conversation": "User(会話中)"}.get(source_hint, source_hint)
         ambient_model = _settings.get("ambientModel", "") or _settings.get("modelSelect", "gemma4:e4b")
-        await _broadcast_debug(f"[ambient] model={ambient_model} method={method} source={source_label} text='{trigger_text[:50]}'")
+        await _broadcast_debug(f"[ambient] model={ambient_model} method={method} source={source_label} intervention={intervention} text='{trigger_text[:50]}'")
 
-        # media_likely → skip immediately without LLM (saves API cost & latency)
-        if source_hint == "media_likely":
-            logger.info(f"[ambient] media_likely → server-side SKIP (no LLM call)")
-            await _broadcast_debug(f"[ambient] → SKIP (media)")
-            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword)
+        if intervention == "skip":
+            logger.info(f"[ambient] intervention=skip → server-side SKIP")
+            await _broadcast_debug(f"[ambient] → SKIP ({source_hint})")
+            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword, source_hint=source_hint, intervention=intervention)
             await _broadcast_ambient_log()
             _ambient_listener.state = "listening"
             await _broadcast_ambient_state()
             return
 
+        if intervention == "co_view":
+            logger.info("[ambient] intervention=co_view")
+            await _broadcast_debug("[ambient] → co_view path")
+            await _broadcast_ambient_log()
+            _ambient_listener.state = "listening"
+            await _broadcast_ambient_state()
+            await _handle_co_view(ws, trigger_text, method, keyword)
+            return
+
         # Detect instructions/technical questions directed at Claude Code, not MEI
-        is_instruction = bool(_INSTRUCTION_PATTERN.search(trigger_text))
+        is_instruction = _is_claude_code_instruction(trigger_text)
 
         prompt = _ambient_listener.build_llm_prompt(source_hint=source_hint)
+        if intervention == "backchannel":
+            prompt += "\n\n今回の目標は短い相槌のみ。必ず `BACKCHANNEL: ...` 形式で、4〜12文字くらいに収める。迷ったら SKIP。"
         if is_instruction:
             prompt += "\n\n【最重要】この発話は他のシステムへの作業指示です。絶対に \"SKIP\" と返してください。応援も不要です。"
             logger.info(f"[ambient] instruction detected → forcing SKIP hint")
+
+        # co_view バックグラウンド蓄積結果を reply/backchannel にも注入
+        if _media_ctx.confidence >= 0.4 and _media_ctx.media_buffer:
+            media_section = (
+                f"\n\n## 現在の視聴コンテキスト\n"
+                f"視聴中: {_media_ctx.inferred_type} — {_media_ctx.inferred_topic}\n"
+                f"最近の音声:\n{_media_ctx.get_buffer_text(last_n=5)}\n"
+            )
+            if _media_ctx.enriched_info:
+                media_section += f"\n関連情報:\n{_media_ctx.enriched_info}\n"
+            prompt += media_section
 
         mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
         mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
@@ -1439,32 +2509,25 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
         except asyncio.TimeoutError:
             logger.warning(f"[ambient/tier1] local LLM timeout (30s)")
             await _broadcast_debug(f"[ambient/tier1] TIMEOUT")
-            _ambient_listener.record_judgment(method=method, result="timeout", keyword=keyword)
+            _ambient_listener.record_judgment(method=method, result="timeout", keyword=keyword, source_hint=source_hint, intervention=intervention)
             await _broadcast_ambient_log()
             _ambient_listener.state = "listening"
             await _broadcast_ambient_state()
             return
 
-        if local_reply.strip().upper() == "SKIP":
+        reply_kind, local_reply = normalize_ambient_reply(local_reply, emoji_replacer=emoji_lib.replace_emoji)
+        if reply_kind == "skip":
             logger.info(f"[ambient] judgment: SKIP (method={method})")
             await _broadcast_debug(f"[ambient/tier1] → SKIP")
-            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword)
+            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword, source_hint=source_hint, intervention=intervention)
             await _broadcast_ambient_log()
             _ambient_listener.state = "listening"
             await _broadcast_ambient_state()
             return
 
-        # Tier 1 decided to SPEAK — sanitize emoji, strip stage directions (ト書き)
-        local_reply = emoji_lib.replace_emoji(local_reply, replace='').strip()
-        # Remove parenthetical stage directions: （動作描写）、(action)
-        local_reply = re.sub(r'[（(][^）)]*[）)]', '', local_reply).strip()
-        if not local_reply:
-            logger.info(f"[ambient/tier1] empty after sanitize (was stage direction), treating as SKIP")
-            _ambient_listener.state = "listening"
-            return
-        logger.info(f"[ambient/tier1] SPEAK '{local_reply[:60]}'")
-        await _broadcast_debug(f"[ambient/tier1] → SPEAK '{local_reply[:40]}'")
-        _ambient_listener.record_judgment(method=method, result="speak", keyword=keyword, utterance=local_reply)
+        logger.info(f"[ambient/tier1] {reply_kind.upper()} '{local_reply[:60]}'")
+        await _broadcast_debug(f"[ambient/tier1] → {reply_kind.upper()} '{local_reply[:40]}'")
+        _ambient_listener.record_judgment(method=method, result="speak", keyword=keyword, utterance=local_reply, intervention=reply_kind, source_hint=source_hint)
         _ambient_listener.record_mei_utterance(local_reply)
         await _broadcast_ambient_log()
         _ambient_listener.record_llm_cooldown()
@@ -1485,6 +2548,7 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
                     _clients.discard(client)
             logger.info(f"[ambient/tier1] sent to {sent}/{len(_clients)+sent} clients (audio {len(audio)}bytes, {duration:.1f}s)")
             _always_on_echo_suppress_until = time.time() + max(3.0, duration + 2.0)
+            asyncio.create_task(_emit_tts_diagnostic(local_reply, audio))
         except Exception as e:
             _always_on_echo_suppress_until = 0  # release on error
             logger.warning(f"[ambient/tier1] TTS error: {e}")
@@ -1503,6 +2567,7 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
         _skip_tier2 = (
             ambient_model != "claude"
             or is_instruction
+            or reply_kind == "backchannel"
             or len(trigger_text) < 10
         )
         if ambient_model != "claude":
@@ -1515,9 +2580,15 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
                 tool_reply = await _ask_slack_bot(trigger_text, speaker)
                 if tool_reply:
                     await _ambient_broadcast_reply(tool_reply, "tool_route", method, keyword, mei_speaker, mei_speed)
+                    return
+                local_tool_reply = await _local_llm_with_tools_reply(trigger_text, local_model)
+                if local_tool_reply and local_tool_reply != local_reply:
+                    logger.info(f"[ambient/tool_route] local tool fallback used: '{local_tool_reply[:60]}'")
+                    await _broadcast_debug(f"[ambient] local tool fallback")
+                    await _ambient_broadcast_reply(local_tool_reply, "local_tool_fallback", method, keyword, mei_speaker, mei_speed)
             return
         if _skip_tier2:
-            logger.info(f"[ambient/tier2] skipped (instruction={is_instruction}, text_len={len(trigger_text)})")
+            logger.info(f"[ambient/tier2] skipped (instruction={is_instruction}, reply_kind={reply_kind}, text_len={len(trigger_text)})")
             await _broadcast_debug(f"[ambient/tier2] → skipped")
             return
 
@@ -1587,6 +2658,7 @@ async def _ambient_broadcast_reply(reply: str, reply_method: str, method: str, k
                 _clients.discard(client)
         duration = _wav_duration(audio)
         _always_on_echo_suppress_until = time.time() + max(3.0, duration + 2.0)
+        asyncio.create_task(_emit_tts_diagnostic(reply, audio))
     except Exception as e:
         _always_on_echo_suppress_until = 0
         logger.warning(f"[ambient/{reply_method}] TTS error: {e}")
@@ -1616,6 +2688,7 @@ async def _ambient_broadcast_text(text: str, ws: WebSocket):
             except Exception:
                 _clients.discard(client)
         _always_on_echo_suppress_until = time.time() + 3.0
+        asyncio.create_task(_emit_tts_diagnostic(text, audio))
     except Exception as e:
         logger.warning(f"[ambient] ack TTS error: {e}")
 
@@ -1875,6 +2948,7 @@ async def websocket_endpoint(ws: WebSocket):
                     audio = await synthesize_speech(reply, slack_reply_speaker, slack_reply_speed)
                     await ws.send_json({"type": "assistant_text", "text": f"[{bot_id}] {reply}"})
                     await ws.send_bytes(audio)
+                    asyncio.create_task(_emit_tts_diagnostic(reply, audio))
                 except TTSQualityError as e:
                     print(f"TTS quality error: {e}")
                     await ws.send_json({"type": "assistant_text", "text": f"[{bot_id}] {reply}"})
@@ -1902,6 +2976,7 @@ async def websocket_endpoint(ws: WebSocket):
                 audio = await synthesize_speech(reply, speaker_id, speed)
                 await ws.send_json({"type": "assistant_text", "text": reply})
                 await ws.send_bytes(audio)
+                asyncio.create_task(_emit_tts_diagnostic(reply, audio))
             except TTSQualityError as e:
                 await ws.send_json({"type": "assistant_text", "text": reply})
                 await ws.send_json({"type": "status", "text": f"音声生成エラー: {e}"})

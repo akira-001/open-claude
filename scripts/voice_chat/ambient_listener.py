@@ -220,6 +220,7 @@ class AmbientListener:
         """Classify whether the text is from user or media.
 
         Returns one of: user_response, user_initiative, user_likely,
+                        user_identified, user_in_conversation, fragmentary,
                         media_likely, unknown
         """
         result = self._classify_source_inner(text)
@@ -228,6 +229,12 @@ class AmbientListener:
         return result
 
     def _classify_source_inner(self, text: str) -> str:
+        normalized = text.strip()
+
+        # Fragmentary one-word / noisy transcriptions are usually not worth answering.
+        if len(normalized) <= 4 and not self._USER_CALL_RE.search(normalized):
+            return "fragmentary"
+
         # Media-specific phrases → media regardless of other signals
         if self._MEDIA_HINT_RE.search(text):
             return "media_likely"
@@ -247,30 +254,48 @@ class AmbientListener:
         if self._USER_CALL_RE.search(text):
             return "user_initiative"
 
-        # Media context: if recent classification was media, short ambiguous
-        # utterances are likely still media (e.g. YouTube outro "おやすみなさい")
+        # Media context: if recent classification was media, carry it forward
         if self._in_media_context:
-            # Only strong user signals (above) break out of media context
-            if self._USER_QUESTION_RE.search(text):
-                return "user_likely"
             return "media_likely"
 
-        # Question/request pattern
-        if self._USER_QUESTION_RE.search(text):
-            return "user_likely"
-
-        # Silence then short single utterance → likely user
-        buf = self.text_buffer
-        last_ts = buf[-2]["ts"] if len(buf) >= 2 else 0
-        silence_before = time.time() - last_ts if last_ts else 9999
-        if silence_before > 10 and len(text) < 25 and len(buf) <= 1:
-            return "user_likely"
-
         # Long text or many buffered entries → media
-        if len(text) > 60 or len(buf) > 3:
+        buf = self.text_buffer
+        if len(text) > 40 or len(buf) > 3:
             return "media_likely"
 
         return "unknown"
+
+    def decide_intervention(self, text: str, source_hint: str) -> str:
+        """Choose whether MEI should skip, give a backchannel, or reply."""
+        normalized = text.strip()
+        if not normalized:
+            return "skip"
+
+        if source_hint == "fragmentary":
+            return "skip"
+
+        if source_hint == "media_likely":
+            # Level 5 (おしゃべりモード): co-viewer engagement instead of skip
+            if self.effective_reactivity >= 5:
+                return "co_view"
+            return "skip"
+
+        if source_hint == "user_in_conversation":
+            return "backchannel" if self._USER_CALL_RE.search(normalized) else "skip"
+
+        if source_hint in {"user_identified", "user_initiative"}:
+            return "reply"
+
+        if source_hint == "user_response":
+            return "reply" if len(normalized) >= 8 else "backchannel"
+
+        if source_hint == "user_likely":
+            return "reply" if len(normalized) >= 12 or self._USER_QUESTION_RE.search(normalized) else "backchannel"
+
+        # unknown source: treat same as media_likely (skip or co_view at level 5)
+        if self.effective_reactivity >= 5:
+            return "co_view"
+        return "skip"
 
     # --- Echo Detection ---
 
@@ -357,12 +382,13 @@ class AmbientListener:
 
         source_guide = {
             "user_identified": f"→ {self.current_speaker or 'ユーザー'}さんの声と確認済み。名前を使って自然に返す。",
-            "user_in_conversation": f"→ {self.current_speaker or 'ユーザー'}さんが他の人と会話中。基本はSKIP。話題が自分に関係ある時や、求められた時だけ短く参加。",
-            "user_response": "→ ユーザーがMEIに返答している可能性が高い。会話として自然に返す。",
+            "user_in_conversation": f"→ {self.current_speaker or 'ユーザー'}さんが他の人と会話中。基本はSKIP。呼びかけられた時だけ短い相槌で参加。",
+            "user_response": "→ ユーザーがMEIに返答している可能性が高い。必要なら返す。迷う時は短い相槌。",
             "user_initiative": "→ ユーザーがMEIに話しかけている。しっかり応答する。",
-            "user_likely": "→ ユーザーの発話の可能性が高い。会話として返す。",
-            "media_likely": "→ テレビやYouTubeの音声の可能性が高い。ユーザーに話しかけるのではなく、一緒に番組を見ている同居人として内容にコメントする（1文）。「へぇ」「そうなんだ」「面白そう」など。",
-            "unknown": "→ 判別不明。内容から判断して適切に返す。",
+            "user_likely": "→ ユーザーの発話の可能性が高い。まずは相槌か短い返答を検討。",
+            "fragmentary": "→ 単語断片や雑音っぽい。基本はSKIP。",
+            "media_likely": "→ テレビやYouTubeの音声の可能性が高い。基本はSKIP。",
+            "unknown": "→ 判別不明。返答より相槌を優先し、確信がなければSKIP。",
         }.get(source_hint, "→ 内容から判断して適切に返す。")
 
         return f"""あなたはMEI。同居人として部屋にいる。
@@ -385,11 +411,13 @@ class AmbientListener:
 {examples_text or '(なし)'}
 
 応答ルール:
+- 返答形式は3種類のみ: "SKIP" / "BACKCHANNEL: ..." / 通常の返答文
+- 確信が低い時は返答せず、短い相槌を優先する
+- 相槌は 4〜12文字程度で、内容解釈を広げすぎない
 - ユーザーの声と確認できた場合: 名前で呼んで自然に1-2文で返す
-- ユーザーが他の人と会話中: 基本は "SKIP"。MEIに関する話題や、助けを求められた時だけ短く参加
-- ユーザーへの返答（声紋未確認）: 会話として自然に1-2文で返す
-- メディア音声（TV/YouTube）: ユーザーに話しかけず、一緒に見ている感覚で番組内容に軽く1文コメント
-- 反応しない場合は "SKIP" とだけ返す
+- ユーザーが他の人と会話中: 基本は "SKIP"。呼びかけられた時だけ "BACKCHANNEL: うんうん" のように短く参加
+- ユーザーへの返答（声紋未確認）: まず相槌を検討し、質問や相談が明確な時だけ返す
+- メディア音声（TV/YouTube）や断片ノイズ: "SKIP"
 
 重要な制約:
 - Akiraさんは普段、Claude Code等のAIシステムに話しかけて仕事をしている。MEIはその横にいる同居人

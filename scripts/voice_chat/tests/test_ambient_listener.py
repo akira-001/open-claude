@@ -153,7 +153,32 @@ class TestAmbientListener:
         assert "テストルール" in prompt
 
     def test_get_state_snapshot(self, listener):
+        listener.record_judgment(method="keyword", result="speak", intervention="backchannel", source_hint="user_likely")
         snap = listener.get_state_snapshot()
         assert snap["reactivity"] == 3
         assert snap["override"] is None
         assert snap["listener_state"] == "idle"
+        assert snap["last_judgment"]["intervention"] == "backchannel"
+        assert snap["last_judgment"]["source_hint"] == "user_likely"
+
+    def test_classify_source_marks_short_noise_as_fragmentary(self, listener):
+        assert listener.classify_source("カタ") == "fragmentary"
+
+    def test_classify_source_prefers_user_identified(self, listener):
+        listener.current_speaker = "Akira"
+        assert listener.classify_source("ちょっと疲れた") == "user_identified"
+
+    def test_decide_intervention_skips_fragmentary(self, listener):
+        assert listener.decide_intervention("カタ", "fragmentary") == "skip"
+
+    def test_decide_intervention_uses_backchannel_for_uncertain_user_likely(self, listener):
+        assert listener.decide_intervention("疲れたなあ", "user_likely") == "backchannel"
+
+    def test_decide_intervention_uses_reply_for_clear_user_question(self, listener):
+        assert listener.decide_intervention("今日の予定どうしようかな？", "user_likely") == "reply"
+
+    def test_decide_intervention_skips_multi_speaker_without_direct_call(self, listener):
+        assert listener.decide_intervention("それでさ", "user_in_conversation") == "skip"
+
+    def test_decide_intervention_backchannels_multi_speaker_with_direct_call(self, listener):
+        assert listener.decide_intervention("メイそれわかる？", "user_in_conversation") == "backchannel"

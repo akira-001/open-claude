@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 
 const VOICE_CHAT_HOST = 'localhost';
 const VOICE_CHAT_PORT = 8767;
+const AUDIO_FIXTURE_INCOMING_DIR = path.resolve(__dirname, '../voice_chat/tests/fixtures/audio/incoming');
 
 const APP_ICON_PATH = path.join(__dirname, 'icon-1024.png');
 app.setName('Ember Chat');
@@ -79,6 +80,51 @@ ipcMain.handle('get-config', () => ({
   host: VOICE_CHAT_HOST,
   port: VOICE_CHAT_PORT,
 }));
+
+function ensureDir(dirPath) {
+  if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+}
+
+function sanitizeFixtureBaseName(raw) {
+  const value = String(raw || '').trim();
+  if (!/^[a-z0-9_]+(?:__[a-z0-9_]+){2}$/.test(value)) throw new Error('Invalid fixture base name');
+  return value;
+}
+
+function sanitizeFixtureId(raw) {
+  const value = String(raw || '').trim();
+  if (!/^[a-z0-9_]+$/.test(value)) throw new Error('Invalid fixture id');
+  return value;
+}
+
+ipcMain.handle('save-incoming-audio-fixture', async (_event, payload) => {
+  const baseName = sanitizeFixtureBaseName(payload?.baseName);
+  const previousBaseName = payload?.previousBaseName ? sanitizeFixtureBaseName(payload.previousBaseName) : null;
+  ensureDir(AUDIO_FIXTURE_INCOMING_DIR);
+
+  if (previousBaseName && previousBaseName !== baseName) {
+    try { fs.unlinkSync(path.join(AUDIO_FIXTURE_INCOMING_DIR, `${previousBaseName}.wav`)); } catch {}
+    try { fs.unlinkSync(path.join(AUDIO_FIXTURE_INCOMING_DIR, `${previousBaseName}.json`)); } catch {}
+  }
+
+  const sidecar = payload?.sidecar || {};
+  const normalized = {
+    category: String(sidecar.category || ''),
+    scene: String(sidecar.scene || ''),
+    variant: String(sidecar.variant || ''),
+    id: sanitizeFixtureId(sidecar.id || `${sidecar.category}_${sidecar.scene}_${sidecar.variant}`),
+    transcript: String(sidecar.transcript || ''),
+    expected_source: String(sidecar.expected_source || ''),
+    expected_intervention: String(sidecar.expected_intervention || ''),
+    notes: String(sidecar.notes || ''),
+  };
+
+  const wavPath = path.join(AUDIO_FIXTURE_INCOMING_DIR, `${baseName}.wav`);
+  const jsonPath = path.join(AUDIO_FIXTURE_INCOMING_DIR, `${baseName}.json`);
+  fs.writeFileSync(wavPath, Buffer.from(payload.wavBuffer || []));
+  fs.writeFileSync(jsonPath, JSON.stringify(normalized, null, 2) + '\n', 'utf8');
+  return { ok: true, saved: { wav: wavPath, json: jsonPath } };
+});
 
 // --- Always-On consent ---
 ipcMain.handle('check-consent', () => {
