@@ -44,6 +44,7 @@ def reset_meeting_state():
     app._meeting_digest_batch_task = None
     app._meeting_digest_idle_task = None
     app.SLACK_USER_TOKENS["mei"] = "token"
+    app.SLACK_BOT_TOKENS["mei"] = "bot-token"
     app.SLACK_DM_CHANNELS["mei"] = "channel"
     app.MEETING_SUMMARY_TARGET_BOTS = ["mei"]
     yield
@@ -166,11 +167,15 @@ async def test_maybe_send_meeting_digest_posts_to_slack_once():
 
     with mock.patch("app._fetch_current_gcal_meeting", return_value="週次定例"), \
          mock.patch("app._generate_meeting_digest", return_value="*会議メモ*\n- 進捗共有"), \
-         mock.patch("app.slack_post_message", return_value="123.456") as slack_post:
+         mock.patch("app.slack_post_channel_message", return_value="123.456") as slack_post:
         await app._maybe_send_meeting_digest()
         await app._maybe_send_meeting_digest()
 
     assert slack_post.call_count == 1
+    assert slack_post.call_args[0][0] == "mei"
+    assert slack_post.call_args[0][1].startswith("<@U3SFGQXNH> ")
+    assert "*会議メモ*" in slack_post.call_args[0][1]
+    assert slack_post.call_args[0][2] == app.SLACK_MEETING_SUMMARY_CHANNEL
     assert app._media_ctx.last_meeting_digest_signature
     assert app._media_ctx.last_meeting_digest_at > 0
 
@@ -192,8 +197,13 @@ async def test_maybe_send_meeting_digest_force_posts_after_meeting_end():
     app._media_ctx.meeting_digest_pending_at = 0.0
 
     with mock.patch("app._resolve_meeting_summary_bot_id", return_value="mei"), \
-         mock.patch("app.slack_post_message", return_value="123.456") as slack_post:
+         mock.patch("app.slack_post_channel_message", return_value="123.456") as slack_post:
         await app._maybe_send_meeting_digest(force=True)
 
     assert slack_post.call_count == 1
+    assert slack_post.call_args[0][0] == "mei"
+    assert slack_post.call_args[0][1].startswith("<@U3SFGQXNH> ")
+    assert "*議事録*" in slack_post.call_args[0][1]
+    assert "A案で進めることで合意しました" in slack_post.call_args[0][1]
+    assert slack_post.call_args[0][2] == app.SLACK_MEETING_SUMMARY_CHANNEL
     assert app._media_ctx.last_meeting_digest_signature == "digest-1"

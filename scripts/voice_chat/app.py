@@ -165,6 +165,8 @@ MEETING_SUMMARY_MIN_SNIPPETS = int(os.getenv("MEETING_SUMMARY_MIN_SNIPPETS", "4"
 MEETING_SUMMARY_BATCH_SEC = int(os.getenv("MEETING_SUMMARY_BATCH_SEC", "1800"))
 MEETING_SUMMARY_IDLE_SEC = int(os.getenv("MEETING_SUMMARY_IDLE_SEC", "120"))
 MEETING_SUMMARY_COOLDOWN_SEC = int(os.getenv("MEETING_SUMMARY_COOLDOWN_SEC", "1800"))
+SLACK_MEETING_SUMMARY_CHANNEL = os.getenv("SLACK_MEETING_SUMMARY_CHANNEL", "C0AHPJMS5QE")
+SLACK_MENTION_USER_ID = os.getenv("SLACK_USER_ID", "U3SFGQXNH")
 
 # --- Shared settings (cross-browser sync) ---
 SETTINGS_FILE = Path(__file__).parent / "settings.json"
@@ -755,6 +757,9 @@ class _MediaContext:
     # Patch AK1: content_type変化のhysteresis（連続2回確認で変化確定）
     _pending_type: str = ""       # 確定待ちの新content_type
     _pending_type_count: int = 0  # 同じtypeが連続で判定された回数
+    last_meeting_hint_score: int = 0
+    last_meeting_hint_reasons: list = field(default_factory=list)
+    last_meeting_hint_text: str = ""
 
     def add_snippet(self, text: str):
         # STT重複除去: 直前のスニペットの先頭50文字と80%以上一致なら追加しない
@@ -798,6 +803,9 @@ class _MediaContext:
         self.meeting_digest_pending_at = 0.0
         self.meeting_digest_pending_started_at = 0.0
         self.meeting_digest_pending_buffer_len = 0
+        self.last_meeting_hint_score = 0
+        self.last_meeting_hint_reasons = []
+        self.last_meeting_hint_text = ""
 
 
 _media_ctx = _MediaContext()
@@ -874,14 +882,54 @@ def _meeting_hint_score(text: str, *, gcal_title: str = "", keywords: list[str] 
     return score
 
 
+def _meeting_hint_details(text: str, *, gcal_title: str = "", keywords: list[str] | None = None) -> tuple[int, list[str]]:
+    """Return a score plus the specific phrases that pushed the meeting score up."""
+    keywords = keywords or []
+    details: list[str] = []
+    score = 0
+    if gcal_title.strip():
+        details.append(f"gcal:{gcal_title.strip()}")
+        score += 2
+        if _MEETING_STRONG_HINT_RE.search(gcal_title):
+            details.append("gcal:strong")
+            score += 2
+
+    if _MEETING_STRONG_HINT_RE.search(text):
+        matches = sorted({m.group(0) for m in _MEETING_STRONG_HINT_RE.finditer(text) if m.group(0)})
+        if matches:
+            details.extend([f"strong:{m}" for m in matches[:4]])
+        score += 3
+    soft_matches = sorted({m.group(0) for m in _MEETING_SOFT_HINT_RE.finditer(text) if m.group(0)})
+    if soft_matches:
+        details.extend([f"soft:{m}" for m in soft_matches[:6]])
+        score += 1
+
+    text_hits = [
+        term for term in [
+            "会議", "ミーティング", "打ち合わせ", "商談", "定例", "議事録",
+            "進捗", "共有", "確認", "決定", "提案", "要件", "資料", "TODO", "NextAction"
+        ]
+        if term in text
+    ]
+    if text_hits:
+        details.extend([f"text:{term}" for term in text_hits[:6]])
+    score += min(3, len(text_hits))
+
+    keyword_hits = [kw for kw in keywords if isinstance(kw, str) and kw and kw in text]
+    if keyword_hits:
+        details.extend([f"kw:{kw}" for kw in keyword_hits[:6]])
+    score += min(2, len(keyword_hits))
+    return score, details
+
+
 def _should_promote_to_meeting(content_type: str, confidence: float, text: str, *, gcal_title: str = "", keywords: list[str] | None = None) -> bool:
     """Promote borderline content to meeting when the meeting signal is clear enough."""
     if content_type == "meeting":
         return True
     score = _meeting_hint_score(text, gcal_title=gcal_title, keywords=keywords)
     if gcal_title.strip():
-        return score >= _MEETING_HINT_SCORE_FOR_PROMOTION and confidence >= 0.45
-    return score >= _MEETING_HINT_SCORE_WITHOUT_GCAL and confidence >= 0.55
+        return score >= max(3, _MEETING_HINT_SCORE_FOR_PROMOTION - 1) and confidence >= 0.42
+    return score >= max(5, _MEETING_HINT_SCORE_WITHOUT_GCAL - 1) and confidence >= 0.52
 
 
 def _find_matching_yt_titles(buffer_text: str, top_n: int = 5) -> list:
@@ -1153,6 +1201,14 @@ async def _infer_media_content() -> dict:
                     logger.info(f"[co_view/infer] Patch AR1: buffer_text直接マッチ '{_ar1_char}' → matched_title=青の箱")
                     break
         gcal_title = await _fetch_current_gcal_meeting()
+        hint_score, hint_details = _meeting_hint_details(
+            buffer_text,
+            gcal_title=gcal_title,
+            keywords=result.get("keywords", []),
+        )
+        _media_ctx.last_meeting_hint_score = hint_score
+        _media_ctx.last_meeting_hint_reasons = hint_details
+        _media_ctx.last_meeting_hint_text = buffer_text[:240]
         if _should_promote_to_meeting(
             result.get("content_type", "unknown"),
             float(result.get("confidence") or 0.0),
@@ -1164,7 +1220,7 @@ async def _infer_media_content() -> dict:
                 logger.info(
                     f"[co_view/infer] meeting promotion: type={result.get('content_type')} "
                     f"conf={float(result.get('confidence') or 0.0):.2f} gcal_title='{gcal_title}' "
-                    f"score={_meeting_hint_score(buffer_text, gcal_title=gcal_title, keywords=result.get('keywords', []))}"
+                    f"score={hint_score} reasons={hint_details[:6]}"
                 )
             result["content_type"] = "meeting"
             if gcal_title:
@@ -1172,6 +1228,12 @@ async def _infer_media_content() -> dict:
             elif not result.get("topic"):
                 result["topic"] = "会議"
             result["confidence"] = max(float(result.get("confidence") or 0.0), 0.65 if gcal_title else 0.58)
+        elif hint_score >= 3:
+            logger.info(
+                f"[co_view/infer] meeting near-miss: type={result.get('content_type')} "
+                f"conf={float(result.get('confidence') or 0.0):.2f} score={hint_score} "
+                f"reasons={hint_details[:6]} text='{buffer_text[:120]}'"
+            )
         logger.info(f"[co_view/infer] type={result.get('content_type')} topic='{result.get('topic')}' matched='{result.get('matched_title','')}' kws={result.get('keywords',[])} conf={result.get('confidence')}")
         return result
     except Exception as e:
@@ -1688,12 +1750,22 @@ async def _generate_meeting_digest(
 def _resolve_meeting_summary_bot_id() -> str | None:
     candidates = MEETING_SUMMARY_TARGET_BOTS or ["mei"]
     for bot_id in candidates:
-        if SLACK_USER_TOKENS.get(bot_id) and SLACK_DM_CHANNELS.get(bot_id):
+        if SLACK_BOT_TOKENS.get(bot_id):
             return bot_id
     for bot_id in ("mei", "eve"):
-        if SLACK_USER_TOKENS.get(bot_id) and SLACK_DM_CHANNELS.get(bot_id):
+        if SLACK_BOT_TOKENS.get(bot_id):
             return bot_id
     return None
+
+
+def _with_user_mention(text: str) -> str:
+    mention = SLACK_MENTION_USER_ID.strip()
+    if not mention:
+        return text
+    prefix = f"<@{mention}>"
+    if text.startswith(prefix):
+        return text
+    return f"{prefix} {text}".strip()
 
 
 async def _maybe_send_meeting_digest(*, force: bool = False) -> None:
@@ -1739,7 +1811,7 @@ async def _maybe_send_meeting_digest(*, force: bool = False) -> None:
         if not digest:
             return
 
-        ts = await slack_post_message(bot_id, digest)
+        ts = await slack_post_channel_message(bot_id, _with_user_mention(digest), SLACK_MEETING_SUMMARY_CHANNEL)
         _media_ctx.last_meeting_digest_signature = signature
         _media_ctx.last_meeting_digest_at = now
         _clear_meeting_digest_batch()
@@ -3090,6 +3162,21 @@ async def get_speakers(engine: str | None = None):
         return resp.json()
 
 
+async def slack_post_channel_message(bot_id: str, text: str, channel: str = SLACK_MEETING_SUMMARY_CHANNEL) -> str | None:
+    """議事録などの共有投稿を Slack チャンネルへ投稿し、ts を返す"""
+    token = SLACK_BOT_TOKENS.get(bot_id)
+    if not token or not channel:
+        return None
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(
+            "https://slack.com/api/chat.postMessage",
+            headers={"Authorization": f"Bearer {token}"},
+            json={"channel": channel, "text": text},
+        )
+        data = resp.json()
+        return data.get("ts") if data.get("ok") else None
+
+
 async def slack_post_message(bot_id: str, text: str) -> str | None:
     """ユーザーとして Slack DM にメッセージを投稿し、ts を返す"""
     token = SLACK_USER_TOKENS.get(bot_id)
@@ -3321,6 +3408,28 @@ async def get_ambient_stats():
     if not _ambient_listener:
         return {"judgments_today": 0, "speaks_today": 0, "speak_rate": 0}
     return _ambient_listener.get_stats()
+
+
+@app.get("/api/meeting/debug")
+async def get_meeting_debug():
+    if not _ambient_listener:
+        return {"error": "ambient not initialized"}
+    return {
+        "inferred_type": _media_ctx.inferred_type,
+        "inferred_topic": _media_ctx.inferred_topic,
+        "matched_title": _media_ctx.matched_title,
+        "confidence": _media_ctx.confidence,
+        "gcal_title": _gcal_meeting_cache.get("title", ""),
+        "meeting_hint_score": _media_ctx.last_meeting_hint_score,
+        "meeting_hint_reasons": _media_ctx.last_meeting_hint_reasons,
+        "meeting_hint_text": _media_ctx.last_meeting_hint_text,
+        "meeting_digest_pending": bool(_media_ctx.meeting_digest_pending_signature),
+        "meeting_digest_signature": _media_ctx.meeting_digest_pending_signature,
+        "meeting_digest_transcript_len": len(_media_ctx.meeting_digest_pending_transcript),
+        "buffer_preview": _media_ctx.get_buffer_text(last_n=5),
+        "listener_state": _ambient_listener.state,
+        "cooldown": _ambient_listener.is_llm_in_cooldown(),
+    }
 
 
 @app.get("/api/speaker-id/profiles")
