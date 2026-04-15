@@ -1216,6 +1216,8 @@ def _build_meeting_digest_messages(
                 "あなたは会議メモの整理役です。"
                 "入力された音声認識テキストだけを使って、Slackに貼れる日本語の会議メモを作ってください。"
                 "推測で補わず、会話中に明示された事実だけを使ってください。"
+                "特に『議事録』は省略せず、音声から読み取れる事実をできるだけ漏れなく箇条書きにしてください。"
+                "同じ内容は重複させず、1つ1行の具体的な箇条書きにしてください。"
                 "必ずJSONのみを返してください。"
                 "形式は次のとおりです: "
                 '{"summary":"1〜2文の要約","minutes":["議事録の箇条書き"],'
@@ -1263,6 +1265,148 @@ def _normalize_meeting_items(value: object) -> list[str]:
     return []
 
 
+def _derive_meeting_minutes_from_transcript(transcript: str, *, limit: int = 5) -> list[str]:
+    raw = re.sub(r"\s+", " ", transcript.strip())
+    if not raw:
+        return []
+
+    chunks: list[str] = []
+    for line in re.split(r"[\n。！？!?]+", transcript):
+        text = re.sub(r"\s+", " ", line).strip(" 　・-:：")
+        if len(text) < 8:
+            continue
+        if text in chunks:
+            continue
+        chunks.append(text)
+        if len(chunks) >= limit:
+            return chunks
+
+    if chunks:
+        return chunks
+
+    fallback: list[str] = []
+    for piece in re.split(r"\s{2,}|(?<=\S)[,、]\s*", raw):
+        text = piece.strip(" 　・-:：,、")
+        if len(text) < 10:
+            continue
+        if text in fallback:
+            continue
+        fallback.append(text[:80])
+        if len(fallback) >= limit:
+            break
+    return fallback
+
+
+def _merge_meeting_minutes(
+    payload_minutes: list[str],
+    transcript: str,
+    *,
+    limit: int = 5,
+) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+
+    def add(item: str) -> None:
+        text = re.sub(r"\s+", " ", item).strip(" 　・-:：")
+        if not text:
+            return
+        key = text.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        merged.append(text)
+
+    for item in payload_minutes:
+        add(item)
+    for item in _derive_meeting_minutes_from_transcript(transcript, limit=limit):
+        add(item)
+    return merged[:limit]
+
+
+def _split_meeting_sentences(transcript: str) -> list[str]:
+    sentences: list[str] = []
+    seen: set[str] = set()
+    for raw in re.split(r"[\n。！？!?]+", transcript):
+        text = re.sub(r"\s+", " ", raw).strip(" 　・-:：")
+        if len(text) < 8:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        sentences.append(text)
+    return sentences
+
+
+def _derive_meeting_decisions_from_transcript(transcript: str, *, limit: int = 4) -> list[str]:
+    results: list[str] = []
+    for text in _split_meeting_sentences(transcript):
+        lowered = text.lower()
+        if any(
+            keyword in text
+            for keyword in ("決定", "合意", "了承", "採用", "確定", "決め", "進める", "進めること", "することに")
+        ) or any(
+            phrase in lowered
+            for phrase in ("we'll", "will proceed", "decided", "agreed")
+        ):
+            results.append(text)
+        if len(results) >= limit:
+            break
+    return results
+
+
+def _derive_meeting_todos_from_transcript(transcript: str, *, limit: int = 4) -> list[str]:
+    results: list[str] = []
+    for text in _split_meeting_sentences(transcript):
+        if any(
+            keyword in text
+            for keyword in ("TODO", "宿題", "確認", "見直し", "見直す", "整理", "共有", "修正", "更新", "反映", "対応", "準備", "依頼", "連絡", "実施", "作成")
+        ):
+            results.append(text)
+        if len(results) >= limit:
+            break
+    return results
+
+
+def _derive_meeting_next_actions_from_transcript(transcript: str, *, limit: int = 3) -> list[str]:
+    results: list[str] = []
+    for text in _split_meeting_sentences(transcript):
+        if any(
+            keyword in text
+            for keyword in ("次", "今日中", "夕方", "明日", "次回", "後で", "今後", "まず", "その後", "対応")
+        ):
+            results.append(text)
+        if len(results) >= limit:
+            break
+    return results
+
+
+def _merge_meeting_items(
+    payload_items: list[str],
+    transcript_items: list[str],
+    *,
+    limit: int = 5,
+) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+
+    def add(item: str) -> None:
+        text = re.sub(r"\s+", " ", item).strip(" 　・-:：")
+        if not text:
+            return
+        key = text.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        merged.append(text)
+
+    for item in payload_items:
+        add(item)
+    for item in transcript_items:
+        add(item)
+    return merged[:limit]
+
+
 def _format_meeting_digest_message(
     *,
     meeting_title: str,
@@ -1285,6 +1429,16 @@ def _format_meeting_digest_message(
 
     if not summary:
         summary = "会議内容を整理したよ"
+
+    transcript_minutes = _derive_meeting_minutes_from_transcript(transcript, limit=5)
+    transcript_decisions = _derive_meeting_decisions_from_transcript(transcript, limit=4)
+    transcript_todos = _derive_meeting_todos_from_transcript(transcript, limit=4)
+    transcript_next_actions = _derive_meeting_next_actions_from_transcript(transcript, limit=3)
+
+    minutes = _merge_meeting_items(minutes, transcript_minutes, limit=5)
+    decisions = _merge_meeting_items(decisions, transcript_decisions, limit=4)
+    todos = _merge_meeting_items(todos, transcript_todos, limit=4)
+    next_actions = _merge_meeting_items(next_actions, transcript_next_actions, limit=3)
 
     if not minutes:
         minutes = [f"直近の音声: {transcript[:160].strip() or '未確認'}"]
