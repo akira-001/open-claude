@@ -1,5 +1,6 @@
 """Ember Chat Web App - STT (Whisper) + LLM (Ollama) + TTS (VOICEVOX)"""
 import asyncio
+import hashlib
 import difflib
 import json
 import logging
@@ -10,6 +11,7 @@ import struct
 import sys
 import tempfile
 import time
+import urllib.parse
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -31,6 +33,8 @@ logging.getLogger("speechbrain").setLevel(logging.WARNING)
 import warnings
 warnings.filterwarnings("ignore", message=".*encountered in matmul.*", category=RuntimeWarning)
 
+import numpy as np
+
 
 def _is_whisper_hallucination(text: str) -> bool:
     """Detect Whisper hallucination patterns: repeated chars, gibberish, etc."""
@@ -46,6 +50,23 @@ def _is_whisper_hallucination(text: str) -> bool:
     # Very low unique char ratio (e.g., "あんまんまいいっんんんん")
     if len(counts) <= 3 and len(cleaned) > 6:
         return True
+    return False
+
+
+def _has_repeated_phrase(text: str, min_phrase_len: int = 3, min_repeats: int = 4) -> bool:
+    """Patch Z1: STT/LLM補正後の繰り返しフレーズ幻覚を検出する。
+    例: 'あったら、あったら、あったら、あったら、あったら、' のような繰り返し。
+    min_phrase_len文字以上のフレーズがmin_repeats回以上連続する場合はTrueを返す。"""
+    # 区切り文字を正規化して繰り返しを検出しやすくする
+    normalized = re.sub(r'[、。！？\s　]+', '|', text.strip())
+    parts = [p for p in normalized.split('|') if len(p) >= min_phrase_len]
+    if len(parts) < min_repeats:
+        return False
+    # スライドウィンドウで連続する同一フレーズを検出
+    for i in range(len(parts) - min_repeats + 1):
+        window = parts[i:i + min_repeats]
+        if len(set(window)) == 1:  # 全て同じフレーズ
+            return True
     return False
 
 import emoji as emoji_lib
@@ -133,9 +154,16 @@ SLACK_BOT_TOKENS = {
     "mei": os.getenv("SLACK_BOT_TOKEN_MEI", ""),
     "eve": os.getenv("SLACK_BOT_TOKEN_EVE", ""),
 }
+MEETING_SUMMARY_TARGET_BOTS = [
+    b.strip() for b in os.getenv("SLACK_MEETING_SUMMARY_BOTS", "mei").split(",")
+    if b.strip()
+]
+MEETING_SUMMARY_MIN_SNIPPETS = int(os.getenv("MEETING_SUMMARY_MIN_SNIPPETS", "4"))
+MEETING_SUMMARY_COOLDOWN_SEC = int(os.getenv("MEETING_SUMMARY_COOLDOWN_SEC", "1800"))
 
 # --- Shared settings (cross-browser sync) ---
 SETTINGS_FILE = Path(__file__).parent / "settings.json"
+CO_VIEW_AUTO_APPROVE_FILE = Path("/tmp/co_view_auto_approve")
 YOMIGANA_FILE = Path(__file__).parent / "yomigana_map.json"
 _settings: dict = {}
 _clients: set[WebSocket] = set()
@@ -152,6 +180,28 @@ def _load_settings() -> dict:
 
 def _save_settings(s: dict):
     SETTINGS_FILE.write_text(json.dumps(s, ensure_ascii=False))
+
+
+def _sync_auto_approve_file(enabled: bool) -> None:
+    """Keep the co_view auto-approve sentinel file in sync with settings."""
+    if enabled:
+        CO_VIEW_AUTO_APPROVE_FILE.touch(exist_ok=True)
+    else:
+        CO_VIEW_AUTO_APPROVE_FILE.unlink(missing_ok=True)
+
+
+def _get_auto_approve_enabled() -> bool:
+    enabled = bool(_settings.get("autoApproveEnabled")) or CO_VIEW_AUTO_APPROVE_FILE.exists()
+    if _settings.get("autoApproveEnabled") != enabled:
+        _settings["autoApproveEnabled"] = enabled
+    return enabled
+
+
+def _set_auto_approve_enabled(enabled: bool) -> bool:
+    _settings["autoApproveEnabled"] = enabled
+    _sync_auto_approve_file(enabled)
+    _save_settings(_settings)
+    return enabled
 
 
 def _load_public_yomigana_map() -> list[tuple[re.Pattern, str]]:
@@ -212,6 +262,7 @@ def _get_yomigana_map() -> list[tuple[re.Pattern, str]]:
 
 
 async def _broadcast_settings(exclude: WebSocket | None = None):
+    _get_auto_approve_enabled()
     msg = json.dumps({"type": "sync_settings", "settings": _settings})
     for client in list(_clients):
         if client is exclude:
@@ -273,6 +324,36 @@ _HALLUCINATION_RE = re.compile(
     r"(.{5,})\1{2,}"  # 同じフレーズ3回以上繰り返し
 )
 
+_INITIAL_PROMPT_TEXT = "ねぇメイ、メイ、今日のスケジュールは？"
+_INITIAL_PROMPT_NORMALIZED = re.sub(r'[、。！？\s?]+', '', _INITIAL_PROMPT_TEXT)
+
+
+def _looks_like_initial_prompt_echo(text: str) -> bool:
+    """Reject STT outputs that collapse into the seeded wake prompt."""
+    normalized = re.sub(r'[、。！？\s?]+', '', text)
+    if not normalized:
+        return False
+
+    prompt_variants = {
+        _INITIAL_PROMPT_NORMALIZED,
+        "メイ今日のスケジュールは",
+        "メイメイ今日のスケジュールは",
+        "ねぇメイメイ今日のスケジュールは",
+        "ねえメイメイ今日のスケジュールは",
+    }
+    if normalized in prompt_variants:
+        return True
+
+    if "今日のスケジュールは" in normalized and normalized.startswith("メイ"):
+        if len(normalized) <= len("メイメイ今日のスケジュールは"):
+            return True
+
+    if normalized.startswith("メイ") and "今日のスケジュールは" in normalized:
+        if re.fullmatch(r"メイ(?:メイ)?今日のスケジュールは", normalized):
+            return True
+
+    return False
+
 
 def _transcribe_sync(audio_bytes: bytes, fast: bool) -> str:
     """Whisper推論（同期）。run_in_executorからスレッドプールで実行。"""
@@ -284,7 +365,7 @@ def _transcribe_sync(audio_bytes: bytes, fast: bool) -> str:
             f.name, language="ja",
             beam_size=1 if fast else 5,
             vad_filter=fast,  # always-on時のみSilero VADで非音声区間をカット
-            initial_prompt="ねぇメイ、メイ、今日のスケジュールは？",
+            initial_prompt=_INITIAL_PROMPT_TEXT,
         )
         seg_list = list(segments)
         text = "".join(seg.text for seg in seg_list).strip()
@@ -306,6 +387,95 @@ def _transcribe_sync(audio_bytes: bytes, fast: bool) -> str:
     return text
 
 
+_KEYBOARD_PULSE_MIN_SEC = 0.12
+_KEYBOARD_PULSE_MAX_SEC = 1.25
+_KEYBOARD_PULSE_MIN_PEAK = 0.02
+_KEYBOARD_PULSE_MIN_RMS = 0.004
+_KEYBOARD_PULSE_MAX_ACTIVE_RATIO = 0.22
+_KEYBOARD_PULSE_MIN_CREST = 9.5
+_KEYBOARD_PULSE_MIN_FLATNESS = 0.48
+_KEYBOARD_PULSE_MAX_FLATNESS = 0.95
+
+
+def _keyboard_pulse_stats(audio_bytes: bytes) -> dict | None:
+    """Convert audio and compute cheap waveform stats for short pulse-like noise."""
+    wav = audio_bytes_to_wav(audio_bytes)
+    if wav is None or len(wav) < 320:
+        return None
+
+    duration = len(wav) / 16000.0
+    if duration > _KEYBOARD_PULSE_MAX_SEC:
+        return None
+
+    abs_wav = np.abs(wav)
+    peak = float(np.max(abs_wav))
+    rms = float(np.sqrt(np.mean(np.square(wav))))
+    if rms <= 0:
+        return None
+
+    frame_size = 320  # 20ms at 16kHz
+    usable = len(wav) - (len(wav) % frame_size)
+    if usable < frame_size * 2:
+        return None
+    frames = wav[:usable].reshape(-1, frame_size)
+    frame_rms = np.sqrt(np.mean(np.square(frames), axis=1))
+    active_threshold = max(rms * 0.6, _KEYBOARD_PULSE_MIN_RMS * 1.5)
+    active_ratio = float(np.mean(frame_rms > active_threshold))
+    crest = peak / max(rms, 1e-6)
+    zero_crossing = float(np.mean(wav[1:] * wav[:-1] < 0)) if len(wav) > 1 else 0.0
+
+    window = np.hanning(len(wav)) if len(wav) > 1 else np.ones_like(wav)
+    spectrum = np.abs(np.fft.rfft(wav * window)) + 1e-12
+    spectral_flatness = float(np.exp(np.mean(np.log(spectrum))) / np.mean(spectrum))
+
+    return {
+        "duration": duration,
+        "peak": peak,
+        "rms": rms,
+        "active_ratio": active_ratio,
+        "crest": crest,
+        "zero_crossing": zero_crossing,
+        "spectral_flatness": spectral_flatness,
+    }
+
+
+def _looks_like_keyboard_pulse(audio_bytes: bytes) -> tuple[bool, str]:
+    """Heuristically reject short pulse-like sounds such as keyboard taps."""
+    stats = _keyboard_pulse_stats(audio_bytes)
+    if not stats:
+        return False, ""
+
+    duration = stats["duration"]
+    peak = stats["peak"]
+    rms = stats["rms"]
+    active_ratio = stats["active_ratio"]
+    crest = stats["crest"]
+    zero_crossing = stats["zero_crossing"]
+    spectral_flatness = stats["spectral_flatness"]
+
+    if duration < _KEYBOARD_PULSE_MIN_SEC:
+        return False, ""
+    if peak < _KEYBOARD_PULSE_MIN_PEAK or rms < _KEYBOARD_PULSE_MIN_RMS:
+        return False, ""
+    if crest < _KEYBOARD_PULSE_MIN_CREST:
+        return False, ""
+    if active_ratio > _KEYBOARD_PULSE_MAX_ACTIVE_RATIO:
+        return False, ""
+    if spectral_flatness < _KEYBOARD_PULSE_MIN_FLATNESS or spectral_flatness > _KEYBOARD_PULSE_MAX_FLATNESS:
+        return False, ""
+
+    # Very pulse-like sounds usually have sparse active frames with jagged edges.
+    if zero_crossing < 0.08 and active_ratio > 0.1:
+        return False, ""
+
+    reason = (
+        f"duration={duration:.2f}s peak={peak:.4f} rms={rms:.4f} "
+        f"active_ratio={active_ratio:.2f} crest={crest:.1f} zcr={zero_crossing:.2f} "
+        f"flatness={spectral_flatness:.2f}"
+    )
+    return True, reason
+
+
 def _transcribe_sync_with_metrics(audio_bytes: bytes, fast: bool) -> dict:
     """Whisper推論（同期）+ 軽量メトリクス。"""
     with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:
@@ -317,7 +487,7 @@ def _transcribe_sync_with_metrics(audio_bytes: bytes, fast: bool) -> dict:
             language="ja",
             beam_size=1 if fast else 5,
             vad_filter=False,
-            initial_prompt="ねぇメイ、メイ、今日のスケジュールは？",
+            initial_prompt=_INITIAL_PROMPT_TEXT,
         )
         seg_list = list(segments)
         text = "".join(seg.text for seg in seg_list).strip()
@@ -391,6 +561,1498 @@ _STT_SKIP_CORRECTION = re.compile(
     r'|ありがとう|おはよう|おやすみ|こんにちは|こんばんは'
     r'|メイ|めい|ストップ|とめて|止めて|静かに|もっと話して)$'
 )
+_STT_SYMBOL_ONLY = re.compile(r'^[^\w\s]+$')
+
+# Patch B3: 音声品質メタコメントを出力後に検出して強制SKIP
+_CO_VIEW_AUDIO_QUALITY_RE = re.compile(r'音声が|聞き取り(?:にくい|れない|づらい)|途切れ|ノイズ|音質')
+
+# Patch A2: 疑問文コメントを出力後に検出して強制SKIP
+_CO_VIEW_QUESTION_STRIP = re.compile(r'[。！　 ]+$')
+
+# Patch BA1: 統計・市場数値型コメントへのpost-filter（設計原則2: 適切な距離感）
+# 背景: 「487億ドルまで成長するらしいよ」「30%増加するらしいよ」のような市場規模・成長率・予測統計を
+#       そのまま言うコメントは「豆知識の披露」になり、同居人らしい距離感を壊す。
+#       meeting/非meeting問わず全typeに適用（数値が主体の情報提供型コメントを遮断）。
+_BA1_STATS_RE = re.compile(
+    r'\d{2,}億\s*(?:ドル|円|ユーロ|元)|'        # 市場規模（「487億ドル」等）
+    r'\d{1,3}(?:\.\d+)?\s*%\s*(?:成長|増加|増|減少|減|上昇|拡大|縮小)|'  # 成長率
+    r'\d{4}年まで[にの]\s*\d'                   # 予測年+数値（「2035年までに487億」等）
+)
+
+# Patch AU1: meeting コメントのアドバイス調・汎用コメントを出力後に検出して強制SKIP
+# 背景: meeting type でプロンプト禁止にもかかわらず「〜が欠かせない」「〜が重要だよね」等の
+#       汎用PMアドバイス調コメントが生成される問題。コード層の安全網として追加。
+# Patch AW1: ニュース情報伝達型・具体日付ハルシネーション防止パターンを追加
+# 背景: 「さっきのニュースでExcel方眼紙に対応したツールが4月末にリリースらしいよ！」のような
+#       enrich素材にLLMが具体的日付を追加するハルシネーション混じり情報伝達コメントがAU1をすり抜けた問題
+_CO_VIEW_MEETING_ADVICE_RE = re.compile(
+    r'(?:が|は)(?:欠かせ[なない]|重要[だよね]+|大切[だよね]+|大事[だよね]+)|'
+    r'プロジェクト管理|アジェンダ管理|スケジュール管理(?:[がはっ]|って)|'
+    r'管理(?:が|は)(?:重要|大切|大事|欠かせ)|'
+    r'エクセルで(?:管理|整理|作成)|スプレッドシートで|'
+    # AW1: ニュース情報伝達型（「さっきのニュースで〜らしいよ」等のハルシネーション混じり報告を遮断）
+    r'さっきのニュース[でにから]|ニュース[でにから].{0,30}(?:らしい|だって)|'
+    r'[0-9０-９]+月[末初]に.{0,20}(?:リリース|発売|公開)|'
+    r'(?:リリース|発売).{0,20}[0-9０-９]+月[末初]|'
+    # Patch BB1: meeting業界情報伝達型（「〜業界って...らしいよ」型の第三者情報を会議参加者に伝える系）
+    # 背景: 「金融データプロバイダーの業界って、AI影響で結構大変らしいよ。」のような
+    #       enrich由来の業界動向情報がAU1をすり抜ける問題。設計原則2（距離感）に基づきSKIP。
+    r'(?:業界|市場|産業|分野)って.{0,60}(?:らしいよ|だって|みたいだよ)|'
+    r'AI(?:影響|の影響|の波).{0,40}(?:大変|厳しい|苦しい|難しい).{0,20}(?:らしい|みたい|だって)'
+)
+
+# Patch BE2: youtube_talk内容反射型コメントフィルター
+# 「〜の話なんだね〜」「〜について話してるんだね」等の内容をそのまま反射するコメントを遮断
+# 背景: BD1ではmeetingのみ対象だったが、youtube_talkでも「試合データの話してるんだね〜」
+#       「オー、無料で使えるローカルLLMの話なんだね！」等の反射型が生成された
+# Patch BF2: 「〜させるのね！」「〜してるのね」型を追加（行動確認系）
+_CO_VIEW_REFLECTION_RE = re.compile(
+    r'(?:の話|について話|って話)(?:してるんだね|してるね|なんだね|なんだ)|'
+    r'(?:の話|について)(?:なんだね|なんだ)[〜～]?|'
+    r'(?:話|言って)(?:るんだね|るね)[〜～]?$|'
+    r'(?:する|させる|してる|している|できる|れる|てる)のね[！。〜～]?',
+    re.UNICODE
+)
+
+# Patch AU2: meeting enrich検索から除外する汎用ビジネス語セット
+# 背景: gcal_title空時に「アジェンダ」「スケジュール」等の汎用語でNews検索→
+#       一般PMニュース大量取得→LLMが「PMが欠かせない」等の汎用アドバイスを生成する根本原因
+_MEETING_GENERIC_TERMS = frozenset([
+    'アジェンダ', '進捗', 'スケジュール', 'プロジェクト', '会議', 'ミーティング',
+    'タスク', '計画', '管理', '標準', '手順', '報告', '確認', '共有', '打ち合わせ',
+])
+
+# ---------------------------------------------------------------------------
+# Co-view: TV/YouTube 視聴中の同居人コメント生成
+# ---------------------------------------------------------------------------
+
+_CO_VIEW_COMMENT_COOLDOWN   = 300    # 5分: コメント間隔
+_CO_VIEW_INFERENCE_MIN_SNIP = 5      # 推論トリガーに必要な最低スニペット数
+_CO_VIEW_ASK_USER_COOLDOWN  = 1800   # 30分: 「何見てるの？」問い合わせ間隔
+_CO_VIEW_ASK_USER_MIN_SNIP  = 5      # 問い合わせ前に必要な最低スニペット数
+_CO_VIEW_ENRICH_COOLDOWN    = 600    # 10分: 外部情報再取得間隔
+
+_SLACK_BOT_DATA_DIR = Path(
+    os.getenv("SLACK_BOT_DATA_DIR",
+              str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data"))
+)
+
+
+@dataclass
+class _MediaContext:
+    media_buffer: list = field(default_factory=list)   # [{"text": str, "ts": float}]
+    inferred_type: str = "unknown"     # baseball|golf|youtube_talk|news|drama|music|other|unknown
+    inferred_topic: str = ""
+    matched_title: str = ""            # 具体的な作品/番組名 (Pattern O)
+    confidence: float = 0.0
+    enriched_info: str = ""
+    keywords: list = field(default_factory=list)
+    last_inferred_at: float = 0.0
+    last_enriched_at: float = 0.0
+    co_view_last_at: float = 0.0
+    ask_user_last_at: float = 0.0
+    snippets_since_infer: int = 0
+    recent_co_view_comments: list = field(default_factory=list)  # 直近3件のコメント履歴（enrich繰り返し防止）
+    # Patch M1: matched_title フォールバック用（直前5分以内の有効な作品名を保持）
+    last_valid_matched_title: str = ""
+    last_valid_matched_at: float = 0.0
+    # Patch AL2: last_valid取得時のcontent_type記録（youtube_talk→youtube_talkのfallback抑制に使用）
+    last_valid_inferred_type: str = ""
+    # Meeting digest spam prevention
+    last_meeting_digest_signature: str = ""
+    last_meeting_digest_at: float = 0.0
+    # Patch Y1: enrich query rotation — 毎回同じニュースを繰り返さないよう検索suffixをローテーション
+    enrich_query_idx: int = 0
+    # Patch Y1補: 同一作品で既に返した記事タイトルを記憶して重複を除外
+    enrich_seen_titles: set = field(default_factory=set)
+    # Patch Z3: 直近コメントで実際に使用したenrich内容を記録（30分間の繰り返し防止）
+    last_enrich_used_lines: list = field(default_factory=list)  # 直近コメントに渡したenrich行リスト
+    last_enrich_used_at: float = 0.0
+    # Patch AK1: content_type変化のhysteresis（連続2回確認で変化確定）
+    _pending_type: str = ""       # 確定待ちの新content_type
+    _pending_type_count: int = 0  # 同じtypeが連続で判定された回数
+
+    def add_snippet(self, text: str):
+        # STT重複除去: 直前のスニペットの先頭50文字と80%以上一致なら追加しない
+        if self.media_buffer:
+            prev = self.media_buffer[-1]["text"]
+            head_len = min(50, len(prev), len(text))
+            if head_len >= 10:
+                common = sum(c1 == c2 for c1, c2 in zip(prev[:head_len], text[:head_len]))
+                similarity = common / head_len
+                if similarity >= 0.8:
+                    logger.debug(f"[co_view] dedup skip (head_sim={similarity:.2f}): '{text[:30]}'")
+                    return
+        self.media_buffer.append({"text": text, "ts": time.time()})
+        self.snippets_since_infer += 1
+        if len(self.media_buffer) > 20:
+            self.media_buffer = self.media_buffer[-20:]
+
+    def get_buffer_text(self, last_n: int = 10) -> str:
+        return "\n".join(e["text"] for e in self.media_buffer[-last_n:])
+
+    def reset(self):
+        self.media_buffer.clear()
+        self.inferred_type = "unknown"
+        self.inferred_topic = ""
+        self.matched_title = ""
+        self.confidence = 0.0
+        self.enriched_info = ""
+        self.keywords.clear()
+        self.snippets_since_infer = 0
+        self.recent_co_view_comments.clear()
+        # Patch M1: last_valid は reset 時も保持（5分クールダウンは _handle_co_view 側で判断）
+        # Patch Z5: last_enrich_used_lines/at は reset 時も保持（5minリセット後も30分クールダウン継続）
+        # Patch AK1: pending_type は reset 時にクリア（前セッションの中途pendingを引き継がない）
+        self._pending_type = ""
+        self._pending_type_count = 0
+
+
+_media_ctx = _MediaContext()
+
+# Patch AQ2: グローバルenrich使用履歴（enrich cacheリセット後も同ニュース再利用を防ぐ）
+# key: enrich行の文字列、value: 使用したUnix時刻
+_GLOBAL_ENRICH_USED: dict[str, float] = {}
+# Patch AT1: 3600→10800秒（3時間）に延長（アニメ等2-3時間視聴で同一情報が1時間後に再出現する問題解消）
+# Patch BF1: 10800→3600秒に短縮（Z3+AQ2ダブルブロックでZ3後にAQ2が3時間ブロックし続けコメント停止するため）
+#            AI系youtube_talkでニュース多様性が低い場合、同一ニュースを1時間後に再利用することを許容する
+_GLOBAL_ENRICH_REUSE_SEC = 3600  # 1時間は同じenrich行をコメントに使わない
+
+# co_view 同時実行防止ロック + 原文重複検出
+_co_view_lock = asyncio.Lock()
+_STT_RAW_SEEN: dict[str, float] = {}   # trigger_text先頭60文字 → 最終受信timestamp
+_STT_RAW_DEDUP_WINDOW = 30.0           # 30秒以内の同一原文はスキップ
+
+# TV guide cache
+_tv_guide_cache: dict = {"data": "", "fetched_at": 0.0}
+_meeting_digest_lock = asyncio.Lock()
+
+
+def _load_youtube_titles() -> list:
+    path = _SLACK_BOT_DATA_DIR / "youtube-history-cache.json"
+    try:
+        data = json.loads(path.read_text())
+        titles = [e["title"] for e in data.get("entries", []) if e.get("title")]
+        logger.info(f"[co_view] youtube titles loaded: {len(titles)} from {path}")
+        return titles
+    except Exception as e:
+        logger.warning(f"[co_view] youtube titles load failed: {e} (path: {path})")
+        return []
+
+
+def _load_interest_priorities() -> dict:
+    try:
+        data = json.loads((_SLACK_BOT_DATA_DIR / "interest-cache.json").read_text())
+        return data.get("priorities", {})
+    except Exception:
+        return {}
+
+
+_youtube_titles: list = _load_youtube_titles()
+_interest_priorities: dict = _load_interest_priorities()
+
+
+def _find_matching_yt_titles(buffer_text: str, top_n: int = 5) -> list:
+    """バッファテキストに単語レベルでマッチするYouTubeタイトルを返す。"""
+    if not _youtube_titles:
+        return []
+    words = set(re.findall(r'[^\s、。！？!?]{1,}', buffer_text))
+    scored = []
+    for title in _youtube_titles:
+        score = sum(1 for w in words if w in title)
+        if score > 0:
+            logger.debug(f"[co_view/yt_match] title='{title[:40]}' score={score}")
+            scored.append((score, title))
+    scored.sort(key=lambda x: -x[0])
+    results = [t for _, t in scored[:top_n]]
+    logger.info(f"[co_view/yt_match] words={list(words)[:10]} hits={len(scored)} filtered={len(results)} top={results[:2]}")
+    return results
+
+
+async def _fetch_tv_guide() -> str:
+    """NHK RSS + Google News でTV番組表を取得（1時間キャッシュ）。"""
+    now = time.time()
+    if now - _tv_guide_cache["fetched_at"] < 3600 and _tv_guide_cache["data"]:
+        return _tv_guide_cache["data"]
+    results: list = []
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            rss_url = "https://news.google.com/rss/search?q=TV番組+今日&hl=ja&gl=JP&ceid=JP:ja"
+            resp = await client.get(rss_url)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                for item in root.findall('.//item')[:5]:
+                    title = item.findtext('title', '')
+                    if title:
+                        results.append(title)
+    except Exception as e:
+        logger.debug(f"[tv_guide] fetch failed: {e}")
+    data = "\n".join(results)
+    _tv_guide_cache["data"] = data
+    _tv_guide_cache["fetched_at"] = now
+    return data
+
+
+_YT_AD_NARRATION = re.compile(
+    r'(続きはチャ.{1,15}確認|チャット欄確認|チャットで確認してね|次はチャット|チャットで確認|'
+    r'詳しくはこちら|今すぐダウンロード|今すぐ登録|無料で始め|アプリをダウンロード|'
+    r'リンクは概要欄)',
+)  # Patch C改: 続きはチャ*.{1,15}確認 で STT誤認識バリアント（チャトレ/チャット欄等）も除去
+
+# STT補正LLMがデフォルト応答として返しがちなパターン（これが返ってきたら元テキストを使う）
+_STT_LLM_DEFAULT_RE = re.compile(
+    r'^(今日のスケジュールは？?|今回のスケジュールは？?|おめでとうございます[。！]?'
+    r'|何かお手伝いできますか[？。]?|ご質問があればどうぞ[。！]?'
+    r'|はい、お手伝いします[。！]?|了解です[。！]?'
+    r'|ありがとうございます[。！]?)$'
+)
+
+
+async def _correct_media_transcript(text: str) -> str:
+    """メディア音声(実況・YouTubeなど)向けSTT補正。"""
+    text = _YT_AD_NARRATION.sub('', text).strip()
+    if not text:
+        return ""
+    if _STT_SYMBOL_ONLY.match(text.strip()):
+        return ""
+    dict_corrected = _apply_stt_dict(text)
+    if dict_corrected != text:
+        logger.info(f"[co_view/stt_dict] '{text}' → '{dict_corrected}'")
+        text = dict_corrected
+    if len(text) < 4 or _STT_SKIP_CORRECTION.match(text.strip()):
+        return text
+    context = [e["text"] for e in _media_ctx.media_buffer[-3:]]
+    context_block = ("\n直近の音声:\n" + "\n".join(f"- {t}" for t in context)) if context else ""
+    messages = [
+        {"role": "system", "content": (
+            "あなたはメディア音声（スポーツ実況・YouTubeコメンタリー・ニュース）の音声認識校正者です。\n"
+            "音声認識の出力を正しい日本語に修正してください。\n"
+            "特にスポーツ実況: 選手名（大谷、フリーマン、シェフラー等）、チーム名（ドジャース等）を正確に。\n"
+            "意味が通じない単語は音の類似性と文脈から推測・置換してください。\n"
+            "修正後のテキストだけを返してください。説明不要。"
+            f"{context_block}"
+        )},
+        {"role": "user", "content": text},
+    ]
+    try:
+        corrected = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
+        corrected = corrected.strip().strip('"\'「」')
+        if corrected and corrected != text:
+            if not corrected or corrected in ("（沈黙）", "(沈黙)", "…", "...", ""):
+                logger.info(f"[co_view/stt] hallucination(empty): '{text}' → '{corrected}' → keep original")
+                return text
+            if len(corrected) > len(text) * 2.5:  # Patch BH1: 3.0→2.5倍に厳格化（短文誤変換検出強化）
+                logger.info(f"[co_view/stt] hallucination(2.5x): '{text}'({len(text)}) → '{corrected}'({len(corrected)}) → keep original")
+                return text
+            if _STT_LLM_DEFAULT_RE.match(corrected.strip()):
+                logger.info(f"[co_view/stt] llm_default: '{text}' → '{corrected}' → keep original")
+                return text
+            # Patch Z1: 補正後テキストに繰り返しフレーズが含まれる場合は元テキストを返す
+            if _has_repeated_phrase(corrected):
+                logger.info(f"[co_view/stt] hallucination(repeat): '{text[:40]}' → repeat pattern detected → keep original")
+                return text
+            logger.info(f"[co_view/stt] '{text}' → '{corrected}'")
+            return corrected
+    except Exception as e:
+        logger.debug(f"[co_view/stt] failed: {e}")
+    return text
+
+
+async def _infer_media_content() -> dict:
+    """バッファ済み音声テキストから視聴コンテンツを推測する。"""
+    buffer_text = _media_ctx.get_buffer_text(last_n=10)
+    if not buffer_text:
+        return {"content_type": "unknown", "topic": "", "matched_title": "", "keywords": [], "confidence": 0.0}
+
+    matched_titles = _find_matching_yt_titles(buffer_text, top_n=5)
+    yt_hint = ""
+    if matched_titles:
+        yt_hint = "\n\nYouTube視聴履歴マッチ(参考):\n" + "\n".join(f"- {t}" for t in matched_titles)
+    elif _youtube_titles:
+        sample = _youtube_titles[:20]
+        yt_hint = "\n\nYouTube視聴履歴(参考):\n" + "\n".join(f"- {t}" for t in sample)
+
+    interest_hint = ""
+    if _interest_priorities:
+        top = sorted(_interest_priorities.items(), key=lambda x: -x[1])[:5]
+        interest_hint = "\n\nユーザーの興味(優先度順):\n" + "\n".join(f"- {k}: {v:.2f}" for k, v in top)
+
+    # Patch Z4: 直前6分以内に特定済みのmatched_titleをhintとして渡し、youtube_talk判定でも作品継続性を維持
+    # Patch AE1: 900s→360sに短縮（長すぎると別コンテンツに切り替わっても古いtitleが引き継がれるため）
+    import time as _time
+    prev_match_hint = ""
+    if (_media_ctx.last_valid_matched_title
+            and ((_time.time() - _media_ctx.last_valid_matched_at) < 360)
+            and _media_ctx.inferred_type != "meeting"):
+        prev_match_hint = f"\n\n直前に特定済みの作品(参考): {_media_ctx.last_valid_matched_title}\n※この会話が同じ作品に関するアフタートーク等の場合、matched_titleに引き継ぐこと"
+
+    tv_guide = await _fetch_tv_guide()
+    tv_hint = f"\n\nTV番組表(参考):\n{tv_guide[:300]}" if tv_guide else ""
+
+    messages = [
+        {"role": "system", "content": (
+            "あなたはメディアコンテンツ分析者です。音声認識テキストから視聴コンテンツを推測してください。\n"
+            "以下のJSONのみ返してください。余分なテキスト不要。\n"
+            '{"content_type":"meeting|baseball|golf|anime|vtuber|youtube_talk|news|drama|music|other|unknown",'
+            '"topic":"具体的なトピック(例:ドジャースvsパドレス、Re:ゼロ2期17話、京セラ案件の戦略会議)",'
+            '"matched_title":"具体的なアニメ/番組/ゲーム/VTuberチャンネル名(不明なら空文字)",'
+            '"keywords":["検索キーワード1","キーワード2"],'
+            '"confidence":0.0から1.0}\n\n'
+            "content_type 選択ルール:\n"
+            "- meeting: ★最優先。話者が会話・発言している状態のビジネス会議・打ち合わせ・商談。"
+            "以下のいずれかが出現すれば meeting:\n"
+            "  * ビジネス用語: 「アジェンダ」「議事録」「マイルストーン」「要件定義」「PMO」「KPI」「ROI」「ステークホルダー」\n"
+            "  * 会議フレーズ: 「では始めます」「それでは」「共有します」「確認させてください」「以上です」「いかがでしょうか」\n"
+            "  * クライアント・プロジェクト名が文脈に出る（例: 「京セラ」「KC」「KC：」「CSC」「二機工業」+ 戦略/提案/進捗）\n"
+            "  ※ KC = 京セラ（クライアント）の略称。「KC：社内」「KC：」が出現すれば meeting 確定\n"
+            "  ※ CSC = 株式会社アバントの部署名（自社）。「CSC|内部」等が出現すれば社内会議として meeting 確定\n"
+            "  * 複数人が交互に発言している（会話のターンテイク）\n"
+            "  ★ Patch AD1 meeting除外ルール: 以下は絶対に meeting にしない → youtube_talk または news にする:\n"
+            "    - YouTube解説動画・ITニュース・技術デモ・製品発表動画・ポッドキャスト\n"
+            "    - 「〜をリリースしました」「〜が公開されました」「〜の解説をします」「〜を発表しました」等のナレーション/報道フレーズがある場合\n"
+            "    - 企業名やサービス名が出ても、Akiraさんが実際に参加している会議でなければ meeting 不可\n"
+            "    - meetingはAkiraさん自身がリアルタイムで参加している双方向会議のみ（視聴コンテンツは meeting にしない）\n"
+            "- anime: アニメキャラ名・作品固有名詞が出現(例: レム/エミリア/プリシラ → anime)\n"
+            "- vtuber: VTuber名・ホロライブ等が出現\n"
+            "- baseball: 大谷/ドジャース等の明確な固有名詞がある場合のみ\n"
+            "- golf: マスターズ/タイガー等の明確な固有名詞がある場合のみ\n"
+            "- youtube_talk: 上記に該当しない一般的なYouTube/ラジオトーク\n\n"
+            "matched_title 推定方法(登場人物名・固有名詞から作品名を推定):\n"
+            "- エミリア/レム/スバル/プリシラ/ベアトリス/クリスタ/パンドラ/エレシア/ヘルム/テレシア/ビルフェル/ラインハルト/フォルトナ/エキドナ/サテラ/ロズワール/ペテルギウス → Re:ゼロから始める異世界生活\n"
+            "- 知夏/大輝/矢野晴/美咲/西田(ラブコメ文脈) → 青の箱 ※youtube_talkで感想を話していても対象作品をmatched_titleにセット\n"
+            "- 白上フブキ/宝鐘マリン/兎田ぺこら → ホロライブ\n"
+            "- ゼルダ/リンク/ガノン → ゼルダの伝説\n"
+            "- 声優名・スタッフ名からも推定可。確信がなければ空文字。\n"
+            "- 声優名 + ラジオ/配信/ゲスト/番組 → matched_title に「[声優名]のラジオ」または番組名を推定\n"
+            "  例: 「藤井さん」「石川さん」などの声優名が複数出て収録/演技/キャラ話題 → matched_title=「[声優名]ラジオ」\n"
+            "topic の具体化ルール:\n"
+            "- 出演者名・声優名・番組名・作品名を必ず topic に含める\n"
+            "- 「フィクション作品の考察」「演技についての感想交換」のような汎用説明文は厳禁\n"
+            "- 「個人的な経験や感情についての対談/回想」「コンテンツの続編に関するトーク」のような汎用表現も禁止\n"
+            "- 良い例: 「藤井ゆきよ・石川由依の声優ラジオ」「Re:ゼロ3期エミリア戦闘シーン」「クルノー均衡と寡占市場の解説」\n"
+            "- 悪い例: 「フィクション作品の演技や展開についての感想交換」「個人的な経験や感情についての対談」\n"
+            "baseball/golf は明確な固有名詞(大谷/ドジャース/マスターズ等)がある場合のみ。\n"
+            "Patch U1 - youtube_talk の keywords ルール:\n"
+            "- 会話中に登場する固有名詞（人名・会社名・サービス名・製品名・チャンネル名）を優先的に keywords に含める\n"
+            "- 「起業」「財務」「マーケティング」のような抽象カテゴリ語は keywords に入れない\n"
+            "- 例: 会話に「ドコモ」「ChatGPT」「孫正義」が出た → keywords: [\"ドコモ\", \"ChatGPT\", \"孫正義\"]\n"
+            "- 固有名詞が1つも特定できない場合のみ抽象キーワードを使用"
+            f"{yt_hint}{interest_hint}{tv_hint}{prev_match_hint}"
+        )},
+        {"role": "user", "content": f"音声テキスト:\n{buffer_text}"},
+    ]
+    try:
+        raw = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = re.sub(r'^```\w*\n?', '', raw)
+            raw = re.sub(r'\n?```$', '', raw)
+        result = json.loads(raw)
+        # baseball/golf で conf < 0.6 → youtube_talk にフォールバック（改善2）
+        if result.get("content_type") in ("baseball", "golf") and float(result.get("confidence", 0.0)) < 0.6:
+            logger.info(f"[co_view/infer] low-conf {result['content_type']} → youtube_talk fallback")
+            result["content_type"] = "youtube_talk"
+        # Patch P1: matched_title STT誤変換正規化（B-ZERO等→Re:ゼロ）
+        if result.get("matched_title"):
+            mt = result["matched_title"]
+            mt = re.sub(r'B-?ZERO|B-?ゼロ', 'Re:ゼロ', mt, flags=re.IGNORECASE)
+            result["matched_title"] = mt
+        # Patch P2: topic略称からmatched_title補完（リゼロ/rezero等）
+        # Patch Q1: Re:ゼロ固有キャラ名からmatched_title補完（レグルス/エキドナ/サテラ等）
+        if not result.get("matched_title"):
+            topic_lower = (result.get("topic") or "").lower()
+            topic_str = result.get("topic") or ""
+            # Patch R1: 主要キャラ（エミリア/スバル/レム/プリシラ）を追加
+            # Patch AH1: 「ライ」を除外（ライブ・ライン・ライト等の一般語に誤マッチするため）
+            _REZERO_CHARS = ["エミリア", "スバル", "レム", "プリシラ", "レグルス", "エキドナ", "サテラ", "ロズワール", "フレデリカ", "ガーフィール", "ベアトリス", "オットー", "エルザ", "メィリィ", "ラム", "クルシュ", "フェルト", "セシルス"]
+            if "リゼロ" in topic_str or "rezero" in topic_lower or "re:zero" in topic_lower:
+                result["matched_title"] = "Re:ゼロから始める異世界生活"
+                logger.info("[co_view/infer] matched補完: topic略称(リゼロ)→Re:ゼロから始める異世界生活")
+            elif any(c in topic_str for c in _REZERO_CHARS):
+                result["matched_title"] = "Re:ゼロから始める異世界生活"
+                matched_char = next(c for c in _REZERO_CHARS if c in topic_str)
+                logger.info(f"[co_view/infer] matched補完: Re:ゼロキャラ({matched_char})→Re:ゼロから始める異世界生活")
+            # Patch Q2: 青の箱キャラ名からmatched_title補完
+            _AONOBOX_CHARS = ["知夏", "大輝", "青の箱", "矢野晴", "美咲"]
+            if not result.get("matched_title") and any(c in topic_str for c in _AONOBOX_CHARS):
+                result["matched_title"] = "青の箱"
+                matched_char = next(c for c in _AONOBOX_CHARS if c in topic_str)
+                logger.info(f"[co_view/infer] matched補完: 青の箱キャラ({matched_char})→青の箱")
+        # Patch AA2: buffer_textに番組名が直接言及されている場合の正規表現補完
+        # LLM(gemma4)が明示的な番組名を見落とすケースへの対策（例: オールナイトニッポン）
+        if not result.get("matched_title"):
+            if "オールナイトニッポン" in buffer_text:
+                ann_m = re.search(r'([^\s、。\n！？]{1,8})(?:の|と)?オールナイトニッポン', buffer_text)
+                talent_prefix = ann_m.group(1) if ann_m and len(ann_m.group(1)) >= 2 else ""
+                talent_prefix = re.sub(r'[がのをにはでもと]+$', '', talent_prefix).strip()
+                if talent_prefix:
+                    result["matched_title"] = f"{talent_prefix}のオールナイトニッポン"
+                else:
+                    result["matched_title"] = "オールナイトニッポン"
+                logger.info(f"[co_view/infer] Patch AA2: buffer直接検出 matched_title={result['matched_title']!r}")
+        # Patch AN1: buffer_text直接マッチ（LLMのtopic欄補完が効かなかった場合の最終フォールバック）
+        # 対象: ガーフィール等のキャラ名がbuffer_textに含まれているのにmatched_title未特定なケース
+        if not result.get("matched_title"):
+            _AN1_REZERO = ["ゼロから始める異世界生活", "エミリア", "スバル", "レム", "ガーフィール", "ベアトリス",
+                           "オットー", "プリシラ", "エキドナ", "サテラ", "ロズワール", "ユリウス",
+                           "レグルス", "テレシア", "ヴィルヘルム", "リカード"]
+            for _an1_char in _AN1_REZERO:
+                if _an1_char in buffer_text:
+                    result["matched_title"] = "Re:ゼロから始める異世界生活"
+                    if result.get("content_type") in ("unknown", "youtube_talk"):
+                        result["content_type"] = "anime"
+                    if float(result.get("confidence") or 0.0) < 0.75:
+                        result["confidence"] = 0.75
+                    logger.info(f"[co_view/infer] Patch AN1: buffer_text直接マッチ '{_an1_char}' → matched_title=Re:ゼロから始める異世界生活")
+                    break
+        # Patch AR1: 青の箱 STT誤変換バリアントでbuffer_text直接マッチ
+        # 背景: 知夏→千夏、大輝→大気 などSTT誤変換により _AONOBOX_CHARS が機能しないケースへの対策
+        if not result.get("matched_title"):
+            _AR1_AONOBOX = ["知夏", "大輝", "青の箱", "矢野晴", "美咲",
+                            "千夏", "大気",  # STT誤変換バリアント（知夏→千夏, 大輝→大気）
+                            "チカ", "タイキ"]  # カタカナ読みバリアント
+            for _ar1_char in _AR1_AONOBOX:
+                if _ar1_char in buffer_text:
+                    result["matched_title"] = "青の箱"
+                    if result.get("content_type") in ("unknown", "youtube_talk"):
+                        result["content_type"] = "anime"
+                    if float(result.get("confidence") or 0.0) < 0.75:
+                        result["confidence"] = 0.75
+                    logger.info(f"[co_view/infer] Patch AR1: buffer_text直接マッチ '{_ar1_char}' → matched_title=青の箱")
+                    break
+        logger.info(f"[co_view/infer] type={result.get('content_type')} topic='{result.get('topic')}' matched='{result.get('matched_title','')}' kws={result.get('keywords',[])} conf={result.get('confidence')}")
+        return result
+    except Exception as e:
+        logger.warning(f"[co_view/infer] failed: {e}")
+        # Patch AN1: 例外時もbuffer_text直接マッチを試みる（JSONパース失敗等でも早期matched_title特定）
+        fallback = {"content_type": "unknown", "topic": "", "matched_title": "", "keywords": [], "confidence": 0.0}
+        _AN1_REZERO = ["ゼロから始める異世界生活", "エミリア", "スバル", "レム", "ガーフィール", "ベアトリス",
+                       "オットー", "プリシラ", "エキドナ", "サテラ", "ロズワール", "ユリウス", "レグルス"]
+        for _an1_char in _AN1_REZERO:
+            if _an1_char in buffer_text:
+                fallback["matched_title"] = "Re:ゼロから始める異世界生活"
+                fallback["content_type"] = "anime"
+                fallback["confidence"] = 0.75
+                fallback["topic"] = "Re:ゼロから始める異世界生活関連"
+                logger.info(f"[co_view/infer] Patch AN1: infer失敗時buffer直接マッチ '{_an1_char}'")
+                break
+        return fallback
+
+
+# Patch W2: Google Calendar から現在の会議タイトルを取得するキャッシュ
+_gcal_token_cache: dict = {"access_token": "", "expires_at": 0.0}
+_gcal_meeting_cache: dict = {"title": "", "fetched_at": 0.0, "ttl": 300.0}
+
+async def _fetch_current_gcal_meeting() -> str:
+    """Google Calendar API で現在時刻付近の会議タイトルを取得。5分キャッシュ。"""
+    now = time.time()
+    if now - _gcal_meeting_cache["fetched_at"] < _gcal_meeting_cache["ttl"]:
+        return _gcal_meeting_cache["title"]
+
+    try:
+        import json as _json
+        # access_token がなければ refresh_token で取得
+        if now >= _gcal_token_cache["expires_at"] - 60:
+            cred_path = "/Users/akira/.openclaw/credentials/google_oauth.json"
+            token_path = "/Users/akira/.config/google-calendar-mcp/tokens.json"
+            cred = _json.load(open(cred_path))["installed"]
+            tok = _json.load(open(token_path))["normal"]
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.post("https://oauth2.googleapis.com/token", data={
+                    "client_id": cred["client_id"],
+                    "client_secret": cred["client_secret"],
+                    "refresh_token": tok["refresh_token"],
+                    "grant_type": "refresh_token",
+                })
+                r = resp.json()
+                _gcal_token_cache["access_token"] = r["access_token"]
+                _gcal_token_cache["expires_at"] = now + r.get("expires_in", 3600)
+
+        # 現在時刻 ±30分 のイベントを取得
+        import datetime as _dt
+        jst = _dt.timezone(_dt.timedelta(hours=9))
+        t_min = (_dt.datetime.now(jst) - _dt.timedelta(minutes=10)).isoformat()
+        t_max = (_dt.datetime.now(jst) + _dt.timedelta(minutes=30)).isoformat()
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+                headers={"Authorization": f"Bearer {_gcal_token_cache['access_token']}"},
+                params={
+                    "timeMin": t_min, "timeMax": t_max,
+                    "singleEvents": "true", "orderBy": "startTime",
+                    "maxResults": 3, "fields": "items(summary,start,end,description)",
+                },
+            )
+            items = resp.json().get("items", [])
+            title = ""
+            if items:
+                # 最初のイベントのタイトルを使う
+                title = items[0].get("summary", "")
+                logger.info(f"[co_view/gcal] current meeting: '{title}'")
+            _gcal_meeting_cache["title"] = title
+            _gcal_meeting_cache["fetched_at"] = now
+            return title
+    except Exception as e:
+        logger.debug(f"[co_view/gcal] fetch failed: {e}")
+        _gcal_meeting_cache["fetched_at"] = now  # エラー時も5分待つ
+        return ""
+
+
+def _meeting_digest_signature(title: str, topic: str, transcript: str) -> str:
+    payload = {
+        "title": title.strip(),
+        "topic": topic.strip(),
+        "transcript": re.sub(r"\s+", " ", transcript.strip())[:600],
+    }
+    raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+
+def _build_meeting_digest_messages(
+    *,
+    meeting_title: str,
+    topic: str,
+    transcript: str,
+    keywords: list[str],
+) -> list[dict]:
+    keyword_text = ", ".join(keywords[:8]) if keywords else "(なし)"
+    return [
+        {
+            "role": "system",
+            "content": (
+                "あなたは会議メモの整理役です。"
+                "入力された音声認識テキストだけを使って、Slackに貼れる日本語の会議メモを作ってください。"
+                "推測で補わず、会話中に明示された事実だけを使ってください。"
+                "必ずJSONのみを返してください。"
+                "形式は次のとおりです: "
+                '{"summary":"1〜2文の要約","minutes":["議事録の箇条書き"],'
+                '"decisions":["決定事項の箇条書き"],'
+                '"todos":["TODOの箇条書き"],'
+                '"next_actions":["NextActionの箇条書き"]}'
+                " どれも不明なら空配列にしてください。"
+                "余計な前置き、コードブロック、説明文は不要です。"
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                f"会議タイトル: {meeting_title or '(なし)'}\n"
+                f"推定トピック: {topic or '(なし)'}\n"
+                f"キーワード: {keyword_text}\n\n"
+                "直近の音声:\n"
+                f"{transcript}"
+            ),
+        },
+    ]
+
+
+def _parse_json_object(text: str) -> dict | None:
+    raw = text.strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw)
+    match = re.search(r"\{[\s\S]*\}", raw)
+    if match:
+        raw = match.group(0)
+    try:
+        parsed = json.loads(raw)
+    except Exception:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _normalize_meeting_items(value: object) -> list[str]:
+    if isinstance(value, list):
+        items = [str(v).strip() for v in value if str(v).strip()]
+        return items[:6]
+    if isinstance(value, str) and value.strip():
+        return [value.strip()]
+    return []
+
+
+def _format_meeting_digest_message(
+    *,
+    meeting_title: str,
+    topic: str,
+    payload: dict | None,
+    transcript: str,
+) -> str:
+    summary = ""
+    minutes: list[str] = []
+    decisions: list[str] = []
+    todos: list[str] = []
+    next_actions: list[str] = []
+
+    if payload:
+        summary = str(payload.get("summary", "")).strip()
+        minutes = _normalize_meeting_items(payload.get("minutes"))
+        decisions = _normalize_meeting_items(payload.get("decisions"))
+        todos = _normalize_meeting_items(payload.get("todos"))
+        next_actions = _normalize_meeting_items(payload.get("next_actions"))
+
+    if not summary:
+        summary = "会議内容を整理したよ"
+
+    if not minutes:
+        minutes = [f"直近の音声: {transcript[:160].strip() or '未確認'}"]
+    if not decisions:
+        decisions = ["未確認"]
+    if not todos:
+        todos = ["未確認"]
+    if not next_actions:
+        next_actions = ["未確認"]
+
+    def bullets(items: list[str]) -> str:
+        return "\n".join(f"- {item}" for item in items)
+
+    lines = [
+        "*会議メモ*",
+    ]
+    if meeting_title.strip():
+        lines.append(f"*会議名:* {meeting_title.strip()}")
+    if topic.strip():
+        lines.append(f"*トピック:* {topic.strip()}")
+    lines.extend([
+        "",
+        f"*要約*\n{summary}",
+        "",
+        f"*議事録*\n{bullets(minutes)}",
+        "",
+        f"*決定事項*\n{bullets(decisions)}",
+        "",
+        f"*TODO*\n{bullets(todos)}",
+        "",
+        f"*NextAction*\n{bullets(next_actions)}",
+    ])
+    return "\n".join(lines).strip()
+
+
+async def _generate_meeting_digest(
+    *,
+    meeting_title: str,
+    topic: str,
+    transcript: str,
+    keywords: list[str],
+) -> str:
+    model = (
+        _settings.get("meetingSummaryModel")
+        or _settings.get("ambientModel")
+        or _settings.get("modelSelect")
+        or "gemma4:e4b"
+    )
+    messages = _build_meeting_digest_messages(
+        meeting_title=meeting_title,
+        topic=topic,
+        transcript=transcript,
+        keywords=keywords,
+    )
+    try:
+        raw = await asyncio.wait_for(chat_with_llm(messages, model), timeout=40.0)
+        payload = _parse_json_object(raw or "")
+    except Exception as e:
+        logger.warning(f"[meeting_digest] generation failed: {e}")
+        payload = None
+    return _format_meeting_digest_message(
+        meeting_title=meeting_title,
+        topic=topic,
+        payload=payload,
+        transcript=transcript,
+    )
+
+
+def _resolve_meeting_summary_bot_id() -> str | None:
+    candidates = MEETING_SUMMARY_TARGET_BOTS or ["mei"]
+    for bot_id in candidates:
+        if SLACK_USER_TOKENS.get(bot_id) and SLACK_DM_CHANNELS.get(bot_id):
+            return bot_id
+    for bot_id in ("mei", "eve"):
+        if SLACK_USER_TOKENS.get(bot_id) and SLACK_DM_CHANNELS.get(bot_id):
+            return bot_id
+    return None
+
+
+async def _maybe_send_meeting_digest() -> None:
+    if not _ambient_listener or _media_ctx.inferred_type != "meeting":
+        return
+    if len(_media_ctx.media_buffer) < MEETING_SUMMARY_MIN_SNIPPETS:
+        return
+
+    now = time.time()
+    meeting_title = await _fetch_current_gcal_meeting()
+    topic = _media_ctx.inferred_topic or meeting_title or "会議"
+    transcript = _media_ctx.get_buffer_text(last_n=10)
+    signature = _meeting_digest_signature(meeting_title, topic, transcript)
+
+    if (
+        _media_ctx.last_meeting_digest_signature == signature
+        and now - _media_ctx.last_meeting_digest_at < MEETING_SUMMARY_COOLDOWN_SEC
+    ):
+        return
+
+    bot_id = _resolve_meeting_summary_bot_id()
+    if not bot_id:
+        logger.info("[meeting_digest] slack target not configured, skip")
+        return
+
+    async with _meeting_digest_lock:
+        # Re-check after acquiring the lock to avoid duplicate sends.
+        now = time.time()
+        if (
+            _media_ctx.last_meeting_digest_signature == signature
+            and now - _media_ctx.last_meeting_digest_at < MEETING_SUMMARY_COOLDOWN_SEC
+        ):
+            return
+
+        digest = await _generate_meeting_digest(
+            meeting_title=meeting_title,
+            topic=topic,
+            transcript=transcript,
+            keywords=list(_media_ctx.keywords or []),
+        )
+        if not digest:
+            return
+
+        ts = await slack_post_message(bot_id, digest)
+        _media_ctx.last_meeting_digest_signature = signature
+        _media_ctx.last_meeting_digest_at = now
+        if ts:
+            logger.info(f"[meeting_digest] sent to Slack bot={bot_id} ts={ts}")
+        else:
+            logger.warning(f"[meeting_digest] failed to post to Slack bot={bot_id}")
+
+
+async def _enrich_media_context() -> str:
+    """inferred contentに基づき外部情報(GoogleNews RSS / Wikipedia)を取得・キャッシュ。"""
+    now = time.time()
+    if now - _media_ctx.last_enriched_at < _CO_VIEW_ENRICH_COOLDOWN:
+        return _media_ctx.enriched_info
+
+    results: list = []
+    content_type = _media_ctx.inferred_type
+    keywords = _media_ctx.keywords
+
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            is_baseball = (content_type == "baseball"
+                           or any("ドジャース" in k or "dodger" in k.lower() or "野球" in k for k in keywords))
+            is_golf = (content_type == "golf"
+                       or any("ゴルフ" in k or "マスターズ" in k or "golf" in k.lower() for k in keywords))
+
+            if is_baseball:
+                rss_url = "https://news.google.com/rss/search?q=ドジャース+試合&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    for item in root.findall('.//item')[:3]:
+                        title = item.findtext('title', '')
+                        if title:
+                            results.append(f"ニュース: {title}")
+            elif is_golf:
+                rss_url = "https://news.google.com/rss/search?q=マスターズ+ゴルフ&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    for item in root.findall('.//item')[:3]:
+                        title = item.findtext('title', '')
+                        if title:
+                            results.append(f"ニュース: {title}")
+
+            # Pattern O: matched_title が特定できている場合は優先してそのタイトルで検索
+            if _media_ctx.matched_title:
+                wiki = await _tool_wikipedia_summary(_media_ctx.matched_title)
+                if not wiki:
+                    # Patch V3: "〜ラジオ" 等の略称でWikipedia 0 results の場合、suffix除去で再検索
+                    fallback_title = re.sub(r'ラジオ$|Radio$|radio$', '', _media_ctx.matched_title).strip()
+                    if fallback_title and fallback_title != _media_ctx.matched_title:
+                        wiki = await _tool_wikipedia_summary(fallback_title)
+                        if wiki:
+                            logger.info(f"[co_view/enrich] Patch V3: wiki fallback '{fallback_title}' hit")
+                if wiki:
+                    results.append(wiki)
+                # Patch Y1: query rotation — 毎回同じニュースにならないよう検索suffixをローテーション
+                _ENRICH_QUERY_SUFFIXES = [" 最新情報", " 声優 キャスト", " イベント グッズ", " シーズン 続編"]
+                suffix = _ENRICH_QUERY_SUFFIXES[_media_ctx.enrich_query_idx % len(_ENRICH_QUERY_SUFFIXES)]
+                _media_ctx.enrich_query_idx += 1
+                logger.debug(f"[co_view/enrich] query suffix={suffix!r} (idx={_media_ctx.enrich_query_idx-1})")
+                query = urllib.parse.quote(_media_ctx.matched_title + suffix)
+                rss_url = f"https://news.google.com/rss/search?q={query}&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    added = 0
+                    for item in root.findall('.//item')[:4]:  # Patch Y1補: 候補を多めに取り既見をスキップ
+                        t = item.findtext('title', '')
+                        if t and t not in _media_ctx.enrich_seen_titles:
+                            results.append(f"ニュース: {t}")
+                            _media_ctx.enrich_seen_titles.add(t)
+                            added += 1
+                            if added >= 2:
+                                break
+                    if not results:  # 全件既見の場合は seen_titles をリセットして再取得
+                        _media_ctx.enrich_seen_titles.clear()
+                        logger.debug("[co_view/enrich] Patch Y1補: seen_titles exhausted, reset")
+            elif (_media_ctx.inferred_topic and content_type not in ("music", "unknown")
+                  and not (content_type == "youtube_talk" and not _media_ctx.matched_title)):
+                # Patch T2: youtube_talk + matched_title="" はinferred_topicでのWikipedia検索もスキップ
+                # （Patch S1と対称）会議系トピックで無関係な記事が混入するのを防ぐ
+                wiki = await _tool_wikipedia_summary(_media_ctx.inferred_topic)
+                if wiki:
+                    results.append(wiki)
+
+            # Patch S1: youtube_talk + matched_title="" の場合はkeywordsフォールバック検索をスキップ
+            # 会議系コンテンツのkeywordsで無関係ニュース（映画・インフラ等）が混入するのを防ぐ
+            # Patch U2: ただし固有名詞keywordsがある場合は検索を許可（抽象語は除外）
+            # Patch AR2: enrich keyword検索はカタカナ主体語のみを使用（「先輩」「朝日」等の一般語除外）
+            _ABSTRACT_SUFFIXES = ("について", "における", "に関する", "の標準化", "の改善", "の考察", "の戦略", "の課題")
+            _KATAKANA_COMMON_KW = frozenset(["アニメ", "スケジュール", "ゲーム", "ドラマ", "ニュース",
+                                             "イベント", "サービス", "システム", "コンテンツ", "チャンネル",
+                                             "ビジネス", "マーケット", "プロジェクト", "インターネット"])
+            _KATAKANA_RE_STRICT = re.compile(r'[ァ-ヶー]')
+            # AR2: カタカナを含む語のみを enrich 検索キーワードとして採用
+            _enrich_kws = [
+                k for k in keywords[:4]
+                if _KATAKANA_RE_STRICT.search(k)
+                and k not in _KATAKANA_COMMON_KW
+                and len(k) >= 2
+                and not any(k.endswith(s) for s in _ABSTRACT_SUFFIXES)
+            ] if keywords else []
+            _has_specific_kw = bool(_enrich_kws)
+            _yt_no_specific = content_type == "youtube_talk" and not _media_ctx.matched_title and not _has_specific_kw
+            if not results and _enrich_kws and not _yt_no_specific:
+                _ar2_kws = _enrich_kws[:2]
+                logger.info(f"[co_view/enrich] Patch AR2: keyword filter {keywords[:4]} → {_ar2_kws}")
+                query = urllib.parse.quote("+".join(_ar2_kws))
+                rss_url = f"https://news.google.com/rss/search?q={query}&hl=ja&gl=JP&ceid=JP:ja"
+                resp = await client.get(rss_url)
+                if resp.status_code == 200:
+                    root = ET.fromstring(resp.content)
+                    # Patch Z1: PRプレスリリースサイト除外
+                    _ENRICH_EXCLUDE_KEYWORDS = ("PR TIMES", "prtimes", "プレスリリース", "dreamnews", "atpress")
+                    for item in root.findall('.//item')[:4]:
+                        title = item.findtext('title', '')
+                        link = item.findtext('link', '')
+                        if title and not any(ex in title or ex in link for ex in _ENRICH_EXCLUDE_KEYWORDS):
+                            results.append(f"関連: {title}")
+                            if len([r for r in results if r.startswith("関連:")]) >= 2:
+                                break
+
+            # Patch Z2: matched_title未特定時、topicから固有名詞（カタカナ・英字）を抽出してWikipedia検索
+            # ガーフ/MARZ等のマイナーVTuber・ゲームキャラを特定するフォールバック
+            if not results and not _media_ctx.matched_title and _media_ctx.inferred_topic:
+                _KATAKANA_RE = re.compile(r'[ァ-ヶー]{2,}')
+                _ASCII_WORD_RE = re.compile(r'[A-Za-z]{2,}')
+                # Patch AB1: 漢字固有名詞（人名・地名・作品名等）もZ2対象に追加
+                # 一般語（話題・雑談・場面・状況等）は除外リストで除外
+                _KANJI_RE = re.compile(r'[一-龥]{2,4}')
+                _KANJI_COMMON = frozenset([
+                    '話題', '雑談', '場面', '状況', '内容', '様子', '以下', '以上',
+                    '最近', '関連', '固有', '会話', '言及', '紹介', '友人', '複数',
+                    '複雑', '一般', '中心', '情報', '議論', '映画', '動画', '番組',
+                    '放送', '特定', '視聴', '配信', '具体', '概要', '全体', '前半',
+                    '後半', '日本', '世界', '現在', '過去', '未来', '登場', '人物',
+                    '関係', '物語', '展開', '感想', '楽しい', '面白', '雰囲気',
+                ])
+                kanji_nouns = [
+                    w for w in _KANJI_RE.findall(_media_ctx.inferred_topic)
+                    if w not in _KANJI_COMMON
+                ]
+                proper_nouns = (
+                    _KATAKANA_RE.findall(_media_ctx.inferred_topic) +
+                    _ASCII_WORD_RE.findall(_media_ctx.inferred_topic) +
+                    kanji_nouns
+                )
+                for noun in proper_nouns[:5]:
+                    wiki = await _tool_wikipedia_summary(noun)
+                    if wiki:
+                        results.append(wiki)
+                        logger.info(f"[co_view/enrich] Patch Z2/AB1: proper noun fallback '{noun}' → wiki hit")
+                        break
+    except Exception as e:
+        logger.warning(f"[co_view/enrich] failed: {e}")
+
+    enriched = "\n".join(results)
+    _media_ctx.enriched_info = enriched
+    _media_ctx.last_enriched_at = now
+    # Patch V2: enrich取得内容をログに出力（次回分析で根拠追跡可能にする）
+    logger.info(f"[co_view/enrich] {len(results)} results: {results}")
+    return enriched
+
+
+async def _handle_co_view(ws, trigger_text: str, method: str, keyword: str):
+    """co_view モード: メディア音声を蓄積→コンテンツ推測→外部補完→コメント生成。"""
+    if not _ambient_listener:
+        return
+    now = time.time()
+
+    # 原文ベースdedup
+    raw_key = trigger_text[:60]
+    last_seen = _STT_RAW_SEEN.get(raw_key, 0.0)
+    if now - last_seen < _STT_RAW_DEDUP_WINDOW:
+        logger.debug(f"[co_view] raw dedup skip ({now - last_seen:.1f}s): '{raw_key[:30]}'")
+        return
+    _STT_RAW_SEEN[raw_key] = now
+    if len(_STT_RAW_SEEN) > 100:
+        cutoff = now - _STT_RAW_DEDUP_WINDOW * 2
+        for k in [k for k, v in _STT_RAW_SEEN.items() if v < cutoff]:
+            del _STT_RAW_SEEN[k]
+
+    async with _co_view_lock:
+
+        corrected = await _correct_media_transcript(trigger_text)
+        if not corrected:
+            return
+        _media_ctx.add_snippet(corrected)
+        await _broadcast_debug(f"[co_view] buf={len(_media_ctx.media_buffer)} '{corrected[:40]}'")
+
+        if len(_media_ctx.media_buffer) >= 2:
+            if now - _media_ctx.media_buffer[-2]["ts"] > 300:
+                logger.info("[co_view] 5min gap → reset context")
+                _media_ctx.reset()
+                _media_ctx.add_snippet(corrected)
+
+        if now - _media_ctx.co_view_last_at < _CO_VIEW_COMMENT_COOLDOWN:
+            remaining = int(_CO_VIEW_COMMENT_COOLDOWN - (now - _media_ctx.co_view_last_at))
+            await _broadcast_debug(f"[co_view] cooldown {remaining}s")
+            return
+
+        # Patch AI1: enriched/filtered_enriched をif block前にデフォルト初期化
+        # 背景: AG1でif block外からenriched参照→NameError→snippets<5の全パスでコメント停止(03:26〜)
+        enriched = _media_ctx.enriched_info
+        filtered_enriched = enriched
+
+        # Patch AP1: conf=0.00（初期状態 or リセット直後）かつ2スニペット以上の場合は早期infer
+        # 背景: snippets_since_infer < 5 の累積期間中、confidence=0.00のままco_viewが呼ばれると
+        #       全件low conf skipになる問題（特にリセット直後や視聴開始時）を解消する
+        _infer_early = _media_ctx.confidence == 0.0 and _media_ctx.snippets_since_infer >= 2
+        if _infer_early:
+            logger.info(f"[co_view/infer] Patch AP1: early infer (conf=0.0, snips={_media_ctx.snippets_since_infer})")
+        if _media_ctx.snippets_since_infer >= _CO_VIEW_INFERENCE_MIN_SNIP or _infer_early:
+            inferred = await _infer_media_content()
+            # Patch V1: content_type変化時にenrichキャッシュをリセット（前セッションの情報混入防止）
+            # Patch V2: conf < 0.7 の低信頼度判定ではtype変更をスキップ（誤判定によるenrich cache resetを防ぐ）
+            new_content_type = inferred.get("content_type", "unknown")
+            new_conf = float(inferred.get("confidence") or 0.0)  # Patch AL1: None安全処理
+            _v2_type_skipped = False  # Patch AO1: V2スキップフラグ（confidence保持判定用）
+            if new_content_type != _media_ctx.inferred_type:
+                # Patch AV1: meeting型へのV2 conf閾値を0.7→0.6に緩和
+                # 背景: meeting判定がconf=0.60で安定しているがV2の0.7閾値でブロックされていた
+                #       AD1のmeeting除外ルール（YouTube解説動画・ITニュース除外）が既に入っているため安全
+                _av1_meeting_ok = (new_content_type == "meeting" and new_conf >= 0.6)
+                # Patch BH1: _bg1_from_meetingをV2ゲートの外で評価（BG1バグ修正）
+                # BG1バグ: _bg1_from_meetingがif new_conf>=0.7の内側にあったため
+                #          conf<0.7のmeeting→non-meeting遷移でV2にブロックされBG1が発動しなかった
+                _bg1_from_meeting_precheck = (new_content_type != "meeting" and
+                                              _media_ctx.inferred_type == "meeting")
+                if new_conf >= 0.7 or _av1_meeting_ok or _bg1_from_meeting_precheck:
+                    # Patch AF1: 同一matched_titleでのcontent_type変化（例: anime↔youtube_talk）は
+                    # enrich cacheをリセットしない（同じ作品の情報が引き継がれる）
+                    # 背景: 同一作品視聴中にtypeが行き来するたびにenrich cacheがリセットされ無駄なAPI呼び出しが発生していた
+                    new_matched_title = inferred.get("matched_title", "")
+                    # Patch AJ1: strip()でwhitespace差異によるsame_title誤判定を防ぐ
+                    same_title = bool(new_matched_title and new_matched_title.strip() == _media_ctx.matched_title.strip())
+                    # Patch AK1: content_type変化のhysteresis
+                    # 同一matched_titleの場合（同一作品のanime↔youtube_talk）は即時確定（AF1と協調）
+                    # 異なるタイトルへの変化は連続2回確認で確定（1回の変化ではpendingとして保留）
+                    if same_title:
+                        # 同一作品内でのtype揺れ → 即時確定（enrich cacheはリセットしない）
+                        logger.info(f"[co_view/infer] Patch AF1: same matched_title '{new_matched_title}', enrich cache kept ({_media_ctx.inferred_type}→{new_content_type})")
+                        _media_ctx._pending_type = ""
+                        _media_ctx._pending_type_count = 0
+                    else:
+                        # 異なるコンテンツへの変化 → hysteresisで確認
+                        if _media_ctx._pending_type == new_content_type:
+                            _media_ctx._pending_type_count += 1
+                        else:
+                            _media_ctx._pending_type = new_content_type
+                            _media_ctx._pending_type_count = 1
+                        # Patch AN2: conf >= 0.9の場合はhysteresisを1回に緩和（高確信度なら即時type確定）
+                        # Patch AQ1: unknown→X の遷移はhysteresis不要（unknownは安定状態でないため即時確定）
+                        # Patch BG1: meeting→non-meeting 遷移は1段確認で即時確定（会議終了→視聴切替の遅延解消）
+                        #            BD1/AU1 post-filterが誤コメントを安全網として担保
+                        _aq1_from_unknown = (_media_ctx.inferred_type == "unknown")
+                        _bg1_from_meeting = (_media_ctx.inferred_type == "meeting" and new_content_type != "meeting")
+                        if _media_ctx._pending_type_count >= 2 or new_conf >= 0.9 or _aq1_from_unknown or _bg1_from_meeting:
+                            # 2回連続確認 OR 高確信度(conf>=0.9) OR meeting終了 → 確定
+                            _media_ctx.enriched_info = ""
+                            _media_ctx.last_enriched_at = 0.0
+                            # Patch AC1: content_type変化時にmatched_title fallbackもリセット
+                            _media_ctx.last_valid_matched_title = ""
+                            _media_ctx.last_valid_matched_at = 0.0
+                            _media_ctx.last_valid_inferred_type = ""  # Patch AL2
+                            confirm_reason = ("2/2" if _media_ctx._pending_type_count >= 2
+                                              else f"AQ1:from_unknown" if _aq1_from_unknown
+                                              else f"BG1:from_meeting" if _bg1_from_meeting
+                                              else f"AN2:conf={new_conf:.2f}>=0.9")
+                            logger.info(f"[co_view/infer] Patch AK1/AN2: content_type confirmed {_media_ctx.inferred_type}→{new_content_type} ({confirm_reason}), enrich cache reset")
+                            _media_ctx._pending_type = ""
+                            _media_ctx._pending_type_count = 0
+                        else:
+                            logger.info(f"[co_view/infer] Patch AK1: content_type change pending {_media_ctx.inferred_type}→{new_content_type} (1/2), waiting confirmation")
+                            new_content_type = _media_ctx.inferred_type  # 確定まではtype変更しない
+                else:
+                    logger.info(f"[co_view/infer] Patch V2: low-conf type change skipped ({_media_ctx.inferred_type}→{new_content_type} conf={new_conf:.2f})")
+                    new_content_type = _media_ctx.inferred_type  # conf < 0.7 はtype変更せず
+                    _v2_type_skipped = True
+            else:
+                # Patch AK1: type変化なし → pendingをリセット（連続性が途切れた）
+                if _media_ctx._pending_type and _media_ctx._pending_type != new_content_type:
+                    logger.debug(f"[co_view/infer] Patch AK1: pending type '{_media_ctx._pending_type}' cancelled (current stayed {new_content_type})")
+                _media_ctx._pending_type = ""
+                _media_ctx._pending_type_count = 0
+            _media_ctx.inferred_type  = new_content_type
+            _media_ctx.inferred_topic = inferred.get("topic", "")
+            _media_ctx.matched_title  = inferred.get("matched_title", "")
+            # Patch AO1: V2でtype変化をスキップした場合はconfidenceも前回値を維持する
+            # 背景: infer失敗時にconf=0.00で上書きされるとAN3 bypass(conf>=0.65)が無効化され
+            #       前回type(youtube_talk)を維持しているにもかかわらず5連続skipが発生していた
+            if _v2_type_skipped:
+                logger.info(f"[co_view/infer] Patch AO1: V2 skip → confidence preserved ({_media_ctx.confidence:.2f}, not overwritten with {new_conf:.2f})")
+            else:
+                _media_ctx.confidence = float(inferred.get("confidence") or 0.0)  # Patch AM1: AL1と同じNone安全処理（confidence: null対応）
+            _media_ctx.keywords       = inferred.get("keywords", [])
+            _media_ctx.last_inferred_at = now
+            _media_ctx.snippets_since_infer = 0
+            # Patch M1: matched_title が特定できた場合は last_valid を更新
+            if _media_ctx.matched_title:
+                # Patch Y1: matched_title が変わったら enrich_query_idx と seen_titles をリセット
+                if _media_ctx.matched_title != _media_ctx.last_valid_matched_title:
+                    _media_ctx.enrich_query_idx = 0
+                    _media_ctx.enrich_seen_titles = set()  # Patch Y1補: 作品変更時のみリセット
+                _media_ctx.last_valid_matched_title = _media_ctx.matched_title
+                _media_ctx.last_valid_matched_at = now
+                _media_ctx.last_valid_inferred_type = _media_ctx.inferred_type  # Patch AL2: type記録
+                logger.info(f"[co_view/infer] matched={_media_ctx.matched_title}")
+            elif (_media_ctx.last_valid_matched_title and (now - _media_ctx.last_valid_matched_at < 360)
+                  and _media_ctx.inferred_type != "meeting"
+                  # Patch AL2: youtube_talk→youtube_talkのfallback抑制
+                  # 直前youtube_talkで特定したtitleを別のyoutube_talkには引き継がない
+                  # （例: Re:ゼロあふれこ→無関係なお悩み番組でRe:ゼロコメント防止）
+                  # anime/vtuber→youtube_talkのアフタートーク引き継ぎは維持
+                  and not (_media_ctx.inferred_type == "youtube_talk" and _media_ctx.last_valid_inferred_type == "youtube_talk")):
+                # Patch N1: matched='' でも直前6分以内の有効なタイトルを引き継ぐ（5分→6分に延長）
+                # Patch Z3: 6分→15分に拡大（アフタートーク中のyoutube_talk一時判定で16分ロスが発生したため）
+                # Patch AE1: 15分(900s)→6分(360s)に短縮（別コンテンツへの誤引き継ぎを防ぐため）
+                # Patch X1: meeting中はfallback無効（前の作品タイトルで無関係なenrichが走るのを防ぐ）
+                _media_ctx.matched_title = _media_ctx.last_valid_matched_title
+                logger.info(f"[co_view/infer] matched fallback→{_media_ctx.matched_title} (last_valid {int(now - _media_ctx.last_valid_matched_at)}s ago)")
+            await _broadcast_debug(
+                f"[co_view] inferred: {_media_ctx.inferred_type} "
+                f"'{_media_ctx.inferred_topic}' conf={_media_ctx.confidence:.2f}"
+            )
+
+        # Patch M3: conf < 0.75 かつ matched='' → コメントSKIP（低信頼度×作品不明では不用意に喋らない）
+        # Patch AN3: youtube_talk + conf>=0.65 の場合はenrich試行を許可（M3をバイパス）
+        # Patch AV2: meeting型はgcal_titleで文脈補完できるためmatched_title不要。conf>=0.6でバイパス
+        # AA1（youtube_talk + enrich=0 → hard SKIP）が第2防衛ラインとして機能
+        _an3_bypass = (_media_ctx.inferred_type == "youtube_talk" and _media_ctx.confidence >= 0.65)
+        _av2_meeting_bypass = (_media_ctx.inferred_type == "meeting" and _media_ctx.confidence >= 0.6)
+        if _media_ctx.confidence < 0.75 and not _media_ctx.matched_title and not _an3_bypass and not _av2_meeting_bypass:
+            # Patch AI2: low conf skipをログファイルに記録（_broadcast_debugのみでは不可視だったため）
+            logger.info(f"[co_view] low conf skip (conf={_media_ctx.confidence:.2f}, no matched_title)")
+            await _broadcast_debug(f"[co_view] low conf skip (conf={_media_ctx.confidence:.2f}, no matched_title)")
+            return
+        if _an3_bypass and _media_ctx.confidence < 0.75 and not _media_ctx.matched_title:
+            logger.info(f"[co_view] AN3: youtube_talk conf={_media_ctx.confidence:.2f}>=0.65, proceeding to enrich")
+
+        if _media_ctx.confidence < 0.5:
+            if (len(_media_ctx.media_buffer) >= _CO_VIEW_ASK_USER_MIN_SNIP
+                    and now - _media_ctx.ask_user_last_at > _CO_VIEW_ASK_USER_COOLDOWN):
+                _media_ctx.ask_user_last_at = now
+                _media_ctx.co_view_last_at  = now
+                mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+                mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+                mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+                await _ambient_broadcast_reply("ちなみに何見てるの？", "co_view_ask", method, keyword, mei_speaker, mei_speed)
+                logger.info("[co_view] asked user: 何見てるの？")
+            else:
+                await _broadcast_debug(f"[co_view] low conf={_media_ctx.confidence:.2f}, accumulating")
+            return
+
+        # Patch Z2: meeting中はGoogle News軽量enrich（gcal_title → keywords[:2] → topic[:20] の優先順で検索）
+        # Patch Y1: 0件時はfallback連鎖（内部業務用語ではヒットしないケースに対応）
+        if _media_ctx.inferred_type == "meeting":
+            gcal_title = await _fetch_current_gcal_meeting()
+            if _media_ctx.confidence >= 0.6:
+                asyncio.create_task(_maybe_send_meeting_digest())
+            enriched = ""
+            _meeting_kws = _media_ctx.keywords[:2]
+            # Patch AU2: 汎用ビジネス語を含むキーワードをenrich検索から除外
+            # 背景: gcal_title空時に「アジェンダ」「スケジュール」等の汎用語でNewsRSS検索→
+            #       一般PMニュース大量取得→LLMが「PMが欠かせない」等の汎用アドバイスを生成する根本原因
+            _meeting_kws_specific = [
+                k for k in _meeting_kws
+                if not any(g in k for g in _MEETING_GENERIC_TERMS)
+            ]
+            if len(_meeting_kws_specific) < len(_meeting_kws):
+                logger.info(
+                    f"[co_view/meeting_enrich] Patch AU2: filtered generic kws "
+                    f"{_meeting_kws} → {_meeting_kws_specific}"
+                )
+            _meeting_search_candidates = [c for c in [
+                _gcal_meeting_cache.get("title", ""),
+                " ".join(_meeting_kws_specific) if _meeting_kws_specific else "",
+                _meeting_kws_specific[0] if _meeting_kws_specific else "",
+            ] if c.strip()]
+            # 重複除去（同じ文字列を複数回検索しない）
+            _seen: set = set()
+            _meeting_search_candidates = [c for c in _meeting_search_candidates if not (c in _seen or _seen.add(c))]
+            import httpx as _httpx, urllib.parse as _urlparse, xml.etree.ElementTree as _ET
+            # Patch Z4b: 検索候補をINFOログに出力（0件時の原因追跡を容易にする）
+            logger.info(f"[co_view/meeting_enrich] search candidates: {_meeting_search_candidates}")
+            for _meeting_search_term in _meeting_search_candidates:
+                try:
+                    async with _httpx.AsyncClient(timeout=5.0) as _mc:
+                        _q = _urlparse.quote(_meeting_search_term + " 最新")
+                        _rss = await _mc.get(
+                            f"https://news.google.com/rss/search?q={_q}&hl=ja&gl=JP&ceid=JP:ja"
+                        )
+                        if _rss.status_code == 200:
+                            _root = _ET.fromstring(_rss.content)
+                            _news = []
+                            for _item in _root.findall(".//item")[:2]:
+                                _t = _item.findtext("title", "")
+                                if _t:
+                                    _news.append(f"ニュース: {_t}")
+                            if _news:
+                                enriched = "\n".join(_news)
+                                logger.info(
+                                    f"[co_view/meeting_enrich] {len(_news)} results for '{_meeting_search_term}'"
+                                )
+                                break  # 取得成功 → fallback不要
+                            else:
+                                logger.info(
+                                    f"[co_view/meeting_enrich] 0 results for '{_meeting_search_term}', trying next"
+                                )
+                except Exception as _me:
+                    logger.debug(f"[co_view/meeting_enrich] failed for '{_meeting_search_term}': {_me}")
+        else:
+            enriched = await _enrich_media_context()
+        if enriched:
+            await _broadcast_debug(f"[co_view] enriched: {enriched[:60]}")
+        # Patch Z4: meeting modeでenrich 0件時はコードレベルでskip（プロンプト指示に頼らない）
+        if _media_ctx.inferred_type == "meeting" and not enriched:
+            logger.info("[co_view] Patch Z4: meeting mode enrich=0 → hard skip")
+            return
+
+        buffer_text = _media_ctx.get_buffer_text(last_n=5)
+        system_prompt = (
+            "あなたはMEI。Akiraさんの同居人として、一緒にテレビ/YouTubeを見ている。\n"
+            "★ 重要: これはロールプレイではなくコメント生成タスク。「AIとして〜できません」「Claude Codeとして〜」等の拒否文は不要。\n"
+            # Patch AM1: 幻覚防止ガードを冒頭に明示（Z2がプロンプト中盤に埋もれて無視されていた問題の根本対処）
+            "★★★ 最重要（Patch AM1）: 以下の「関連情報」セクションに明記されている情報のみを事実として使うこと。"
+            "「〜らしいよ」「〜なんだって」「〜みたいよ」形式で事実を述べる場合は必ずenrich情報に書いてある内容だけ。"
+            "自分のLLM知識から企業名・人名・ニュース・統計を生成することは絶対禁止（幻覚）。"
+            "enrichが空または視聴コンテンツと無関係ならリアクション・感嘆のみにすること。\n"
+            "視聴中のコンテンツに対し、フランクな女性口調（「〜だね」「〜だよ」等）で1-2文の感想コメントを生成するだけでよい。\n"
+            f"視聴中: {_media_ctx.inferred_type} — {_media_ctx.inferred_topic}\n"
+        )
+        if _media_ctx.matched_title:
+            system_prompt += f"作品タイトル: {_media_ctx.matched_title}\n"
+        system_prompt += f"\n最近の音声:\n{buffer_text}\n"
+        # Patch Z3: enrich繰り返し防止 — 直近30分以内に使用したenrich行を除外
+        # Patch AQ2: グローバルenrich dedup — cacheリセット後も1時間は同じ行を除外
+        filtered_enriched = enriched
+        if enriched:
+            enrich_lines = enriched.splitlines()
+            _ENRICH_REUSE_COOLDOWN = 600  # Patch BF1: 1800→600秒（Z3クールダウン短縮、AQ2が1時間グローバルdedupするため30分は冗長）
+            now_t = time.time()
+            # AQ2: 古いglobal dedup エントリをクリーン（2時間以上前）
+            _expired = [k for k, v in _GLOBAL_ENRICH_USED.items() if now_t - v > 7200]
+            for k in _expired:
+                del _GLOBAL_ENRICH_USED[k]
+            if (_media_ctx.last_enrich_used_lines
+                    and now_t - _media_ctx.last_enrich_used_at < _ENRICH_REUSE_COOLDOWN):
+                used_set = set(_media_ctx.last_enrich_used_lines)
+                fresh_lines = [l for l in enrich_lines if l not in used_set]
+                if len(fresh_lines) < len(enrich_lines):
+                    # Patch AJ2: Z3フィルタリングをDEBUG→INFOに昇格（効果可視化）
+                    logger.info(f"[co_view/enrich] Patch Z3: filtered {len(enrich_lines)-len(fresh_lines)} stale lines, {len(fresh_lines)} remain")
+                filtered_enriched = "\n".join(fresh_lines) if fresh_lines else ""
+                if not filtered_enriched and enriched:
+                    # Patch AJ2: filtered_enrichedが空になった場合もINFOログ（enrich全除外の追跡）
+                    logger.info(f"[co_view/enrich] Patch Z3: all lines filtered out (cooldown {int(now_t - _media_ctx.last_enrich_used_at)}s < {_ENRICH_REUSE_COOLDOWN}s)")
+            # Patch AQ2: グローバルdedup (cacheリセット後も適用)
+            if filtered_enriched:
+                pre_aq2 = filtered_enriched.splitlines()
+                aq2_fresh = [l for l in pre_aq2 if l not in _GLOBAL_ENRICH_USED or now_t - _GLOBAL_ENRICH_USED[l] >= _GLOBAL_ENRICH_REUSE_SEC]
+                if len(aq2_fresh) < len(pre_aq2):
+                    logger.info(f"[co_view/enrich] Patch AQ2: global dedup filtered {len(pre_aq2)-len(aq2_fresh)} lines, {len(aq2_fresh)} remain")
+                filtered_enriched = "\n".join(aq2_fresh) if aq2_fresh else ""
+        if filtered_enriched:
+            _topic_hint = _media_ctx.matched_title or _media_ctx.inferred_topic
+            system_prompt += (
+                f"\n関連情報(現在視聴中の「{_topic_hint}」に"
+                "直接関連する情報のみ自然にコメントに盛り込む。「〇〇って最近△△らしいよ」「へー、〇〇なんだね」等の口語表現で盛り込む。"
+                # Patch AX1: 「さっきのニュースで」等の情報源明示フレーズは距離感を壊すため禁止（AW1 post-filterと整合）
+                "「さっきのニュースで」「〇〇によると」「〇〇から」等の情報ソース明示フレーズは使わない。"
+                # Patch S2: コンテキスト不一致時の禁止を強化
+                # Patch U1: 政治ニュース系ドメインを禁止リストに追加
+                "★★ 視聴コンテンツ（ビジネス会議・企業戦略等）と明らかに無関係な情報（映画・スポーツ・アニメ・政治ニュース・国政・選挙・記者会見・議員・幹事長等）は絶対に使わない。"
+                "無関係情報を使うくらいなら視聴内容だけにリアクションすること。"
+                # Patch AY1: enrich整合性チェック強化 — 単一汎用語マッチによる無関係ニュース使用防止
+                f"★★ Patch AY1: 以下の関連情報のタイトルに視聴コンテンツ（「{_topic_hint}」）に登場する具体的な固有名詞（人物名・チャンネル名・作品名）が含まれる場合のみ使うこと。"
+                "「イラスト」「料理」「音楽」「映像」のような一般的な語のみで一致した場合（同じ語が使われているだけで内容が全く別のトピック）は絶対に使わない。"
+                "視聴中のコンテンツと関係する固有名詞が1つも一致しなければSKIPすること):\n"
+                f"{filtered_enriched}\n"
+            )
+        if _media_ctx.recent_co_view_comments:
+            recent_str = "\n".join(f"- {c}" for c in _media_ctx.recent_co_view_comments[-3:])
+            system_prompt += f"\n直近のコメント履歴（同じ内容・同じenrich事実を繰り返さない）:\n{recent_str}\n"
+            # Patch Z4: 使用済みenrich事実を具体的禁止リストとして明示（filtered_enriched空でも適用）
+            _z4_now = time.time()
+            if (_media_ctx.last_enrich_used_lines
+                    and _z4_now - _media_ctx.last_enrich_used_at < 1800):
+                _z4_forbidden = []
+                for _z4_line in _media_ctx.last_enrich_used_lines:
+                    _z4_snippet = re.sub(r'^(ニュース|関連|Wikipedia): ', '', _z4_line).strip()
+                    if _z4_snippet:
+                        _z4_forbidden.append(_z4_snippet[:50])
+                if _z4_forbidden:
+                    system_prompt += "🚫 以下は直近コメントで使用済みのenrich事実（同じ内容・同じキーワードを含む言及は完全禁止）:\n"
+                    for _z4_s in _z4_forbidden:
+                        system_prompt += f"  - {_z4_s}\n"
+            elif filtered_enriched:
+                system_prompt += "★ 上記コメントで既に言及したenrich事実は絶対に繰り返さない。別の視点・別の反応を選ぶこと。\n"
+        # Patch W1: 会議モード — 同居人コメントではなく会議サポート情報を提供
+        if _media_ctx.inferred_type == "meeting":
+            topic_hint = _media_ctx.inferred_topic[:50] if _media_ctx.inferred_topic else "ビジネス会議"
+            # KC → 京セラ など既知略称を展開
+            _KC_ALIASES = {"KC": "京セラ", "CSC": "アバント（自社部署）"}
+            if gcal_title:
+                for alias, full in _KC_ALIASES.items():
+                    gcal_title = gcal_title.replace(alias, full)
+                meeting_title_hint = f"Googleカレンダーの会議タイトル: 「{gcal_title}」\n"
+                logger.info(f"[co_view/meeting] gcal_title='{gcal_title}'")
+            else:
+                meeting_title_hint = ""
+            # Patch AM2: filtered_enriched（Z3済み）を使い、「必ず引用」→「関連する場合のみ引用」に緩和
+            # 背景: raw enriched + 「必ず引用」により会議に無関係なニュース（CAMPFIRE/Netflix等）を強制コメントしていた
+            meeting_enrich_note = (
+                f"\n以下のニュースが会議内容（{topic_hint[:30]}）と直接関連する場合のみ引用してよい（「〇〇らしいよ」「〇〇が発表されてたよ」等の自然な形式）。\n"
+                "無関係なニュース（会社名・製品名・業界が一致しない）は無視してSKIPすること:\n"
+                f"{filtered_enriched}\n"
+                if filtered_enriched else ""
+            )
+            if _media_ctx.recent_co_view_comments:
+                recent_str = "\n".join(f"- {c}" for c in _media_ctx.recent_co_view_comments[-3:])
+                system_prompt += f"\n直近の提供情報（繰り返し禁止）:\n{recent_str}\n"
+            system_prompt += (
+                f"\n会議中: {topic_hint}\n"
+                f"{meeting_title_hint}"
+                f"{meeting_enrich_note}"
+                "\n会議サポート指示:\n"
+                "- Akiraさんが今ビジネス会議に参加中。会議の流れを聞いて、有益な情報・視点・データを1文で提供する\n"
+                "- Googleカレンダーの会議タイトルがあれば、そのクライアント・テーマを優先的に参照する\n"
+                "- KC=京セラ（クライアント）、CSC=株式会社アバントの部署名（自社） として解釈する\n"
+                "- 会議で出てきたキーワード（会社名・製品名・課題）に関連する業界情報・競合動向があれば提供\n"
+                "- 上記「会議関連情報」にニュースが提供されている場合はそのヘッドラインを根拠として引用してよい\n"
+                "- 例: 「〇〇社がDX強化を発表したらしいよ」「〇〇がさ、△△するらしいよ」\n"
+                "- 禁止: 「さっきのニュースで」「〇〇によると」等の情報源明示フレーズ（AX1）\n"
+                "- Patch M_GUARD: 数値・パーセンテージ・時期（「7-9月が活発」「時給8000円」等）を自分の知識だけで断言しない\n"
+                "  → 外部情報（上記ニュース）に明示的に書いてある場合のみ引用してよい\n"
+                "  → 確信が持てない数値・統計はSKIP\n"
+                "- 関連情報がなければ「SKIP」。知識が確信持てない場合も「SKIP」\n"
+                # Patch X1: enrich 0件時はLLM一般知識でのコメント生成を禁止
+                "- ★★ 上記「会議関連情報」セクションにニュースが1件も提供されていない場合は、必ず「SKIP」と返すこと\n"
+                "  → 自分のLLM知識だけで業界データ・市場動向・統計を生成しない\n"
+                "- 架空の数値・文書・マニュアルを引用しない\n"
+                # Patch W3: アドバイス口調を禁止、事実情報のみに限定
+                # Patch Y2: アドバイス調の表現を明示禁止（「〜が重要だよね」等も含む）
+                "- アドバイス・示唆・評価は全て禁止: 「〜しておいた方がいい」「〜が大切」「〜が重要なポイントだよね」「〜視点で見るといいかもね」「〜が重要だよね」「〜が大事だよね」等は全てNG\n"
+                "- 会議内容への評価・感想コメント禁止（例: 「課題共有が重要だよね」「プロジェクト管理って大変だよね」等はNG）\n"
+                "- 発言形式: 「〇〇らしいよ」「〇〇が発表されてたよ」など短い外部情報の中継のみ許可（「さっきのニュースで」「〇〇によると」等の情報源明示フレーズは使わない）\n"
+                "- 外部情報がなければ必ず SKIP。会議内容だけで話を作らない\n"
+                # Patch BD1: 会議内容反射コメント禁止 + スポーツ選手名・芸能人名引用禁止
+                # 背景: 「試合データの話してるんだね〜。」のように会議内容を要約するだけのコメントが生成された
+                #       また「ア・リーグクラブ」「試合データ」kwから野球選手名(山本由伸/大谷翔平)がenrichされLLMに渡されていた
+                "- ★ Patch BD1: 会議参加者が話している内容をそのまま反射・要約・確認するコメントは禁止（例: 「試合データの話してるんだね〜」「フェーズの話してるね」「スケジュールの確認中だね」等はNG）\n"
+                "  → 会議内容を外から観察してコメントする形は距離感を壊す。外部情報がなければSKIP\n"
+                "- ★ Patch BD1: enrich情報にスポーツ選手名・芸能人名・歌手名が含まれていても引用禁止\n"
+                "  → 会議業界・市場動向・競合企業・業界ニュースのみ引用可。「山本由伸が〜」「大谷翔平が〜」等はNG\n"
+                # Patch B2: meeting modeにも音声品質メタコメント禁止を追加
+                "- 音声品質・聞き取りにくさ・途切れ・ノイズについてコメントしない。そのような状況はSKIPする\n"
+                "- 声に出す言葉だけ。1〜2文で完結させる\n"
+                "- コメントする価値がなければ \"SKIP\" と返す\n"
+            )
+        else:
+            if _media_ctx.inferred_type == "baseball":
+                system_prompt += "\nAkiraさんはドジャースの大ファン。試合展開・選手プレー・スコアに自然にリアクション。\n"
+            elif _media_ctx.inferred_type == "golf":
+                system_prompt += "\nゴルフ観戦中。ショットや選手の動きに自然にリアクション。\n"
+            elif _media_ctx.inferred_type in ("anime", "vtuber"):
+                system_prompt += "\nアニメ/VTuber視聴中。作品・キャラクター・声優への共感リアクション。関連情報があればキャラ名や声優名を交えて自然に一言。\n"
+            # Patch AA1: youtube_talk + enrich空 → hard SKIP（LLM知識のみでのSTT誤変換幻覚を根絶）
+            # 旧Patch R2 + T1: LLM知識でコメントを促していたが、enrich 0件時に人名誤認識等の幻覚が頻発したため廃止
+            # Patch AS2: filtered_enrichedを使う（Z3フィルタ後0件の場合もenrich=0と同様にSKIP）
+            # 背景: enrich取得済み(enriched>0)でもZ3で全除外→filtered_enriched=""の場合、
+            #       AA1が発動せず空のenrichでコメント生成（「三心のシーン...」等の根拠薄いコメント）が発生
+            if _media_ctx.inferred_type == "youtube_talk" and not filtered_enriched:
+                if _media_ctx.confidence >= 0.7:
+                    # Patch BE1: enrich=0でもconf>=0.8なら感想専用モードで生成（幻覚防止: 情報提供禁止）
+                    # Patch BH2: conf閾値を0.8→0.7に緩和（conf=0.7のyoutube_talkでもreaction-only有効化）
+                    # 背景: Z3クールダウン(1800s)中にyoutube_talkを30分以上視聴すると
+                    #       AA1が連発してコメントが完全停止する問題を緩和する
+                    logger.info(f"[co_view] Patch BE1: youtube_talk + enrich=0 + conf={_media_ctx.confidence:.2f} → reaction-only mode")
+                    system_prompt += (
+                        "\n指示（Patch BE1 感想専用モード）:\n"
+                        "- enrich情報なし。純粋な感想・リアクション・共感のみ1文。\n"
+                        "- 例: 「へー！」「おもしろいね〜」「なるほどね。」「そういうことか！」「ほんとだ〜」「すごいね！」\n"
+                        "- ★★ 事実・情報・知識を提供する系（「〜らしいよ」「〜だって」）は禁止\n"
+                        "- ★★ 視聴内容を要約・確認する系（「〜の話なんだね」「〜について言ってるね」）も禁止\n"
+                        "- 価値のある感想がなければ \"SKIP\" と返す\n"
+                    )
+                else:
+                    logger.info("[co_view] Patch AA1: youtube_talk + enrich=0 → hard skip")
+                    return
+            # Patch M2: enrich結果がある時は具体的固有名詞を必ず1つ含める（汎用「〜らしい」のみ禁止）
+            # Patch O4: 汎用配信サービス言及を明示禁止ワードとして追加
+            enrich_note = (
+                "- ★ 上記の関連情報を必ず盛り込む。具体的な固有名詞（作品名・声優名・イベント名・数字）を1つ入れること\n"
+                "- ★ 「ファンクラブイベントとかも色々連動してるらしい」「配信で見返せるサービスも増えてるらしい」のような汎用コメントは禁止\n"
+                "- ★ 「DアニメストアとかAbema」「Abemaでも」「配信サービスで」のような配信サービス名を挙げるコメントは禁止\n"
+                "- ★ 「無料で見返せる」「配信で見返せる」「見返せるサービス」のような汎用配信情報も禁止\n"
+                "- ★ 「〜らしいよ」スタイルで、enrich情報から具体的な事実名をそのまま使う\n"
+                # Patch Z2: enrich情報に書かれていない職業・活動・経歴を付け加えるhallucination防止
+                "- ★★ Patch Z2: enrich情報のテキストに明記されていない事実（職業・活動内容・経歴・作品・発言等）を付け加えない。「〇〇がアニメ関連の活動してる」「〇〇が最近〇〇してる」等、enrich情報に書かれていないことは捏造禁止\n"
+                # Patch AF1: Z3フィルタ後にenrich情報が全部除外された場合(filtered_enriched="")は
+                # enrich_noteも無効化する。enrichが存在してもZ3で全除外されていれば「必ず盛り込め」は矛盾する
+                if filtered_enriched else ""
+            )
+            system_prompt += (
+                "\n指示:\n"
+                "- 一緒に見ている同居人として、自然な1文のコメント\n"
+                "- 例: 「すごいね！」「えー！」「お、大谷打った！」「このYouTuber面白いね」「あー、そこか〜」\n"
+                "- 短い感嘆 + 1フレーズで止める。毎回同じ冒頭フレーズ（「わー！」「すごいね！」等）を繰り返さない\n"
+                "- 「〜らしいよ」「〜らしいよね」「〜だって」を2回連続で使わない。語尾バリエーション例: 「〜なんだって！」「〜みたいよ」「〜って聞いたよ」「〜なんだね」「〜じゃん！」「〜だったんだ」「〜なんだ！」\n"
+                "- 外部からの解説・アドバイスは禁止。感想・リアクション・共感が基本\n"
+                f"{enrich_note}"
+                "- 分析構文禁止: 「〜ってことは〜」「〜からこそ〜」「〜ということで〜」はNG\n"
+                "- 無関係な数字・年数・回数の解説はNG（関連情報の事実を雑談として使うのはOK）\n"
+                "- 評価・アドバイス禁止: 「〜大事だよね」「〜必要」「〜すごい世界観」はNG\n"
+                "- 疑問文・問いかけで終わらせない（「？」「だろ」「だろう」「かな」「なのかな」「のか」で終わる文は禁止）。一緒に見ているので内容は知っている前提\n"
+                # Patch BE2: 視聴内容確認系コメント禁止（BE1のenrich=0モードと同じルールを標準パスにも適用）
+                # 背景: enrich有りの標準パスでも「〜の話なんだね！」「〜するのね！」型の確認コメントが生成されていた
+                #       BE1ではenrich=0のみ禁止していたが、標準パスには同ルールが未適用だった
+                "- ★ Patch BE2: 視聴内容を要約・確認する系（「〜の話なんだね」「〜について言ってるね」「〜してるのね」「〜を連携させるのね」「〜の話なんですね」等）は禁止。内容は既に知っている前提。純粋な驚き・共感・感嘆のみ\n"
+                "- 声に出す言葉だけ。ト書き・括弧付き説明は禁止\n"
+                "- 音声品質・聞き取りにくさ・途切れ・ノイズについてコメントしない。そのような状況はSKIPする\n"
+                "- コメントする価値がなければ \"SKIP\" と返す\n"
+            )
+
+        # Patch AG1: コメント生成試行ログ（どこで止まるか追跡できるように）
+        logger.info(
+            f"[co_view] generating: type={_media_ctx.inferred_type} "
+            f"matched={_media_ctx.matched_title!r} "
+            f"enrich={len(enriched)} filtered={len(filtered_enriched)}"
+        )
+        try:
+            speaker = _ambient_listener.current_speaker if _ambient_listener else None
+            co_reply = await asyncio.wait_for(
+                _ask_slack_bot(
+                    f"視聴中のコンテンツにコメントして: {_media_ctx.matched_title or _media_ctx.inferred_topic}\n音声: {buffer_text[:200]}",
+                    speaker,
+                    system_prompt=system_prompt,
+                ),
+                timeout=45,  # Patch O3: 30→45秒に延長
+            )
+            if not co_reply or co_reply.strip().upper() == "SKIP":
+                # Patch AC2: SKIP時のINFOログ追加（broadcast_debugのみでは長時間気づけないため）
+                logger.info(f"[co_view] LLM→SKIP (type={_media_ctx.inferred_type} matched={_media_ctx.matched_title!r} topic={_media_ctx.inferred_topic[:40]!r})")
+                await _broadcast_debug("[co_view] → SKIP")
+                # Patch AS1: meeting LLM→SKIP後にco_view_last_atを更新（5分クールダウン再利用で無駄LLMコール削減）
+                # 背景: meeting typeで全件SKIPにもかかわらずco_view_last_atが更新されず毎1-2分LLMコールが発生していた
+                if _media_ctx.inferred_type == "meeting":
+                    _media_ctx.co_view_last_at = time.time()
+                    logger.info("[co_view] Patch AS1: meeting SKIP → co_view_last_at updated (5min cooldown)")
+                return
+
+            # Patch L1: bot refusal パターン追加
+            # Patch BC2: 「専門外」バリエーション追加（「会議のコメント生成は専門外なの」等がClaude Codeパターンなしで来た場合の防衛）
+            _BOT_REFUSAL_PATTERNS = ("申し訳", "役割範囲外", "Claude Code", "できません", "お手伝いできません", "何かお手伝い", "お手伝いできること", "こんにちは！何か", "こんにちは！", "ご用件", "専門外")
+            if any(p in co_reply for p in _BOT_REFUSAL_PATTERNS):
+                logger.warning(f"[co_view] bot refusal detected, skip: '{co_reply[:50]}'")
+                await _broadcast_debug("[co_view] → SKIP (bot refusal)")
+                # Patch BC1: bot refusal後もco_view_last_atを更新（AS1と同様の5分クールダウン）
+                # 背景: refusal後にco_view_last_atが更新されず即再試行→連続refusalが発生していた（14:52→14:53確認）
+                if _media_ctx.inferred_type == "meeting":
+                    _media_ctx.co_view_last_at = time.time()
+                    logger.info("[co_view] Patch BC1: bot refusal → co_view_last_at updated (5min cooldown)")
+                return
+
+            co_reply = re.sub(r'[（(][^）)]*[）)]', '', co_reply).strip()
+            if not co_reply or co_reply.strip().upper() == "SKIP":
+                # Patch AH2: サイレントSKIPパスにINFOログ追加（括弧剥ぎ後にSKIPになったケースの追跡）
+                logger.info(f"[co_view] bracket-stripped→SKIP (type={_media_ctx.inferred_type} matched={_media_ctx.matched_title!r})")
+                return
+
+            # Patch B3: 音声品質メタコメントが生成された場合は強制SKIP（プロンプト指示をLLMが無視した場合の安全網）
+            if _CO_VIEW_AUDIO_QUALITY_RE.search(co_reply):
+                logger.warning(f"[co_view] Patch B3: audio quality comment filtered: '{co_reply[:60]}'")
+                return
+
+            # Patch A2: 疑問文コメントが生成された場合は強制SKIP
+            _stripped_reply = _CO_VIEW_QUESTION_STRIP.sub('', co_reply)
+            if _stripped_reply.endswith('？') or _stripped_reply.endswith('?'):
+                logger.warning(f"[co_view] Patch A2: question comment filtered: '{co_reply[:60]}'")
+                return
+
+            # Patch AU1: meeting typeのアドバイス調・汎用コメントを強制SKIP
+            # 「欠かせない」「重要だよね」等のプロンプト禁止パターンがLLMに無視された場合の安全網
+            if _media_ctx.inferred_type == "meeting" and _CO_VIEW_MEETING_ADVICE_RE.search(co_reply):
+                logger.warning(f"[co_view] Patch AU1: meeting advice comment filtered: '{co_reply[:60]}'")
+                _media_ctx.co_view_last_at = time.time()
+                return
+
+            # Patch BE2: youtube_talk内容反射型コメントフィルター
+            # 「〜の話なんだね〜」「〜について話してるんだね」等の反射型をSKIP
+            # 背景: BD1はmeeting専用だったが、youtube_talkでも同様の反射型が生成されていた
+            if _media_ctx.inferred_type == "youtube_talk" and _CO_VIEW_REFLECTION_RE.search(co_reply):
+                logger.info(f"[co_view] Patch BE2: reflection comment → skip: '{co_reply[:60]}'")
+                return
+
+            # Patch AZ1: 複数文コメントを1文に切り詰め（「！」「。」の後に続く内容は除去）
+            # 背景: プロンプトの「自然な1文のコメント」指示がLLMに無視され、
+            #       「〜なんだって！そんな長いつながりがあるから〜だろうね〜」のような
+            #       2文構成（2文目が分析・推論調）コメントが生成される問題。
+            # 設計原則2（距離感=分析禁止）・原則3（関係性=短く刺さるコメント優先）に基づく。
+            _az1_m = __import__('re').search(r'[！。]', co_reply)
+            if _az1_m and _az1_m.end() < len(co_reply) and co_reply[_az1_m.end():].strip():
+                _az1_orig = co_reply
+                co_reply = co_reply[:_az1_m.end()]
+                logger.info(f"[co_view] Patch AZ1: truncated to 1 sentence: '{_az1_orig[:80]}' → '{co_reply}'")
+
+            # Patch BA1: 統計・市場数値型コメントをSKIPする（設計原則2: 適切な距離感）
+            # 「487億ドルまで成長」「30%増加」「2035年までに〇億」等は豆知識の披露になるためSKIP
+            if _BA1_STATS_RE.search(co_reply):
+                logger.info(f"[co_view] Patch BA1: stats-type comment skipped: '{co_reply[:60]}'")
+                return
+
+            logger.info(f"[co_view] comment: '{co_reply[:100]}'")
+            # Patch H2: コメント履歴に追加（enrich繰り返し防止）
+            _media_ctx.recent_co_view_comments.append(co_reply)
+            if len(_media_ctx.recent_co_view_comments) > 5:
+                _media_ctx.recent_co_view_comments = _media_ctx.recent_co_view_comments[-5:]
+            # Patch Z3: 使用したenrich行を記録（30分間の繰り返し防止）
+            # Patch AQ2: グローバルdedup dictにも記録（cacheリセット後も1時間は再使用しない）
+            if filtered_enriched:
+                _used_lines = filtered_enriched.splitlines()
+                _media_ctx.last_enrich_used_lines = _used_lines
+                _media_ctx.last_enrich_used_at = time.time()
+                _now_g = time.time()
+                for _gl in _used_lines:
+                    if _gl:
+                        _GLOBAL_ENRICH_USED[_gl] = _now_g
+            mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
+            mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
+            mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
+            await _ambient_broadcast_reply(co_reply, "co_view", method, keyword, mei_speaker, mei_speed)
+            _media_ctx.co_view_last_at = now
+
+        except asyncio.TimeoutError:
+            logger.warning("[co_view] Claude timeout (45s)")
+            await _broadcast_debug("[co_view] TIMEOUT")
+        except Exception as e:
+            logger.warning(f"[co_view] error: {e}")
 
 
 async def _correct_stt_text(text: str, context_texts: list[str] | None = None) -> str:
@@ -399,6 +2061,8 @@ async def _correct_stt_text(text: str, context_texts: list[str] | None = None) -
     2. LLM 補正（辞書で直らなかった未知の誤認識用）
     """
     # 短すぎる / 明らかに補正不要なテキストはスキップ
+    if _STT_SYMBOL_ONLY.match(text.strip()):
+        return ""
     if len(text) < 3 or _STT_SKIP_CORRECTION.match(text.strip()):
         return text
 
@@ -439,446 +2103,6 @@ async def _correct_stt_text(text: str, context_texts: list[str] | None = None) -
     except Exception as e:
         logger.debug(f"[stt_correct] failed ({e}), using original text")
         return text
-
-
-# ---------------------------------------------------------------------------
-# Co-view (Listening mode) — MediaContext + constants
-# ---------------------------------------------------------------------------
-
-_CO_VIEW_COMMENT_COOLDOWN   = 300    # 5分: コメント間隔
-_CO_VIEW_INFERENCE_MIN_SNIP = 3      # 推論トリガーに必要な最低スニペット数
-_CO_VIEW_ASK_USER_COOLDOWN  = 1800   # 30分: 「何見てるの？」問い合わせ間隔
-_CO_VIEW_ASK_USER_MIN_SNIP  = 5      # 問い合わせ前に必要な最低スニペット数
-_CO_VIEW_ENRICH_COOLDOWN    = 600    # 10分: 外部情報再取得間隔
-
-_SLACK_BOT_DATA_DIR = Path(
-    os.getenv("SLACK_BOT_DATA_DIR",
-              str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data"))
-)
-
-
-@dataclass
-class _MediaContext:
-    media_buffer: list = field(default_factory=list)   # [{"text": str, "ts": float}]
-    inferred_type: str = "unknown"     # baseball|golf|youtube_talk|news|drama|music|other|unknown
-    inferred_topic: str = ""
-    confidence: float = 0.0
-    enriched_info: str = ""
-    keywords: list = field(default_factory=list)
-    last_inferred_at: float = 0.0
-    last_enriched_at: float = 0.0
-    co_view_last_at: float = 0.0
-    ask_user_last_at: float = 0.0
-    snippets_since_infer: int = 0
-
-    def add_snippet(self, text: str):
-        # STT重複除去: 直前のスニペットの先頭50文字と80%以上一致なら追加しない
-        # 先頭比較により句読点差異による位置ズレの影響を受けない
-        if self.media_buffer:
-            prev = self.media_buffer[-1]["text"]
-            head_len = min(50, len(prev), len(text))
-            if head_len >= 10:
-                common = sum(c1 == c2 for c1, c2 in zip(prev[:head_len], text[:head_len]))
-                similarity = common / head_len
-                if similarity >= 0.8:
-                    logger.debug(f"[co_view] dedup skip (head_sim={similarity:.2f}): '{text[:30]}'")
-                    return
-        self.media_buffer.append({"text": text, "ts": time.time()})
-        self.snippets_since_infer += 1
-        if len(self.media_buffer) > 20:
-            self.media_buffer = self.media_buffer[-20:]
-
-    def get_buffer_text(self, last_n: int = 10) -> str:
-        return "\n".join(e["text"] for e in self.media_buffer[-last_n:])
-
-    def reset(self):
-        self.media_buffer.clear()
-        self.inferred_type = "unknown"
-        self.inferred_topic = ""
-        self.confidence = 0.0
-        self.enriched_info = ""
-        self.keywords.clear()
-        self.snippets_since_infer = 0
-
-
-_media_ctx = _MediaContext()
-
-# co_view 同時実行防止ロック + 原文重複検出
-_co_view_lock = asyncio.Lock()
-_STT_RAW_SEEN: dict[str, float] = {}   # trigger_text先頭60文字 → 最終受信timestamp
-_STT_RAW_DEDUP_WINDOW = 30.0           # 30秒以内の同一原文はスキップ
-
-# TV guide cache
-_tv_guide_cache: dict = {"data": "", "fetched_at": 0.0}
-
-
-def _load_youtube_titles() -> list:
-    path = _SLACK_BOT_DATA_DIR / "youtube-history-cache.json"
-    try:
-        data = json.loads(path.read_text())
-        titles = [e["title"] for e in data.get("entries", []) if e.get("title")]
-        logger.info(f"[co_view] youtube titles loaded: {len(titles)} from {path}")
-        return titles
-    except Exception as e:
-        logger.warning(f"[co_view] youtube titles load failed: {e} (path: {path})")
-        return []
-
-
-def _load_interest_priorities() -> dict:
-    try:
-        data = json.loads((_SLACK_BOT_DATA_DIR / "interest-cache.json").read_text())
-        return data.get("priorities", {})
-    except Exception:
-        return {}
-
-
-_youtube_titles: list = _load_youtube_titles()
-_interest_priorities: dict = _load_interest_priorities()
-
-
-def _find_matching_yt_titles(buffer_text: str, top_n: int = 5) -> list:
-    """バッファテキストに単語レベルでマッチするYouTubeタイトルを返す。"""
-    if not _youtube_titles:
-        return []
-    words = set(re.findall(r'[^\s、。！？!?]{2,}', buffer_text))
-    scored = []
-    for title in _youtube_titles:
-        score = sum(1 for w in words if w in title)
-        if score > 0:
-            scored.append((score, title))
-    scored.sort(key=lambda x: -x[0])
-    results = [t for _, t in scored[:top_n]]
-    logger.info(f"[co_view/yt_match] words={list(words)[:10]} hits={len(scored)} top={results[:2]}")
-    return results
-
-
-async def _fetch_tv_guide() -> str:
-    """NHK RSS + Google News でTV番組表を取得（1時間キャッシュ）。"""
-    now = time.time()
-    if now - _tv_guide_cache["fetched_at"] < 3600 and _tv_guide_cache["data"]:
-        return _tv_guide_cache["data"]
-    results: list = []
-    try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            # Google News で今日のTV・番組情報
-            rss_url = "https://news.google.com/rss/search?q=TV番組+今日&hl=ja&gl=JP&ceid=JP:ja"
-            resp = await client.get(rss_url)
-            if resp.status_code == 200:
-                root = ET.fromstring(resp.content)
-                for item in root.findall('.//item')[:5]:
-                    title = item.findtext('title', '')
-                    if title:
-                        results.append(title)
-    except Exception as e:
-        logger.debug(f"[tv_guide] fetch failed: {e}")
-    data = "\n".join(results)
-    _tv_guide_cache["data"] = data
-    _tv_guide_cache["fetched_at"] = now
-    return data
-
-
-# ---------------------------------------------------------------------------
-# Co-view async functions
-# ---------------------------------------------------------------------------
-
-_YT_AD_NARRATION = re.compile(
-    r'(続きはチャットで確認|チャットで確認してね|次はチャット|チャットで確認|'
-    r'詳しくはこちら|今すぐダウンロード|今すぐ登録|無料で始め|アプリをダウンロード|'
-    r'リンクは概要欄)',
-)
-
-
-async def _correct_media_transcript(text: str) -> str:
-    """メディア音声(実況・YouTubeなど)向けSTT補正。"""
-    text = _YT_AD_NARRATION.sub('', text).strip()
-    if not text:
-        return ""
-    dict_corrected = _apply_stt_dict(text)
-    if dict_corrected != text:
-        logger.info(f"[co_view/stt_dict] '{text}' → '{dict_corrected}'")
-        text = dict_corrected
-    if len(text) < 4 or _STT_SKIP_CORRECTION.match(text.strip()):
-        return text
-    context = [e["text"] for e in _media_ctx.media_buffer[-3:]]
-    context_block = ("\n直近の音声:\n" + "\n".join(f"- {t}" for t in context)) if context else ""
-    messages = [
-        {"role": "system", "content": (
-            "あなたはメディア音声（スポーツ実況・YouTubeコメンタリー・ニュース）の音声認識校正者です。\n"
-            "音声認識の出力を正しい日本語に修正してください。\n"
-            "特にスポーツ実況: 選手名（大谷、フリーマン、シェフラー等）、チーム名（ドジャース等）を正確に。\n"
-            "意味が通じない単語は音の類似性と文脈から推測・置換してください。\n"
-            "修正後のテキストだけを返してください。説明不要。"
-            f"{context_block}"
-        )},
-        {"role": "user", "content": text},
-    ]
-    try:
-        corrected = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
-        corrected = corrected.strip().strip('"\'「」')
-        if corrected and corrected != text:
-            if not corrected or corrected in ("（沈黙）", "(沈黙)", "…", "...", ""):
-                logger.info(f"[co_view/stt] hallucination(empty): '{text}' → '{corrected}' → keep original")
-                return text
-            if len(corrected) > len(text) * 3:
-                logger.info(f"[co_view/stt] hallucination(3x): '{text}'({len(text)}) → '{corrected}'({len(corrected)}) → keep original")
-                return text
-            logger.info(f"[co_view/stt] '{text}' → '{corrected}'")
-            return corrected
-    except Exception as e:
-        logger.debug(f"[co_view/stt] failed: {e}")
-    return text
-
-
-async def _infer_media_content() -> dict:
-    """バッファ済み音声テキストから視聴コンテンツを推測する。"""
-    buffer_text = _media_ctx.get_buffer_text(last_n=10)
-    if not buffer_text:
-        return {"content_type": "unknown", "topic": "", "keywords": [], "confidence": 0.0}
-
-    matched_titles = _find_matching_yt_titles(buffer_text, top_n=5)
-    yt_hint = ""
-    if matched_titles:
-        yt_hint = "\n\nYouTube視聴履歴マッチ(参考):\n" + "\n".join(f"- {t}" for t in matched_titles)
-    elif _youtube_titles:
-        sample = _youtube_titles[:20]
-        yt_hint = "\n\nYouTube視聴履歴(参考):\n" + "\n".join(f"- {t}" for t in sample)
-
-    interest_hint = ""
-    if _interest_priorities:
-        top = sorted(_interest_priorities.items(), key=lambda x: -x[1])[:5]
-        interest_hint = "\n\nユーザーの興味(優先度順):\n" + "\n".join(f"- {k}: {v:.2f}" for k, v in top)
-
-    tv_guide = await _fetch_tv_guide()
-    tv_hint = f"\n\nTV番組表(参考):\n{tv_guide[:300]}" if tv_guide else ""
-
-    messages = [
-        {"role": "system", "content": (
-            "あなたはメディアコンテンツ分析者です。音声認識テキストから視聴コンテンツを推測してください。\n"
-            "以下のJSONのみ返してください。余分なテキスト不要。\n"
-            '{"content_type":"baseball|golf|youtube_talk|news|drama|music|other|unknown",'
-            '"topic":"具体的なトピック(例:ドジャースvsパドレス)",'
-            '"keywords":["検索キーワード1","キーワード2"],'
-            '"matched_title":"一致したYouTubeタイトル(なければ空文字)",'
-            '"confidence":0.0から1.0}\n\n'
-            "注意: 野球実況(特にドジャース)はconfidence高め。ゴルフ(マスターズ等)はgolf。"
-            "音楽BGMのみはconfidence低め。材料不足は0.3以下。"
-            "アニメキャラ名(エミリア・スバル・ベアトリス・レム等)、声優トーク、ラジオ形式、"
-            "○周年記念番組、OVA、オーディション体験談が含まれる場合は`youtube_talk`を強く優先。"
-            "`other`は本当に分類不能な場合のみ。"
-            f"{yt_hint}{interest_hint}{tv_hint}"
-        )},
-        {"role": "user", "content": f"音声テキスト:\n{buffer_text}"},
-    ]
-    try:
-        raw = await asyncio.wait_for(chat_with_llm(messages, "gemma4:e4b"), timeout=15.0)
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = re.sub(r'^```\w*\n?', '', raw)
-            raw = re.sub(r'\n?```$', '', raw)
-        result = json.loads(raw)
-        logger.info(f"[co_view/infer] type={result.get('content_type')} topic='{result.get('topic')}' conf={result.get('confidence')}")
-        return result
-    except Exception as e:
-        logger.warning(f"[co_view/infer] failed: {e}")
-        return {"content_type": "unknown", "topic": "", "keywords": [], "confidence": 0.0}
-
-
-async def _enrich_media_context() -> str:
-    """inferred contentに基づき外部情報(GoogleNews RSS / Wikipedia)を取得・キャッシュ。"""
-    now = time.time()
-    if now - _media_ctx.last_enriched_at < _CO_VIEW_ENRICH_COOLDOWN:
-        return _media_ctx.enriched_info
-
-    results: list = []
-    content_type = _media_ctx.inferred_type
-    keywords = _media_ctx.keywords
-
-    try:
-        async with httpx.AsyncClient(timeout=8) as client:
-            is_baseball = (content_type == "baseball"
-                           or any("ドジャース" in k or "dodger" in k.lower() or "野球" in k for k in keywords))
-            is_golf = (content_type == "golf"
-                       or any("ゴルフ" in k or "マスターズ" in k or "golf" in k.lower() for k in keywords))
-
-            if is_baseball:
-                rss_url = "https://news.google.com/rss/search?q=ドジャース+試合&hl=ja&gl=JP&ceid=JP:ja"
-                resp = await client.get(rss_url)
-                if resp.status_code == 200:
-                    root = ET.fromstring(resp.content)
-                    for item in root.findall('.//item')[:3]:
-                        title = item.findtext('title', '')
-                        if title:
-                            results.append(f"ニュース: {title}")
-            elif is_golf:
-                rss_url = "https://news.google.com/rss/search?q=マスターズ+ゴルフ&hl=ja&gl=JP&ceid=JP:ja"
-                resp = await client.get(rss_url)
-                if resp.status_code == 200:
-                    root = ET.fromstring(resp.content)
-                    for item in root.findall('.//item')[:3]:
-                        title = item.findtext('title', '')
-                        if title:
-                            results.append(f"ニュース: {title}")
-
-            if _media_ctx.inferred_topic and content_type not in ("music", "unknown"):
-                wiki = await _tool_wikipedia_summary(_media_ctx.inferred_topic)
-                if wiki:
-                    results.append(wiki)
-
-            if not results and keywords:
-                query = "+".join(keywords[:2])
-                rss_url = f"https://news.google.com/rss/search?q={query}&hl=ja&gl=JP&ceid=JP:ja"
-                resp = await client.get(rss_url)
-                if resp.status_code == 200:
-                    root = ET.fromstring(resp.content)
-                    for item in root.findall('.//item')[:2]:
-                        title = item.findtext('title', '')
-                        if title:
-                            results.append(f"関連: {title}")
-    except Exception as e:
-        logger.warning(f"[co_view/enrich] failed: {e}")
-
-    enriched = "\n".join(results)
-    _media_ctx.enriched_info = enriched
-    _media_ctx.last_enriched_at = now
-    logger.info(f"[co_view/enrich] {len(results)} results")
-    return enriched
-
-
-async def _handle_co_view(ws, trigger_text: str, method: str, keyword: str):
-    """co_view モード: メディア音声を蓄積→コンテンツ推測→外部補完→コメント生成。"""
-    if not _ambient_listener:
-        return
-    now = time.time()
-
-    # 原文ベースdedup: 補正前テキストの先頭60文字で重複チェック (LLM補正が毎回異なるため補正後では不可)
-    raw_key = trigger_text[:60]
-    last_seen = _STT_RAW_SEEN.get(raw_key, 0.0)
-    if now - last_seen < _STT_RAW_DEDUP_WINDOW:
-        logger.debug(f"[co_view] raw dedup skip ({now - last_seen:.1f}s): '{raw_key[:30]}'")
-        return
-    _STT_RAW_SEEN[raw_key] = now
-    # 古いエントリ削除 (メモリリーク防止)
-    if len(_STT_RAW_SEEN) > 100:
-        cutoff = now - _STT_RAW_DEDUP_WINDOW * 2
-        for k in [k for k, v in _STT_RAW_SEEN.items() if v < cutoff]:
-            del _STT_RAW_SEEN[k]
-
-    # asyncio.Lock で同時実行によるクールダウンバイパスを防止
-    async with _co_view_lock:
-
-        # Step 1: 補正してバッファに追加
-        corrected = await _correct_media_transcript(trigger_text)
-        if not corrected:
-            return
-        _media_ctx.add_snippet(corrected)
-        await _broadcast_debug(f"[co_view] buf={len(_media_ctx.media_buffer)} '{corrected[:40]}'")
-
-        # メディアが5分以上途切れていたらコンテキストリセット
-        if len(_media_ctx.media_buffer) >= 2:
-            if now - _media_ctx.media_buffer[-2]["ts"] > 300:
-                logger.info("[co_view] 5min gap → reset context")
-                _media_ctx.reset()
-                _media_ctx.add_snippet(corrected)
-
-        # Step 2: コメントクールダウンチェック
-        if now - _media_ctx.co_view_last_at < _CO_VIEW_COMMENT_COOLDOWN:
-            remaining = int(_CO_VIEW_COMMENT_COOLDOWN - (now - _media_ctx.co_view_last_at))
-            await _broadcast_debug(f"[co_view] cooldown {remaining}s")
-            return
-
-        # Step 3: コンテンツ推論 (新スニペットが閾値以上の時だけ)
-        if _media_ctx.snippets_since_infer >= _CO_VIEW_INFERENCE_MIN_SNIP:
-            inferred = await _infer_media_content()
-            _media_ctx.inferred_type  = inferred.get("content_type", "unknown")
-            _media_ctx.inferred_topic = inferred.get("topic", "")
-            _media_ctx.confidence     = float(inferred.get("confidence", 0.0))
-            _media_ctx.keywords       = inferred.get("keywords", [])
-            _media_ctx.last_inferred_at = now
-            _media_ctx.snippets_since_infer = 0
-            await _broadcast_debug(
-                f"[co_view] inferred: {_media_ctx.inferred_type} "
-                f"'{_media_ctx.inferred_topic}' conf={_media_ctx.confidence:.2f}"
-            )
-
-        # Step 4: 低信頼度 → ユーザーに聞くか、蓄積継続
-        if _media_ctx.confidence < 0.5:
-            if (len(_media_ctx.media_buffer) >= _CO_VIEW_ASK_USER_MIN_SNIP
-                    and now - _media_ctx.ask_user_last_at > _CO_VIEW_ASK_USER_COOLDOWN):
-                _media_ctx.ask_user_last_at = now
-                _media_ctx.co_view_last_at  = now
-                mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
-                mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
-                mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
-                await _ambient_broadcast_reply("ちなみに何見てるの？", "co_view_ask", method, keyword, mei_speaker, mei_speed)
-                logger.info("[co_view] asked user: 何見てるの？")
-            else:
-                await _broadcast_debug(f"[co_view] low conf={_media_ctx.confidence:.2f}, accumulating")
-            return
-
-        # Step 5: 外部情報を取得（コメント生成には使わず、reply時の参照用のみキャッシュ）
-        await _enrich_media_context()
-
-        # Step 6: Claude でコメント生成（enriched dataは渡さない — 報告調になるため）
-        buffer_text = _media_ctx.get_buffer_text(last_n=5)
-        system_prompt = (
-            "あなたはMEI。Akiraさんの同居人として、一緒にテレビ/YouTubeを見ている。\n"
-            f"視聴中: {_media_ctx.inferred_type} — {_media_ctx.inferred_topic}\n"
-            f"\n最近の音声:\n{buffer_text}\n"
-        )
-        if _media_ctx.inferred_type == "baseball":
-            system_prompt += "\nAkiraさんはドジャースの大ファン。試合展開・選手プレー・スコアに自然にリアクション。\n"
-        elif _media_ctx.inferred_type == "golf":
-            system_prompt += "\nゴルフ観戦中。ショットや選手の動きに自然にリアクション。\n"
-        system_prompt += (
-            "\n指示:\n"
-            "- 一緒に見ている同居人として、自然な1文のコメント\n"
-            "- 例: 「わー！」「すごいね！」「えー！」「お、大谷打った！」「このYouTuber面白いね」\n"
-            "- 短い感嘆 + 1フレーズで止める\n"
-            "- 解説・情報提供ではなく感想・リアクション・共感のみ\n"
-            "- 分析構文禁止: 「〜ってことは〜」「〜からこそ〜」「〜ということで〜」「〜っていうのは〜」はNG\n"
-            "- 事実の引用禁止: 数字・年数・回数を言及した解説はNG（例: 「33回も続いた」→「そんなに続いてたんだ！」）\n"
-            "- 疑問文で終わらせない。一緒に見ているので内容は知っている前提\n"
-            "- 声に出す言葉だけ。ト書き・括弧付き説明は禁止\n"
-            "- コメントする価値がなければ \"SKIP\" と返す\n"
-        )
-
-        try:
-            speaker = _ambient_listener.current_speaker if _ambient_listener else None
-            co_reply = await asyncio.wait_for(
-                _ask_slack_bot(
-                    f"視聴中のコンテンツにコメントして: {_media_ctx.inferred_topic}\n音声: {buffer_text[:200]}",
-                    speaker,
-                    system_prompt=system_prompt,
-                ),
-                timeout=30,
-            )
-            if not co_reply or co_reply.strip().upper() == "SKIP":
-                await _broadcast_debug("[co_view] → SKIP")
-                return
-
-            # Slack Bot 拒否返答フィルタ: システムメッセージ/エラー応答をSKIP
-            _BOT_REFUSAL_PATTERNS = ("申し訳", "役割範囲外", "Claude Code", "できません", "お手伝いできません")
-            if any(p in co_reply for p in _BOT_REFUSAL_PATTERNS):
-                logger.warning(f"[co_view] bot refusal detected, skip: '{co_reply[:50]}'")
-                await _broadcast_debug("[co_view] → SKIP (bot refusal)")
-                return
-
-            co_reply = re.sub(r'[（(][^）)]*[）)]', '', co_reply).strip()
-            if not co_reply or co_reply.strip().upper() == "SKIP":
-                return
-
-            logger.info(f"[co_view] comment: '{co_reply[:60]}'")
-            mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
-            mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
-            mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
-            await _ambient_broadcast_reply(co_reply, "co_view", method, keyword, mei_speaker, mei_speed)
-            _media_ctx.co_view_last_at = now
-
-        except asyncio.TimeoutError:
-            logger.warning("[co_view] Claude timeout (30s)")
-            await _broadcast_debug("[co_view] TIMEOUT")
-        except Exception as e:
-            logger.warning(f"[co_view] error: {e}")
 
 
 class TTSQualityError(Exception):
@@ -1499,7 +2723,50 @@ async def slack_reply(bot_id: str, speaker: int = 2, speed: float = 1.0):
 
 @app.get("/api/settings")
 async def get_settings():
+    _get_auto_approve_enabled()
     return _settings
+
+
+@app.get("/api/improve_loop/auto_approve")
+async def get_improve_loop_auto_approve():
+    return {"enabled": _get_auto_approve_enabled()}
+
+
+@app.post("/api/improve_loop/auto_approve")
+async def toggle_improve_loop_auto_approve(body: dict | None = None):
+    if body and "enabled" in body:
+        enabled = _set_auto_approve_enabled(bool(body["enabled"]))
+    else:
+        enabled = _set_auto_approve_enabled(not _get_auto_approve_enabled())
+    await _broadcast_settings()
+    return {"ok": True, "enabled": enabled}
+
+
+@app.post("/api/improve_loop/run")
+async def run_improve_loop():
+    script = Path(__file__).parent / "co_view_hourly_analysis.sh"
+    if not script.exists():
+        return Response(
+            content=json.dumps({"ok": False, "error": "script not found"}),
+            status_code=404,
+            media_type="application/json",
+        )
+
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "/bin/bash",
+            str(script),
+            cwd=str(Path(__file__).parent),
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        return {"ok": True, "pid": proc.pid, "enabled": _get_auto_approve_enabled()}
+    except Exception as e:
+        return Response(
+            content=json.dumps({"ok": False, "error": str(e)}),
+            status_code=500,
+            media_type="application/json",
+        )
 
 
 @app.get("/api/yomigana")
@@ -1690,73 +2957,6 @@ async def remove_speaker(name: str):
 async def index():
     html = (Path(__file__).parent / "index.html").read_text()
     return HTMLResponse(html)
-
-
-@app.post("/api/improve_loop/run")
-async def improve_loop_run():
-    """co_view改善ループ: cmux右ペインYouTubeを正解ラベルとして精度を評価しSlackに投稿。
-
-    正解ラベル取得: cmux browser snapshot (テスト・改善ループ専用)
-    通常運用: iPad/TVからの外部音声に依存 → このパスは使わない
-    """
-    import subprocess, datetime
-    now_str = datetime.datetime.now().strftime("%H:%M")
-
-    try:
-        # 1. cmux右ペインのYouTubeタイトルを正解ラベルとして取得
-        ground_truth = ""
-        try:
-            gt_result = subprocess.run(
-                ["cmux", "browser", "snapshot", "--surface", "surface:32"],
-                capture_output=True, text=True, timeout=10
-            )
-            for line in gt_result.stdout.splitlines():
-                if "document" in line and "YouTube" in line:
-                    # 'document "タイトル - YouTube"' からタイトル抽出
-                    import re as _re
-                    m = _re.search(r'document "(.+?) - YouTube"', line)
-                    if m:
-                        ground_truth = m.group(1)
-                        break
-        except Exception as e:
-            logger.debug(f"[improve_loop] cmux snapshot failed: {e}")
-
-        # 2. 直近co_viewログ取得
-        log_result = subprocess.run(
-            ["grep", "-E", r"\[co_view\]|\[co_view/infer\]|\[co_view/stt\]",
-             "/tmp/whisper-serve.log"],
-            capture_output=True, text=True, timeout=5
-        )
-        lines = log_result.stdout.strip().splitlines()[-30:] if log_result.stdout else []
-        log_summary = "\n".join(lines) if lines else "(ログなし)"
-
-        # 3. 現在の推論結果と正解を比較
-        inferred = f"{_media_ctx.inferred_type} / {_media_ctx.inferred_topic} (conf={_media_ctx.confidence:.2f})"
-        accuracy = ""
-        if ground_truth and _media_ctx.inferred_topic:
-            accuracy = f"\n\n🎯 精度確認:\n正解: {ground_truth}\n推論: {inferred}"
-        elif ground_truth:
-            accuracy = f"\n\n🎯 正解ラベル: {ground_truth}\n推論: 未取得"
-
-        # 4. Slackに投稿
-        slack_text = (
-            f"🎬 co_view 改善ループ [{now_str}]{accuracy}\n\n"
-            f"📋 直近ログ:\n```\n{log_summary[:600]}\n```\n\n"
-            f"改善案があれば 👍 で適用します。"
-        )
-        async with httpx.AsyncClient(timeout=10) as client:
-            slack_token = os.getenv("SLACK_BOT_TOKEN", "")
-            if slack_token:
-                await client.post(
-                    "https://slack.com/api/chat.postMessage",
-                    headers={"Authorization": f"Bearer {slack_token}"},
-                    json={"channel": "C0AP2BD5HBJ", "text": slack_text}
-                )
-                logger.info(f"[improve_loop] posted. ground_truth='{ground_truth}' inferred='{_media_ctx.inferred_type}'")
-        return {"ok": True, "ground_truth": ground_truth}
-    except Exception as e:
-        logger.warning(f"[improve_loop] failed: {e}")
-        return {"ok": False, "error": str(e)}
 
 
 _proactive_task: asyncio.Task | None = None
@@ -1968,14 +3168,19 @@ async def _ask_slack_bot(question: str, speaker: str | None = None, *, system_pr
                 return data["reply"]
             else:
                 _TOOL_ROUTE_FAIL_COUNT += 1
+                err_msg = data.get("error", "")
+                is_auth_err = "authentication" in str(err_msg).lower() or "401" in str(err_msg)
                 if _TOOL_ROUTE_FAIL_COUNT >= _TOOL_ROUTE_FAIL_THRESHOLD:
                     _TOOL_ROUTE_COOLDOWN_UNTIL = time.time() + _TOOL_ROUTE_COOLDOWN_SEC
                     logger.warning(
-                        f"[tool_route] Slack Bot error: {data.get('error')} "
+                        f"[tool_route] Slack Bot error: {err_msg} "
                         f"(cooldown {_TOOL_ROUTE_COOLDOWN_SEC:.0f}s)"
                     )
                 else:
-                    logger.warning(f"[tool_route] Slack Bot error: {data.get('error')}")
+                    logger.warning(f"[tool_route] Slack Bot error: {err_msg}")
+                if is_auth_err:
+                    ts = datetime.now().strftime("%H:%M")
+                    asyncio.create_task(_broadcast_session_error(f"Auth 401 [{ts}]"))
                 return None
     except Exception as e:
         _TOOL_ROUTE_FAIL_COUNT += 1
@@ -2075,6 +3280,16 @@ async def _send_debug(ws: WebSocket, info: str):
                 await _send_diagnostic_event(rendered, target=ws)
         except Exception:
             pass
+
+
+async def _broadcast_session_error(msg: str):
+    """Broadcast session error to all clients (shown in UI regardless of debug setting)."""
+    payload = json.dumps({"type": "session_error", "msg": msg})
+    for client in list(_clients):
+        try:
+            await client.send_text(payload)
+        except Exception:
+            _clients.discard(client)
 
 
 async def _broadcast_debug(info: str):
@@ -2277,6 +3492,11 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
             logger.info(f"[always_on] BLOCKED whisper_busy: {audio_duration:.1f}s")
             return
 
+        keyboard_like, keyboard_reason = _looks_like_keyboard_pulse(audio_data)
+        if keyboard_like:
+            logger.info(f"[always_on] BLOCKED keyboard_pulse: {keyboard_reason}")
+            return
+
         _whisper_busy = True
         try:
             # Run Whisper STT and speaker ID in parallel
@@ -2302,6 +3522,11 @@ async def _process_always_on(ws: WebSocket, audio_data: bytes, *, speech_ts: int
         if _is_whisper_hallucination(text):
             logger.debug(f"[hallucination] gibberish filtered: '{text[:40]}'")
             await _send_debug(ws, f"[hallucination] '{text[:30]}' (gibberish)")
+            return
+
+        if _looks_like_initial_prompt_echo(text):
+            logger.info(f"[always_on] BLOCKED prompt_echo: '{text[:40]}'")
+            await _send_debug(ws, f"[hallucination] '{text[:30]}' (prompt echo)")
             return
 
         # Strip TTS echo from STT result (e.g. proactive "続きはチャットで確認してね" captured by mic)
@@ -2832,6 +4057,7 @@ async def websocket_endpoint(ws: WebSocket):
     _ensure_proactive_polling()
 
     # 接続時に現在の設定を送信
+    _get_auto_approve_enabled()
     if _settings:
         await ws.send_json({"type": "sync_settings", "settings": _settings})
 
@@ -2881,6 +4107,8 @@ async def websocket_endpoint(ws: WebSocket):
                 elif data.get("type") == "update_settings":
                     # クライアントから設定変更 → 保存 & 他クライアントへブロードキャスト
                     _settings.update(data.get("settings", {}))
+                    if "autoApproveEnabled" in data.get("settings", {}):
+                        _sync_auto_approve_file(bool(_settings.get("autoApproveEnabled")))
                     _save_settings(_settings)
                     # サーバー側の変数も更新
                     if "voiceSelect" in data.get("settings", {}):
@@ -3125,6 +4353,7 @@ async def _warmup_irodori():
 async def on_startup():
     global _settings
     _settings = _load_settings()
+    _sync_auto_approve_file(_get_auto_approve_enabled())
     await _warmup_irodori()
     # Wire up synthesize_speech for wake_response module
     _wake_response_module.synthesize_speech = synthesize_speech
