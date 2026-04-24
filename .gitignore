@@ -13,5 +13,7 @@ __pycache__/
 cogmem.local.toml
 .gstack/
 memory/skills.db
+memory/skills/automation-skills/
+memory/skills/meta-skills/
 scripts/voice_chat/.env
 scripts/voice_chat/settings.json
