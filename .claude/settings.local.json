@@ -7,7 +7,10 @@
       "mcp__claude_ai_Slack__slack_read_channel",
       "mcp__claude_ai_Slack__slack_search_public_and_private",
       "mcp__claude_ai_Slack__slack_search_channels",
-      "mcp__claude_ai_Google_Calendar__gcal_list_events"
+      "mcp__claude_ai_Google_Calendar__gcal_list_events",
+      "Bash(cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak.pre-rtk)",
+      "Bash(cp ~/.claude/settings.json ~/.claude/settings.json.bak.pre-rtk)",
+      "Read(//Users/akira/.claude/**)"
     ]
   }
 }
