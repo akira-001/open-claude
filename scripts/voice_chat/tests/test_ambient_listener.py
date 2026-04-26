@@ -187,3 +187,26 @@ class TestAmbientListener:
 
     def test_decide_intervention_backchannels_multi_speaker_with_direct_call(self, listener):
         assert listener.decide_intervention("メイそれわかる？", "user_in_conversation") == "backchannel"
+
+    def test_chotto_alone_does_not_promote_to_user_initiative(self, listener):
+        # 'ちょっと' は USER_CALL_RE から除外。Whisper誤認識の偽呼びかけを防ぐ。
+        # speaker未識別かつ Mei直前発話なしの状態で 'ちょっと...' 系が来ても
+        # user_initiative には昇格しない（reply に直行しない）。
+        text = "ちょっといけると言うかも 待ちてばっかり お疲れ様でした"
+        source = listener.classify_source(text)
+        assert source != "user_initiative"
+        assert listener.decide_intervention(text, source) != "reply"
+
+    def test_weak_call_without_name_downgrades_to_user_likely(self, listener):
+        # 'ねえ' 単体は声紋未識別だと user_likely に格下げ。
+        # 短文かつ質問形でないので backchannel 止まり、reply にはならない。
+        source = listener.classify_source("ねえ、ちょっと")
+        assert source == "user_likely"
+        assert listener.decide_intervention("ねえ、ちょっと", source) == "backchannel"
+
+    def test_explicit_name_call_keeps_user_initiative_without_speaker_id(self, listener):
+        # 明示的な「メイ」呼びかけは声紋なしでも user_initiative を維持。
+        # 名前は Whisper 幻聴で出にくい強いシグナルなので reply 確定でよい。
+        source = listener.classify_source("メイ、おはよう。")
+        assert source == "user_initiative"
+        assert listener.decide_intervention("メイ、おはよう。", source) == "reply"

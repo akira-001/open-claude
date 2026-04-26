@@ -206,7 +206,8 @@ class AmbientListener:
 
     # --- Source Classification ---
 
-    _USER_CALL_RE = re.compile(r'メイ|ねえ|ねぇ|ちょっと')
+    _USER_CALL_RE = re.compile(r'メイ|ねえ|ねぇ')
+    _STRONG_USER_CALL_RE = re.compile(r'メイ')
     _USER_QUESTION_RE = re.compile(r'[？?]$|して$|かな$|だよね$|よね$|だろ$|かも$|けど$|のに$')
     _MEDIA_HINT_RE = re.compile(
         r'ご視聴|チャンネル登録|高評価|字幕|※|この動画|'
@@ -260,9 +261,13 @@ class AmbientListener:
         if self.mei_spoke_ago < 30 and not self._in_media_context:
             return "user_response"
 
-        # Direct call to MEI (strong user signal, overrides media context)
+        # Direct call to MEI without voice-print verification.
+        # Explicit name "メイ" → user_initiative (Whisper rarely hallucinates a name).
+        # Weaker call words (ねえ/ねぇ) → user_likely (TV/誤認識の可能性あり、reply確定はしない).
         if self._USER_CALL_RE.search(text):
-            return "user_initiative"
+            if self._STRONG_USER_CALL_RE.search(text):
+                return "user_initiative"
+            return "user_likely"
 
         # Media context: if recent classification was media, carry it forward
         if self._in_media_context:
