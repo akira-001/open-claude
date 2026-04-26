@@ -23,13 +23,13 @@ error_threshold = 5
 log_days_threshold = 10
 checkpoint_interval_days = 21
 last_checkpoint = "2026-04-26"
-checkpoint_count = 4
+checkpoint_count = 5
 
 [cogmem.skills]
 auto_improve = "auto"  # "auto" | "ask" | "off"
 
 [cogmem.metrics]
-total_sessions = 46
+total_sessions = 47
 
 [cogmem.scoring]
 sim_weight = 0.7
