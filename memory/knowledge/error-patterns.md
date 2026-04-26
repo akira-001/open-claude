@@ -73,3 +73,15 @@
 **パターン**: スケジューラの `executeJob()` が `command` フィールドを認識せず、全ジョブを Claude Code SDK `query()` で実行。`command` 型ジョブ（Python スクリプト等）が空プロンプトで起動され crash する。
 **具体例**: interest-scanner の cron ジョブが `command` に Python パスを持ち `message` が空 → SDK 経由で空プロンプト起動 → MCP 初期化後に exit code 1。
 **対策**: `executeJob()` で job type を判定し、`command` 型は `child_process.exec()` で直接実行する分岐を追加する。ダッシュボードの `api.ts` に同様の分岐があればそれを参照する。
+
+## EP-013: 多層スコアリングバイアスが単一カテゴリへの集中を引き起こす
+**発生**: 2026-04-04 | **Arousal**: 0.9
+**パターン**: スコアリングを構成する複数の係数（multiplier / continuity / concentration penalty 等）が同方向に作用し、特定カテゴリを構造的に排除する。単一パラメータの修正では解決しない。
+**具体例**: Eve から趣味系レコメンドが全く来ない問題。Layer1 (concentration penalty 不足) + Layer2 (continuity baseline=0 のゼロ乗算) + Layer3 (conversationProfile=business による lifestyle 0.5x ペナルティ) の3層すべてが hobby を抑制していた。ai_agent が categorySelections の 79% を占有。
+**対策**: スコアリングのデバッグは「単独係数」ではなく「全係数の積」を観察する。1つのカテゴリが過度に偏った時は、最終スコアの寄与を分解して全層の積を確認する。修正は最も支配的な層から順に。
+
+## EP-014: 外部ライブラリの timeout 設定が wall-clock 全体に効くと誤解する
+**発生**: 2026-04-26 | **Arousal**: 0.8
+**パターン**: ライブラリ提供の timeout オプションは「単一リクエスト」や「単一 I/O 操作」単位で、内部で複数の連鎖呼び出しを行う処理では wall-clock 全体のタイムアウトにならない。
+**具体例**: yt_dlp の `socket_timeout: 30` は HTTP リクエスト単位。`ytsearch` は内部で検索ページ→各動画メタデータ取得と連鎖するため、wall-clock では分単位のハングが発生しうる。interest-scanner が 19分10秒動いて cron で error 終了した。
+**対策**: 外部ライブラリ呼び出しに wall-clock 全体タイムアウトが必要な場合は、daemon thread + `Thread.join(timeout=N)` か `concurrent.futures` で自前で wall-clock を被せる。ライブラリの timeout 設定だけに頼らない。cron の timeoutSeconds は最後の防衛線で、SIGTERM が効かないハングには効かない場合がある。

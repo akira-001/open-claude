@@ -22,3 +22,8 @@
 ## INS-004: autocompact バッファーは Session Init の負荷の可視化
 **発生**: 2026-03-29 | **Arousal**: 0.5 | **ドメイン**: context-management
 autocompact バッファー = 現在のセッション内の古いターン。セッション開始直後でも大きいのは Session Init がその場で大量のコンテンツを展開するから。バッファーサイズは Session Init の設計コストの指標として使える。
+
+## INS-005: macOS Power Nap (TCPKeepAlive) の動作と cron への影響
+**発生**: 2026-04-26 | **Arousal**: 0.4 | **ドメイン**: cron-operations
+macOS は AC 給電中、約20分間隔で Sleep ↔ DarkWake のメンテナンスサイクルを実行（iMessage/iCloud/APNs リスナー維持/メール新着取得 等）。クラムシェル中も動作するので「閉じてるのに動いてる」状態は正常。cron の `pmset repeat` を別途設定しない限りユーザー cron は走らない（ユーザーセッションが起きていないため）。"due to Notification" Wake は2種類: (1) `:58/:28 + DriverReason rtc` = APNs 経由カレンダー通知等、(2) USB-C_plug = 充電器抜き差し。`usernoted` ログを `log show --predicate 'process == "usernoted"'` で見ると通知元アプリ・カテゴリが特定できる（macOS の `<private>` redaction にかからない範囲で）。
+**応用**: cron 24時間運用ジョブで深夜の watchdog アラートが頻発する場合、まず PC のスリープ範囲を確認。スリープ時間帯外（活動時間帯のみ）に cron を絞れば誤検知が消える。

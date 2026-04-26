@@ -101,17 +101,24 @@ def main() -> None:
         print(f"  [{i+1}] lp={lp:.3f} lat={lat:.2f}s text='{text[:60]}'")
 
     # ============================================================
-    # H3: webrtcvad_voice_ratio の副作用
+    # H3: webrtcvad_voice_ratio の副作用 — トレース版
     # ============================================================
     print("\n" + "=" * 70)
-    print("H3: webrtcvad_voice_ratio 呼び出し前後で audio が変わるか")
+    print("H3-trace: webrtcvad の各ステップで audio が変わるかトレース")
     print("=" * 70)
     audio = audio_master.copy()
     print(f"  before vad: {hash_audio(audio)}")
-    vr = webrtcvad_voice_ratio(audio, mode=3)
+    vr = trace_webrtcvad(audio, mode=3)
     print(f"  voice_ratio={vr:.3f}")
     print(f"  after  vad: {hash_audio(audio)}")
     print(f"  master same: {np.array_equal(audio, audio_master)}")
+
+    # frombuffer 由来かどうか: 単純な float32 配列で再現するか
+    print("\n  --- 別途: frombufferとは無関係の np.array で再現テスト ---")
+    audio2 = np.random.randn(112000).astype(np.float32) * 0.1
+    print(f"  before vad: {hash_audio(audio2)}")
+    vr = trace_webrtcvad(audio2, mode=3)
+    print(f"  after  vad: {hash_audio(audio2)}")
 
     # ============================================================
     # H1+H3: webrtcvad呼んだ後に kotoba 推論 → 結果が変わるか
