@@ -156,6 +156,8 @@ class MeetingRecorder {
           segmentCount: result.segment_count,
           elapsed: result.elapsed,
         });
+        // 文字起こし完了後、固有名詞候補を抽出（バックグラウンド）
+        this._kickoffTermExtraction(body, baseName);
       } else {
         this.onSaved({
           phase: 'transcribe_failed',
@@ -166,6 +168,26 @@ class MeetingRecorder {
     } finally {
       this.pendingTranscriptions = Math.max(0, this.pendingTranscriptions - 1);
       this.onQueueChange(this.pendingTranscriptions);
+    }
+  }
+
+  async _kickoffTermExtraction(transcript, baseName) {
+    try {
+      const resp = await fetch('http://localhost:8767/api/transcribe/extract-terms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript }),
+      });
+      const result = await resp.json();
+      if (result?.ok && Array.isArray(result.candidates) && result.candidates.length > 0) {
+        this.onSaved({
+          phase: 'term_candidates',
+          baseName,
+          candidates: result.candidates,
+        });
+      }
+    } catch (err) {
+      console.warn('[MeetingRecorder] term extract failed', err);
     }
   }
 

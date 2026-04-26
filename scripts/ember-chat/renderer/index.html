@@ -150,6 +150,78 @@
     50% { transform: scale(1.18); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
   }
 
+  /* Term candidate chips after transcription */
+  .term-candidates {
+    background: rgba(249, 115, 22, 0.06);
+    border: 1px solid rgba(249, 115, 22, 0.25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 4px 0;
+    font-size: 12px;
+    color: var(--ember-text-muted);
+  }
+  .term-candidates .tc-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: var(--ember-text);
+    font-weight: 600;
+  }
+  .term-candidates .tc-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .term-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--ember-surface-alt);
+    border: 1px solid var(--ember-border);
+    border-radius: 14px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, opacity 0.2s;
+  }
+  .term-chip:hover {
+    background: rgba(249, 115, 22, 0.12);
+    border-color: rgba(249, 115, 22, 0.5);
+    color: var(--ember-text);
+  }
+  .term-chip[data-state="added"] {
+    opacity: 0.5;
+    background: rgba(34, 197, 94, 0.10);
+    border-color: rgba(34, 197, 94, 0.5);
+    color: #bbf7d0;
+    cursor: default;
+  }
+  .term-chip[data-state="dismissed"] {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .term-chip .tc-canonical {
+    font-weight: 600;
+  }
+  .term-chip .tc-variants {
+    font-size: 10px;
+    opacity: 0.65;
+  }
+  .term-chip .tc-action {
+    font-size: 11px;
+    color: var(--ember-primary);
+  }
+  .term-candidates .tc-skip {
+    margin-left: auto;
+    font-size: 11px;
+    background: transparent;
+    border: none;
+    color: var(--ember-text-dim);
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .term-candidates .tc-skip:hover { color: var(--ember-text); }
+
   /* Server status */
   #serverStatus {
     display: flex;
@@ -2092,6 +2164,8 @@ function initMeetingRecorder() {
         const took = info.elapsed ? ` / ${info.elapsed.toFixed(1)}s` : '';
         const txtName = info.textPath ? info.textPath.split('/').pop() : '';
         addMessage(`文字起こし完了: ${txtName} (${dur}${took}, ${info.segmentCount || 0}セグメント)`, 'status');
+      } else if (info.phase === 'term_candidates') {
+        renderTermCandidates(info.candidates, info.baseName);
       } else if (info.phase === 'transcribe_failed') {
         addMessage(`文字起こし失敗: ${info.error}（録音は保存済み）`, 'status');
       }
@@ -2118,6 +2192,68 @@ function initMeetingRecorder() {
 }
 
 initMeetingRecorder();
+
+function renderTermCandidates(candidates, baseName) {
+  if (!candidates || candidates.length === 0) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'msg status';
+  wrap.innerHTML = `
+    <div class="term-candidates">
+      <div class="tc-header">
+        <span>新語候補（${candidates.length}件） — タップで辞書追加</span>
+        <button class="tc-skip">全部スキップ</button>
+      </div>
+      <div class="tc-list"></div>
+    </div>`;
+  const list = wrap.querySelector('.tc-list');
+  candidates.forEach((cand, idx) => {
+    const chip = document.createElement('span');
+    chip.className = 'term-chip';
+    chip.title = `${cand.type || ''} | variants: ${cand.variants.join(', ')}`;
+    chip.innerHTML = `
+      <span class="tc-canonical">+ ${escapeHtml(cand.canonical)}</span>
+      <span class="tc-variants">[${escapeHtml(cand.variants.slice(0, 2).join(', '))}${cand.variants.length > 2 ? '…' : ''}]</span>
+    `;
+    chip.addEventListener('click', async () => {
+      if (chip.dataset.state) return;
+      chip.dataset.state = 'pending';
+      try {
+        const resp = await fetch('http://localhost:8767/api/transcribe/user-dict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            canonical: cand.canonical,
+            variants: cand.variants,
+            type: cand.type,
+          }),
+        });
+        const r = await resp.json();
+        if (r.ok) {
+          chip.dataset.state = 'added';
+          chip.querySelector('.tc-canonical').textContent = `✓ ${cand.canonical}`;
+        } else {
+          chip.dataset.state = '';
+          alert(`追加失敗: ${r.error || 'unknown'}`);
+        }
+      } catch (err) {
+        chip.dataset.state = '';
+        alert(`追加失敗: ${err}`);
+      }
+    });
+    list.appendChild(chip);
+  });
+  wrap.querySelector('.tc-skip').addEventListener('click', () => {
+    list.querySelectorAll('.term-chip').forEach((chip) => {
+      if (!chip.dataset.state) chip.dataset.state = 'dismissed';
+    });
+  });
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 </script>
 
 </body>

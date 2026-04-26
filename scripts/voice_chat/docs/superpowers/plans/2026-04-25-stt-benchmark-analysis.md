@@ -81,26 +81,78 @@
 
 `desk_monologue` (1.10s), `direct_question` (1.50s), `tv_outro` (1.70s) は録音内容と manifest の transcript が明らかに不一致（"疲れたなあ" 期待 → "うーん" 出力）。これは ambient_listener 回帰テスト用に作られた合成サンプルで、STT精度ベンチには不向き。
 
-## 二重VAD が悪化した原因分析
+## 二重VAD が悪化した原因分析（2026-04-26 追加調査で判明）
 
-`run_two_stage_dualvad` の実装は webrtcvad で voice_ratio 判定して、ratio<0.1 なら skip、それ以上なら音声をそのまま `run_two_stage` に渡すだけ。**音声の切り刻みは一切していない**。にもかかわらず、`run_two_stage` 単独より CER が大幅悪化する。
+### 一次原因: `webrtcvad_voice_ratio` の audio 配列破壊バグ
 
-考えられる原因：
+トレース調査で **`(audio * 32767)` が in-place 演算として実行され、audio 自体が int16値で上書きされる** バグを発見した：
 
-1. **temperature fallback の non-determinism**
-   - faster-whisper の `temperature=[0.0, 0.2, 0.4]` は失敗時に温度を上げて再試行
-   - 同じモデル・同じ入力でも、内部の rng や buffer 状態次第で違う結果が出る可能性
-   - 連続実行で蓄積する状態がある？
+```
+ENTRY:  id=100592eb0 mean=-0.000066    ← 正常な float32 音声
+STEP1:  id_a1=100592eb0 mean=-2.173577  ← id 同じ！audio が int16値で上書き
+```
 
-2. **モデル内部キャッシュ**
-   - 直前の transcribe 結果が KV cache 等に残ると、次の transcribe に影響する可能性
-   - faster-whisper（ctranslate2）でこれが起きるかは要検証
+`a1 = audio * 32767` の結果のIDが audio と同じ ＝ **新規バッファが作られず audio に直接書き込まれた**。本来 numpy の `*` 演算は新規配列を返すはず。
 
-3. **VAD 経路と非VAD経路の判定差**
-   - webrtcvad で voice_ratio 計算する際に何らかの side effect？
-   - 関数内で `(audio * 32767).clip(-32768, 32767).astype(np.int16)` の変換をするが、新規バッファ作成なので元の audio には影響しないはず
+### 影響経路
 
-**結論**: 現状の二重VAD実装は遠距離メディアに対して**効果がないどころか害**。本番採用しない。webrtcvad は別の用途（例えば「音声断片のpre-filter」ではなく「Akira近接発話のみVAD通過させる」用途）で再設計の余地がある。
+1. webrtcvad に渡された audio が int16スケール（max=19393）に変質
+2. 破壊された audio が後段の two_stage（small + kotoba）に渡される
+3. kotoba が異常スケール値を「音声」と解釈 → 幻聴
+4. → CER 0.974 という極端な悪化
+
+### 再現条件の謎
+
+- 単純な `np.random.randn` 配列では再現しない
+- 関数引数渡しでも単独では再現しない
+- WhisperModel ロード後でも単独では再現しない
+- **`investigate_dualvad.py` の特定の呼び出し履歴（H1: kotoba 5回連続 → H3: webrtcvad）下でのみ再現**
+- → **CPython 3.14 + NumPy 1.26 + メモリallocator状態 + 関数スコープ**の組み合わせが原因と推定
+- 完全な根本究明は NumPy/CPython バグ報告レベル
+
+### 修正
+
+```python
+# Before（バグあり）:
+pcm = (audio * 32767).clip(-32768, 32767).astype(np.int16).tobytes()
+
+# After（dtype 明示で新規バッファ保証）:
+scaled = np.multiply(audio, 32767.0, dtype=np.float32)
+pcm = np.clip(scaled, -32768, 32767).astype(np.int16).tobytes()
+```
+
+### 修正後の再ベンチ結果
+
+| 構成 | 修正前 CER | 修正後 CER |
+|---|---|---|
+| small | 0.743 | 0.753 |
+| kotoba | 0.703 | 0.703 |
+| two_stage | 0.726 | 0.733 |
+| **two_stage_dualvad** | **0.863** | **0.735** |
+
+dualvad の outcome 分布も two_stage と完全一致（ok=3, partial=1, missed=5, wrong=16, ok_skip=2）。
+
+### 二次的な発見: voice_ratio による「メディア弾き」は原理的に不可能
+
+修正後のベンチで voice_ratio 分布を見ると**期待と逆**：
+
+| 種類 | voice_ratio |
+|---|---|
+| 静寂・ホワイトノイズ・空メディア | 0.00-0.04（skipされる）✅ |
+| 近接発話（wake/question/monologue） | **0.44-0.65** |
+| **遠距離メディア音声** | **0.63-1.00** |
+| tv_outro | 1.00 |
+
+**遠距離メディアの方が近接発話より voice_ratio が高い**。理由は連続的に人声が流れるから（ナレーション・対談動画では会話の隙間が少ない）。WebRTC VAD は「人声成分の有無」しか見ない設計で、**「近接 vs 遠距離」も「人声 vs メディア音声」も区別できない**。
+
+→ voice_ratio による閾値切り分けは原理的に不可能。例えば近接発話 0.44 を skip しないために閾値を 0.40 にすると遠距離メディアは全通過。逆に 0.50 にすると近接発話の direct_question (0.60) は通るが wake_good_morning_01 (0.44) が誤skipされる。
+
+### 結論（更新版）
+
+- **バグ修正**: ✅ CER悪化は解消（0.863 → 0.735、two_stageと同等）
+- **期待した効果**: ❌ メディア弾きは原理的に不可能（voice_ratio が逆順）
+- **副次的効果**: ⭕ 完全静寂・ノイズの skip で超低レイテンシ（27サンプル中3件、それぞれ <0.01s）
+- **採用判定**: **見送り（変わらず）** — 副次効果のためだけに WebRTC VAD を入れる価値は薄い。Phase 0 の avg_logprob 破棄で同等の防衛効果が得られる。
 
 ## レイテンシ詳細
 

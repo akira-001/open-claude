@@ -122,7 +122,11 @@ def save_wav_16k(path: Path, audio: np.ndarray) -> None:
 
 def webrtcvad_voice_ratio(audio: np.ndarray, mode: int = 3) -> float:
     vad = webrtcvad.Vad(mode)
-    pcm = (audio * 32767).clip(-32768, 32767).astype(np.int16).tobytes()
+    # Defensive: 一部の Python/NumPy 環境で `audio * 32767` が in-place 化されて
+    # 元の配列を破壊する事例を観測（Python 3.14 + NumPy 1.26 + 特定の呼び出し履歴下）。
+    # 明示的にコピーしてから演算する。
+    scaled = np.multiply(audio, 32767.0, dtype=np.float32)
+    pcm = np.clip(scaled, -32768, 32767).astype(np.int16).tobytes()
     frame_ms = 30
     frame_bytes = int(16000 * frame_ms / 1000) * 2  # 16-bit
     if len(pcm) < frame_bytes:

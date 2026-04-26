@@ -659,12 +659,66 @@ _STT_DICT: list[tuple[re.Pattern, str]] = [
 ]
 
 
+_USER_DICT_FILE = Path(__file__).parent / "stt_dict_user.json"
+_user_dict_compiled: list[tuple[re.Pattern, str]] = []
+
+
+def _load_user_dict() -> None:
+    """stt_dict_user.json をリロード。LLM 抽出 + 承認で蓄積されるユーザー辞書。"""
+    global _user_dict_compiled
+    try:
+        raw = json.loads(_USER_DICT_FILE.read_text())
+    except FileNotFoundError:
+        _user_dict_compiled = []
+        return
+    except Exception as e:
+        logger.warning(f"[user_dict] failed to load: {e}")
+        _user_dict_compiled = []
+        return
+    compiled: list[tuple[re.Pattern, str]] = []
+    for entry in raw:
+        try:
+            patterns = entry.get("patterns") or []
+            replacement = entry.get("replacement") or ""
+            if not patterns or not replacement:
+                continue
+            # 長い variant 優先で alternation を作る
+            sorted_patterns = sorted({p for p in patterns if p}, key=len, reverse=True)
+            alternation = "|".join(re.escape(p) for p in sorted_patterns)
+            if alternation:
+                compiled.append((re.compile(alternation), replacement))
+        except Exception as e:
+            logger.warning(f"[user_dict] skip invalid entry {entry}: {e}")
+    _user_dict_compiled = compiled
+    logger.info(f"[user_dict] loaded {len(_user_dict_compiled)} entries")
+
+
+def _save_user_dict(entries: list[dict]) -> None:
+    _USER_DICT_FILE.write_text(json.dumps(entries, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _load_user_dict()
+
+
+def _read_user_dict() -> list[dict]:
+    try:
+        return json.loads(_USER_DICT_FILE.read_text())
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        logger.warning(f"[user_dict] read failed: {e}")
+        return []
+
+
 def _apply_stt_dict(text: str) -> str:
-    """辞書ベースの高速 STT 補正。マッチしたら置換して返す。"""
+    """辞書ベースの高速 STT 補正（組み込み + ユーザー辞書）。マッチしたら置換して返す。"""
     corrected = text
     for pattern, replacement in _STT_DICT:
         corrected = pattern.sub(replacement, corrected)
+    for pattern, replacement in _user_dict_compiled:
+        corrected = pattern.sub(replacement, corrected)
     return corrected
+
+
+_load_user_dict()
 
 
 # 明らかに補正不要なパターン（短い相槌、感嘆詞、コマンド系）
@@ -3565,6 +3619,152 @@ def _transcribe_file_sync(path: str) -> dict:
         "segment_count": len(seg_list),
         "dict_corrections": correction_count,
     }
+
+
+_TERM_EXTRACT_PROMPT = """以下の音声文字起こしテキストから、Whisperが将来誤認識する可能性が高い「固有名詞・専門用語・人名」を抽出して。
+
+抽出対象:
+- 人名（参加者・登場人物。例: 山田さん, 佐々さん）
+- 製品名・サービス名・ブランド名・組織名
+- 業界特有の専門用語・カタカナ語
+- 既に英字で正しく書かれている語の元のカタカナ表現
+
+抽出しない:
+- 一般的な日本語語彙（言葉・話・状態 等）
+- 単なる接続詞・助詞
+- 既に正しく英字化されてる Shopify, Claude Code などはそのまま無視
+
+出力フォーマット（**JSON 配列のみ**。前置き・コードブロック・説明は禁止）:
+[
+  {{
+    "canonical": "正規表記（漢字+さん 等）",
+    "variants": ["想定される誤認識バリアント1", "バリアント2"],
+    "type": "person|product|tech|organization"
+  }}
+]
+
+variants は同音の他のカナ表記、よくある聞き間違い、敬称あり/なし等。最低1つ含める。
+全体で **最大10件**まで。重要度の高いものから順に。
+
+【テキスト】
+{transcript}"""
+
+
+async def _extract_term_candidates(transcript: str, model: str = "gemma4:e4b") -> list[dict]:
+    """LLM で transcript から固有名詞候補を抽出。"""
+    prompt = _TERM_EXTRACT_PROMPT.format(transcript=transcript[:8000])  # gemma4:e4b の context 余裕
+    try:
+        raw = await chat_with_llm([{"role": "user", "content": prompt}], model=model)
+    except Exception as e:
+        logger.warning(f"[term_extract] LLM call failed: {e}")
+        return []
+
+    # JSON 配列を頑健に取り出す（前後に説明文が混ざってもOK）
+    match = re.search(r"\[\s*\{.*?\}\s*\]", raw, re.DOTALL)
+    if not match:
+        logger.info(f"[term_extract] no JSON array in LLM response: {raw[:200]}")
+        return []
+    try:
+        parsed = json.loads(match.group(0))
+    except json.JSONDecodeError as e:
+        logger.warning(f"[term_extract] JSON parse failed: {e} | raw: {match.group(0)[:200]}")
+        return []
+
+    # 既存辞書にあるものは除外（組み込み辞書 + ユーザー辞書）
+    existing_replacements = {repl for _, repl in _STT_DICT} | {repl for _, repl in _user_dict_compiled}
+    existing_patterns: set[str] = set()
+    for pat, _ in _STT_DICT:
+        existing_patterns.update(pat.pattern.split("|"))
+    for pat, _ in _user_dict_compiled:
+        existing_patterns.update(pat.pattern.split("|"))
+
+    candidates: list[dict] = []
+    for entry in parsed:
+        if not isinstance(entry, dict):
+            continue
+        canonical = (entry.get("canonical") or "").strip()
+        variants = [v.strip() for v in entry.get("variants") or [] if v.strip()]
+        if not canonical or not variants:
+            continue
+        if canonical in existing_replacements:
+            continue
+        # variants の中に既に登録済みパターンがあれば skip
+        if any(v in existing_patterns or re.escape(v) in existing_patterns for v in variants):
+            continue
+        candidates.append({
+            "canonical": canonical,
+            "variants": variants,
+            "type": entry.get("type", "unknown"),
+        })
+        if len(candidates) >= 10:
+            break
+    logger.info(f"[term_extract] {len(candidates)} candidates extracted")
+    return candidates
+
+
+@app.post("/api/transcribe/extract-terms")
+async def extract_terms_endpoint(body: dict | None = None):
+    """transcript を受け取って LLM で固有名詞候補を抽出。"""
+    if not body:
+        return {"ok": False, "error": "missing body"}
+    transcript = body.get("transcript")
+    path = body.get("path")
+    if not transcript and path:
+        try:
+            transcript = Path(path).read_text(encoding="utf-8")
+        except Exception as e:
+            return {"ok": False, "error": f"failed to read path: {e}"}
+    if not transcript:
+        return {"ok": False, "error": "missing transcript or path"}
+    candidates = await _extract_term_candidates(transcript)
+    return {"ok": True, "candidates": candidates}
+
+
+@app.get("/api/transcribe/user-dict")
+async def get_user_dict():
+    return {"ok": True, "entries": _read_user_dict()}
+
+
+@app.post("/api/transcribe/user-dict")
+async def add_user_dict(body: dict | None = None):
+    """ユーザー辞書にエントリ追加。
+    body: {canonical, variants[], type?}
+    既存の同じ canonical があれば variants をマージ。
+    """
+    if not body:
+        return {"ok": False, "error": "missing body"}
+    canonical = (body.get("canonical") or "").strip()
+    variants = [v.strip() for v in body.get("variants") or [] if v.strip()]
+    if not canonical or not variants:
+        return {"ok": False, "error": "canonical and variants required"}
+
+    entries = _read_user_dict()
+    matched = next((e for e in entries if e.get("replacement") == canonical), None)
+    if matched:
+        existing_variants = set(matched.get("patterns") or [])
+        existing_variants.update(variants)
+        matched["patterns"] = sorted(existing_variants)
+        matched["updated_at"] = datetime.now().isoformat(timespec="seconds")
+    else:
+        entries.append({
+            "id": hashlib.sha1(f"{canonical}:{time.time()}".encode()).hexdigest()[:12],
+            "replacement": canonical,
+            "patterns": sorted(set(variants)),
+            "type": body.get("type", "unknown"),
+            "added_at": datetime.now().isoformat(timespec="seconds"),
+        })
+    _save_user_dict(entries)
+    return {"ok": True, "entries": entries}
+
+
+@app.delete("/api/transcribe/user-dict/{entry_id}")
+async def delete_user_dict(entry_id: str):
+    entries = _read_user_dict()
+    new_entries = [e for e in entries if e.get("id") != entry_id]
+    if len(new_entries) == len(entries):
+        return {"ok": False, "error": "not found"}
+    _save_user_dict(new_entries)
+    return {"ok": True, "entries": new_entries}
 
 
 @app.post("/api/transcribe-file")

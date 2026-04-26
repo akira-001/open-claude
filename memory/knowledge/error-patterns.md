@@ -85,3 +85,9 @@
 **パターン**: ライブラリ提供の timeout オプションは「単一リクエスト」や「単一 I/O 操作」単位で、内部で複数の連鎖呼び出しを行う処理では wall-clock 全体のタイムアウトにならない。
 **具体例**: yt_dlp の `socket_timeout: 30` は HTTP リクエスト単位。`ytsearch` は内部で検索ページ→各動画メタデータ取得と連鎖するため、wall-clock では分単位のハングが発生しうる。interest-scanner が 19分10秒動いて cron で error 終了した。
 **対策**: 外部ライブラリ呼び出しに wall-clock 全体タイムアウトが必要な場合は、daemon thread + `Thread.join(timeout=N)` か `concurrent.futures` で自前で wall-clock を被せる。ライブラリの timeout 設定だけに頼らない。cron の timeoutSeconds は最後の防衛線で、SIGTERM が効かないハングには効かない場合がある。
+
+## EP-015: numpy `(arr * scalar)` が特定環境下で非決定的に in-place 化される
+**発生**: 2026-04-26 | **Arousal**: 0.95
+**パターン**: CPython 3.14 + NumPy 1.26 + 特定の呼び出し履歴下で、`a1 = arr * scalar` の結果が**新規バッファではなく元の arr 自体に in-place で書き込まれる**。numpy の通常仕様では `*` は新規配列を返すはずだが、メモリ allocator の状態と関数スコープの組み合わせで再現する。単独の小さなテストでは再現せず、複雑な呼び出しコンテキストでのみ発生。
+**具体例**: STT ベンチの `webrtcvad_voice_ratio()` で `pcm = (audio * 32767).clip(...).astype(np.int16).tobytes()` の `(audio * 32767)` が in-place 化され、float32 の audio 配列が int16 値（mean -0.000066 → -2.17, max 0.59 → 19393）で上書き。後段の Whisper transcribe が破壊された値を入力として受け取り、CER 0.97 という極端な幻聴。`investigate_dualvad.py` のトレースで `id(a1) == id(audio)` を観測して特定。
+**対策**: numpy で **dtype 変更を伴う scalar 演算** では `np.multiply(arr, x, dtype=...)` で新規バッファを明示する。`arr * x` は環境依存で in-place 化されるリスクがある。VAD/DSP 等の前処理関数は最初に `arr.copy()` か `np.ascontiguousarray(arr, copy=True)` を入れて defensive にする。教訓: numpy 演算が「新規配列を返す」前提に依存するコードは、CPython/NumPy のバージョン組み合わせで破綻しうる。

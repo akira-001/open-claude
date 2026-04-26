@@ -335,14 +335,28 @@ state ソース優先順位: **Bridge > Cloud API > Network Discovery > Mic Scen
 
 ### Phase 0.9: 二重VAD（webrtcvad + Silero）— **採用見送り**
 
-> **ベンチエビデンス**: 遠距離メディアで CER 0.76 → **0.97 と悪化**。実装は webrtcvad で voice_ratio 判定するだけで音声切り刻んでないのに、kotoba 単独より結果が悪い。temperature fallback の non-determinism or faster-whisper 内部キャッシュ影響の可能性。
+> **2026-04-26 追加調査**: 当初の CER 悪化（0.76→0.97）は `webrtcvad_voice_ratio` の audio配列破壊バグが原因と判明。修正後は CER 0.735（two_stage と同等）まで回復。**ただし期待した「メディア弾き」効果は原理的に得られず、採用見送り判定は変わらず**。
 
-- ❌ **現実装は採用しない**
-- 🔬 **再設計するなら別ベンチで検証してから判断**:
+#### バグ詳細
+- `(audio * 32767)` が特定条件で in-place 化され audio が破壊
+- CPython 3.14 + NumPy 1.26 + 特定の呼び出し履歴の組み合わせ
+- 修正: `np.multiply(audio, 32767.0, dtype=np.float32)` で dtype 明示
+- 検証スクリプト: `tests/investigate_dualvad.py`
+
+#### voice_ratio による「メディア弾き」が不可能な理由
+- 静寂・ノイズ: voice_ratio 0.00-0.04（skip可能）✅
+- 近接発話: voice_ratio **0.44-0.65**
+- 遠距離メディア（人声）: voice_ratio **0.63-1.00**
+- → 近接発話より遠距離メディアの方が voice_ratio が高い**逆転現象**
+- 閾値での切り分け不可能
+
+#### 結論
+- ❌ **現実装は採用しない**（メディア弾きはできない）
+- ⭕ 副次効果として静寂・空メディアの超低レイテンシ skip はあるが、Phase 0 の avg_logprob 破棄で同等の防衛効果が得られるため、追加価値薄い
+- 🔬 **再設計するなら別アプローチ**:
   - webrtcvad で voice 区間のみ抽出して**音声を実際に切り刻む**設計
-  - mode を 3 → 2 に下げる（aggressive 過ぎ）
-  - voice_ratio 閾値を 0.1 → 0.3 に上げる
-  - Phase 0/0.5/0.7 採用後の幻聴率がまだ高いなら検討
+  - 音響特徴（near-field 判定、SNR、duration）と組み合わせる
+  - WebRTC VAD 単体では「人声 vs メディア人声」の区別は原理的に不可能なので、別の信号と組み合わせる前提で再考
 
 ### Phase 0.95: 信号レベル AEC（保留）
 
