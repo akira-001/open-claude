@@ -3326,6 +3326,71 @@ async def synthesize_speech_voicevox(text: str, speaker_id: int, speed: float = 
 IRODORI_API_URL = "http://localhost:7860"
 
 
+def _trim_irodori_lead_in(
+    audio: bytes,
+    *,
+    threshold_rms: float = 500.0,
+    max_trim_sec: float = 2.0,
+    keep_before_sec: float = 0.05,
+) -> bytes:
+    """Irodori が稀に生成する先頭バズノイズ／長すぎる無音を除去。
+
+    最初に threshold_rms を超える 50ms 窓を探し、その手前 keep_before_sec まで残して切り詰める。
+    max_trim_sec を超えるトリムや、形式不明の WAV はそのまま返す（音声本体を切らない）。
+    """
+    if len(audio) < 44 or audio[:4] != b'RIFF':
+        return audio
+    sample_rate = struct.unpack_from('<I', audio, 24)[0]
+    channels = struct.unpack_from('<H', audio, 22)[0]
+    bits = struct.unpack_from('<H', audio, 34)[0]
+    if bits != 16 or channels != 1 or sample_rate <= 0:
+        return audio
+
+    data_tag = audio.find(b'data', 12)
+    if data_tag < 0 or data_tag + 8 > len(audio):
+        return audio
+    pcm_offset = data_tag + 8
+    pcm = audio[pcm_offset:]
+
+    bytes_per_sample = (bits // 8) * channels
+    window_samples = int(sample_rate * 0.05)
+    window_bytes = window_samples * bytes_per_sample
+    if window_bytes <= 0 or len(pcm) < window_bytes:
+        return audio
+
+    max_scan_bytes = int(max_trim_sec * sample_rate) * bytes_per_sample
+    scan_limit = min(len(pcm) - window_bytes, max_scan_bytes + window_bytes)
+    speech_offset: int | None = None
+    for offset in range(0, scan_limit, window_bytes):
+        chunk = pcm[offset:offset + window_bytes]
+        n = len(chunk) // 2
+        if n == 0:
+            break
+        vals = struct.unpack_from(f'<{n}h', chunk)
+        rms = math.sqrt(sum(v * v for v in vals) / n)
+        if rms >= threshold_rms:
+            speech_offset = offset
+            break
+
+    if speech_offset is None or speech_offset == 0:
+        return audio
+
+    keep_before_bytes = int(keep_before_sec * sample_rate) * bytes_per_sample
+    trim_bytes = speech_offset - keep_before_bytes
+    if trim_bytes <= 0:
+        return audio
+
+    new_pcm = pcm[trim_bytes:]
+    new_data_size = len(new_pcm)
+    header = bytearray(audio[:pcm_offset])
+    struct.pack_into('<I', header, data_tag + 4, new_data_size)
+    struct.pack_into('<I', header, 4, len(header) + new_data_size - 8)
+    trimmed_sec = trim_bytes / (sample_rate * bytes_per_sample)
+    logger.info(
+        f"[IRODORI trim] removed {trimmed_sec:.2f}s of lead-in "
+        f"(speech_at={speech_offset / (sample_rate * bytes_per_sample):.2f}s)"
+    )
+    return bytes(header) + new_pcm
 
 
 
@@ -3345,7 +3410,7 @@ async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 
                 json={"text": text, "num_steps": num_steps},
             )
             resp.raise_for_status()
-            return resp.content
+            return _trim_irodori_lead_in(resp.content)
 
     caption = "自然で聞き取りやすい声で読み上げてください。"
     if voice_entry:
@@ -3370,7 +3435,7 @@ async def _synthesize_irodori_unlocked(text: str, voice_id: str, speed: float = 
             json={"text": text, "caption": caption, "num_steps": num_steps},
         )
         resp.raise_for_status()
-        return resp.content
+        return _trim_irodori_lead_in(resp.content)
 
 
 
