@@ -3686,37 +3686,106 @@ def _transcribe_file_sync(path: str) -> dict:
     }
 
 
-_TERM_EXTRACT_PROMPT = """以下の音声文字起こしテキストから、Whisperが将来誤認識する可能性が高い「固有名詞・専門用語・人名」を抽出して。
+_TERM_EXTRACT_PROMPT = """音声文字起こしテキストから、辞書登録すべき**固有名詞のみ**を抽出してください。
 
-抽出対象:
-- 人名（参加者・登場人物。例: 山田さん, 佐々さん）
-- 製品名・サービス名・ブランド名・組織名
-- 業界特有の専門用語・カタカナ語
-- 既に英字で正しく書かれている語の元のカタカナ表現
+# 抽出対象（YES）
+- 人名（"山田さん"、"佐々"等）
+- 自社・他社の組織名、ブランド名
+- 自社プロダクト・特定のサービス名（一般名詞ではない）
+- 業界特有のジャーゴン（その業界以外で通じない語）
 
-抽出しない:
-- 一般的な日本語語彙（言葉・話・状態 等）
-- 単なる接続詞・助詞
-- 既に正しく英字化されてる Shopify, Claude Code などはそのまま無視
+# 抽出しない（NO — これらは絶対に出さない）
+- **一般日本語語彙**: 話、言葉、状態、画面、機能、商品 等
+- **一般IT用語**: API、JSON、HTTP、データベース、ドメイン、サーバー、ファイル、フォルダ、URL、コード、テキスト、アプリ、ウェブ、バックエンド、フロントエンド 等
+- **広く知られたメジャーサービス**: Google、Apple、Amazon、Microsoft、Twitter 等（誰もが知ってるレベル）
+- **動詞・形容詞・助詞を含む語**
 
-出力フォーマット（**JSON 配列のみ**。前置き・コードブロック・説明は禁止）:
+# variants の作り方
+- canonical の同音の別カナ表記、よくある聞き間違い、敬称有/無のみ
+- **絶対に**助詞（の/を/に/が/で/と/は/も）や活用語尾を含めない
+- 悪い例: "ボイスアップラボの"（助詞「の」入り）, "池田さんが"（助詞入り）
+- 良い例: "ボイスアップラボ", "池田さん", "イケダ"
+
+# 出力フォーマット
+**JSON 配列のみ。前置き・コードブロック・説明は禁止。**
 [
-  {{
-    "canonical": "正規表記（漢字+さん 等）",
-    "variants": ["想定される誤認識バリアント1", "バリアント2"],
-    "type": "person|product|tech|organization"
-  }}
+  {{"canonical": "...", "variants": ["..."], "type": "person|product|tech|organization"}}
 ]
 
-variants は同音の他のカナ表記、よくある聞き間違い、敬称あり/なし等。最低1つ含める。
-全体で **最大10件**まで。重要度の高いものから順に。
+# 良い抽出例
+入力: "ボイスアップラボの池田さんがShopifyのカブト商品を作った話"
+出力: [
+  {{"canonical": "ボイスアップラボ", "variants": ["ボイスアプラボ", "ボイスアップラブ"], "type": "organization"}},
+  {{"canonical": "池田さん", "variants": ["イケダ", "イケダさん"], "type": "person"}},
+  {{"canonical": "カブト", "variants": ["かぶと", "兜"], "type": "product"}}
+]
+（Shopify は既知メジャーサービスなのでスキップ）
+（一般語 "話・商品" は除外）
 
-【テキスト】
+# 制約
+- 最大10件
+- 重要度（固有性が高い順）でソート
+
+【入力テキスト】
 {transcript}"""
 
 
+# --- Term extraction post-filters ---
+
+# 末尾の助詞・活用語尾を除去するパターン
+_TRAILING_PARTICLE_RE = re.compile(r"(?:の|を|に|が|で|と|は|も|へ|や|か|ね|よ|な|だ|です|ます|から|まで|より|って|ちゃん|くん|さん)+$")
+
+# 一般語ブラックリスト（辞書に入れる価値が低い、または広範囲で誤マッチを起こす語）
+_GENERIC_BLACKLIST = {
+    # 一般IT
+    "API", "JSON", "HTTP", "HTTPS", "URL", "URI", "HTML", "CSS",
+    "ドメイン", "サーバー", "サーバ", "ファイル", "フォルダ", "コード",
+    "テキスト", "データ", "データベース", "アプリ", "アプリケーション",
+    "ウェブ", "ウェブサイト", "サイト", "ページ", "リンク",
+    # 一般語
+    "画面", "機能", "商品", "話", "言葉", "状態", "場合", "情報",
+    "今日", "明日", "昨日", "今", "今回", "今度", "前回",
+    # メジャー企業/サービス（既知すぎて辞書化価値なし）
+    "Google", "Apple", "Amazon", "Microsoft", "Meta", "Twitter", "X",
+    "Facebook", "Instagram", "YouTube", "TikTok", "LINE", "iPhone",
+}
+
+
+def _strip_particles(text: str) -> str:
+    """variant 末尾の助詞・活用語尾を剥がす。"""
+    return _TRAILING_PARTICLE_RE.sub("", text).strip()
+
+
+def _normalize_for_compare(text: str) -> str:
+    """重複検出用の正規化（記号除去、半角/全角揺れ吸収）。"""
+    return re.sub(r"[\s\-_·・]+", "", text).lower()
+
+
+def _is_blacklisted(canonical: str) -> bool:
+    if canonical in _GENERIC_BLACKLIST:
+        return True
+    # ASCII 大文字略語（API/JSON 等）は単独だと辞書化価値低い
+    if re.fullmatch(r"[A-Z]{2,5}", canonical):
+        return True
+    return False
+
+
+def _build_existing_term_index() -> set[str]:
+    """組み込み辞書 + ユーザー辞書の置換先・パターン集合（重複検出用、正規化済み）。"""
+    index: set[str] = set()
+    for pat, repl in _STT_DICT:
+        index.add(_normalize_for_compare(repl))
+        for alt in pat.pattern.split("|"):
+            index.add(_normalize_for_compare(alt))
+    for pat, repl in _user_dict_compiled:
+        index.add(_normalize_for_compare(repl))
+        for alt in pat.pattern.split("|"):
+            index.add(_normalize_for_compare(alt))
+    return index
+
+
 async def _extract_term_candidates(transcript: str, model: str = "gemma4:e4b") -> list[dict]:
-    """LLM で transcript から固有名詞候補を抽出。"""
+    """LLM で transcript から固有名詞候補を抽出し、後処理フィルタを適用。"""
     prompt = _TERM_EXTRACT_PROMPT.format(transcript=transcript[:8000])  # gemma4:e4b の context 余裕
     try:
         raw = await chat_with_llm([{"role": "user", "content": prompt}], model=model)
@@ -3735,35 +3804,58 @@ async def _extract_term_candidates(transcript: str, model: str = "gemma4:e4b") -
         logger.warning(f"[term_extract] JSON parse failed: {e} | raw: {match.group(0)[:200]}")
         return []
 
-    # 既存辞書にあるものは除外（組み込み辞書 + ユーザー辞書）
-    existing_replacements = {repl for _, repl in _STT_DICT} | {repl for _, repl in _user_dict_compiled}
-    existing_patterns: set[str] = set()
-    for pat, _ in _STT_DICT:
-        existing_patterns.update(pat.pattern.split("|"))
-    for pat, _ in _user_dict_compiled:
-        existing_patterns.update(pat.pattern.split("|"))
-
+    existing_index = _build_existing_term_index()
     candidates: list[dict] = []
+    rejected_count = {"blacklist": 0, "duplicate": 0, "empty_after_strip": 0, "short": 0}
+
     for entry in parsed:
         if not isinstance(entry, dict):
             continue
         canonical = (entry.get("canonical") or "").strip()
-        variants = [v.strip() for v in entry.get("variants") or [] if v.strip()]
-        if not canonical or not variants:
+        canonical = _strip_particles(canonical)  # canonical も助詞除去
+        if not canonical or len(canonical) < 2:
+            rejected_count["short"] += 1
             continue
-        if canonical in existing_replacements:
+        if _is_blacklisted(canonical):
+            rejected_count["blacklist"] += 1
             continue
-        # variants の中に既に登録済みパターンがあれば skip
-        if any(v in existing_patterns or re.escape(v) in existing_patterns for v in variants):
+
+        # variants 整形: 助詞除去 → 重複・空除去
+        raw_variants = entry.get("variants") or []
+        variants_set: list[str] = []
+        for v in raw_variants:
+            v = _strip_particles((v or "").strip())
+            if v and len(v) >= 2 and v not in variants_set:
+                variants_set.append(v)
+        if not variants_set:
+            rejected_count["empty_after_strip"] += 1
             continue
+
+        # 既存辞書との重複検出（canonical または いずれかの variant が既存にあれば skip）
+        canonical_norm = _normalize_for_compare(canonical)
+        if canonical_norm in existing_index:
+            rejected_count["duplicate"] += 1
+            continue
+        if any(_normalize_for_compare(v) in existing_index for v in variants_set):
+            rejected_count["duplicate"] += 1
+            continue
+
         candidates.append({
             "canonical": canonical,
-            "variants": variants,
+            "variants": variants_set,
             "type": entry.get("type", "unknown"),
         })
+        # 候補自身も以後の重複検出に加える
+        existing_index.add(canonical_norm)
+        existing_index.update(_normalize_for_compare(v) for v in variants_set)
         if len(candidates) >= 10:
             break
-    logger.info(f"[term_extract] {len(candidates)} candidates extracted")
+
+    logger.info(
+        f"[term_extract] {len(candidates)} candidates extracted "
+        f"(rejected: blacklist={rejected_count['blacklist']}, dup={rejected_count['duplicate']}, "
+        f"short={rejected_count['short']}, empty_after_strip={rejected_count['empty_after_strip']})"
+    )
     return candidates
 
 
@@ -4526,7 +4618,7 @@ async def _always_on_llm_reply(ws: WebSocket, text: str):
             logger.info(f"[tool_route] skipped by cooldown ({remaining:.0f}s left)")
 
         if not reply:
-            model = _settings.get("modelSelect", "gemma4:e4b")
+            model = (_settings.get("modelSelect") or "gemma4:e4b")
             if needs_tool:
                 local_tool_reply = await _local_llm_with_tools_reply(text, model)
                 if local_tool_reply:
@@ -5069,7 +5161,7 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
                         "user_likely": "User(推定)", "user_identified": "User(声紋)",
                         "media_likely": "Media(TV等)", "fragmentary": "Fragment", "unknown": "不明",
                         "user_in_conversation": "User(会話中)"}.get(source_hint, source_hint)
-        ambient_model = _settings.get("ambientModel", "") or _settings.get("modelSelect", "gemma4:e4b")
+        ambient_model = _settings.get("ambientModel", "") or (_settings.get("modelSelect") or "gemma4:e4b")
         await _broadcast_debug(f"[ambient] model={ambient_model} method={method} source={source_label} intervention={intervention} text='{trigger_text[:50]}'")
 
         if intervention == "skip":
@@ -5116,7 +5208,7 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
         mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
 
         # --- Tier 1: Fast local LLM for instant reaction ---
-        local_model = _settings.get("modelSelect", "gemma4:e4b")
+        local_model = (_settings.get("modelSelect") or "gemma4:e4b")
         messages = [
             {"role": "system", "content": prompt},
             {"role": "user", "content": f"直近の発話: {trigger_text}"},
@@ -5460,7 +5552,7 @@ async def _generate_soliloquy() -> str:
     user_prompt = f"現在 {time_str} {weekday_jp}曜日{context_part}"
 
     try:
-        ambient_model = (_settings.get("ambientModel", "") or _settings.get("modelSelect", "gemma4:e4b"))
+        ambient_model = (_settings.get("ambientModel", "") or (_settings.get("modelSelect") or "gemma4:e4b"))
         if ambient_model == "claude":
             ambient_model = "gemma4:e4b"  # Use local for soliloquy
         response = await chat_with_llm([
@@ -5599,7 +5691,7 @@ async def websocket_endpoint(ws: WebSocket):
     speaker_id = int(raw_voice) if str(raw_voice).isdigit() else raw_voice
     _spd_raw = _settings.get("speedSelect", "auto") or "auto"
     speed = 0 if _spd_raw == "auto" else float(_spd_raw)
-    model = _settings.get("modelSelect", "gemma4:e4b")
+    model = (_settings.get("modelSelect") or "gemma4:e4b")
     slack_reply_bot = None  # None = 通常モード, "mei"/"eve" = Slack返信モード
     slack_reply_speaker = 2
     slack_reply_speed = 1.0

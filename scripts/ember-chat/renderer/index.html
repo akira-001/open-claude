@@ -914,6 +914,16 @@
   </select>
   <button id="autoApproveBtn" class="side-btn" onclick="toggleAutoApprove()" style="font-size:11px; padding:2px 8px;" title="自動承認: Slackの👍なしで自動適用">自動承認 OFF</button>
   <span id="improveLoopStatus" style="color:#666; font-size:11px;"></span>
+  <span style="color:#444; font-size:11px;">|</span>
+  <span style="color:#888; font-size:11px;" title="1=最小, 5=おしゃべりモード(media_likelyでもco_view)">Reactivity</span>
+  <select id="reactivitySelect" onchange="updateReactivity()" style="background:#222; color:#ccc; border:1px solid #444; border-radius:4px; font-size:11px; padding:2px 4px;">
+    <option value="1">1 静か</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4" selected>4 標準</option>
+    <option value="5">5 おしゃべり</option>
+  </select>
+  <span id="reactivityStatus" style="color:#666; font-size:11px;"></span>
 </div>
 <div id="textInputRow">
   <input type="text" id="textInput" placeholder="Type a message..." autocomplete="off">
@@ -1181,6 +1191,7 @@ async function applySettings(settings) {
     debugBtn.textContent = listeningDebug ? 'Debug ON' : 'Debug';
     debugBtn.className = listeningDebug ? 'side-btn on' : 'side-btn';
     document.getElementById('improveLoopPanel').style.display = listeningDebug ? 'flex' : 'none';
+    if (listeningDebug) loadReactivity();
   }
   if (settings.improveLoopSpanMin) {
     improveLoopSpanMin = settings.improveLoopSpanMin;
@@ -1474,7 +1485,52 @@ function toggleDebug() {
   debugBtn.textContent = listeningDebug ? 'Debug ON' : 'Debug';
   debugBtn.className = listeningDebug ? 'side-btn on' : 'side-btn';
   document.getElementById('improveLoopPanel').style.display = listeningDebug ? 'flex' : 'none';
+  if (listeningDebug) loadReactivity();
   saveSettings();
+}
+
+// --- Reactivity (debug panel) ---
+async function loadReactivity() {
+  try {
+    const r = await fetch(`${API_BASE}/settings`);
+    const d = await r.json();
+    const level = d.ambient_reactivity ?? d.ambientReactivity;
+    if (level !== undefined) {
+      document.getElementById('reactivitySelect').value = String(level);
+      renderReactivityStatus(level);
+    }
+  } catch (err) {
+    console.warn('[reactivity] load failed', err);
+  }
+}
+
+function renderReactivityStatus(level) {
+  const el = document.getElementById('reactivityStatus');
+  if (!el) return;
+  const note = level >= 5 ? '→ media_likely でも co_view 発動'
+             : level <= 1 ? '→ ほぼ反応しない'
+             : '→ user発話のみ反応';
+  el.textContent = note;
+}
+
+async function updateReactivity() {
+  const level = parseInt(document.getElementById('reactivitySelect').value, 10);
+  try {
+    const r = await fetch(`${API_BASE}/ambient/reactivity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ level }),
+    });
+    const d = await r.json();
+    if (d.ok || d.level !== undefined || d.reactivity !== undefined) {
+      const eff = d.reactivity ?? d.level ?? level;
+      renderReactivityStatus(eff);
+    } else {
+      addMessage(`reactivity 変更失敗: ${d.error || 'unknown'}`, 'status');
+    }
+  } catch (err) {
+    addMessage(`reactivity API エラー: ${err}`, 'status');
+  }
 }
 
 // --- 改善ループ ---

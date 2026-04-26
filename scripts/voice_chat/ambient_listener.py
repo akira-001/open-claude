@@ -228,7 +228,11 @@ class AmbientListener:
         """
         result = self._classify_source_inner(text)
         self._last_source = result
-        self._last_source_at = time.time()
+        # _last_source_at は media_likely 確定時のみ更新する。
+        # 毎回更新すると _in_media_context の 5分タイマーが永久伸長して
+        # ロックから脱出不能になる（声紋未識別の場合）。
+        if result == "media_likely":
+            self._last_source_at = time.time()
         return result
 
     def _classify_source_inner(self, text: str) -> str:

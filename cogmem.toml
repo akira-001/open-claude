@@ -3,6 +3,7 @@ logs_dir = "memory/logs"
 contexts_dir = "memory/contexts"
 db_path = "memory/vectors.db"
 
+lang = "ja"
 [cogmem.identity]
 soul = "identity/soul.md"
 user = "identity/user.md"
@@ -28,7 +29,7 @@ checkpoint_count = 4
 auto_improve = "auto"  # "auto" | "ask" | "off"
 
 [cogmem.metrics]
-total_sessions = 44
+total_sessions = 45
 
 [cogmem.scoring]
 sim_weight = 0.7
@@ -60,3 +61,6 @@ provider = "ollama"
 model = "zylonai/multilingual-e5-large"
 url = "http://localhost:11434/api/embed"
 timeout = 10
+
+[updates]
+last_check = "2026-04-26T12:00:08"
