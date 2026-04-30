@@ -1,0 +1,19 @@
+{
+  "name": "ember-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Akira's always-on AI partner platform — voice, Slack, identity, memory, dashboard",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
