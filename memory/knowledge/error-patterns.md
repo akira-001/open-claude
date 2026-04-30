@@ -91,3 +91,9 @@
 **パターン**: CPython 3.14 + NumPy 1.26 + 特定の呼び出し履歴下で、`a1 = arr * scalar` の結果が**新規バッファではなく元の arr 自体に in-place で書き込まれる**。numpy の通常仕様では `*` は新規配列を返すはずだが、メモリ allocator の状態と関数スコープの組み合わせで再現する。単独の小さなテストでは再現せず、複雑な呼び出しコンテキストでのみ発生。
 **具体例**: STT ベンチの `webrtcvad_voice_ratio()` で `pcm = (audio * 32767).clip(...).astype(np.int16).tobytes()` の `(audio * 32767)` が in-place 化され、float32 の audio 配列が int16 値（mean -0.000066 → -2.17, max 0.59 → 19393）で上書き。後段の Whisper transcribe が破壊された値を入力として受け取り、CER 0.97 という極端な幻聴。`investigate_dualvad.py` のトレースで `id(a1) == id(audio)` を観測して特定。
 **対策**: numpy で **dtype 変更を伴う scalar 演算** では `np.multiply(arr, x, dtype=...)` で新規バッファを明示する。`arr * x` は環境依存で in-place 化されるリスクがある。VAD/DSP 等の前処理関数は最初に `arr.copy()` か `np.ascontiguousarray(arr, copy=True)` を入れて defensive にする。教訓: numpy 演算が「新規配列を返す」前提に依存するコードは、CPython/NumPy のバージョン組み合わせで破綻しうる。
+
+## EP-016: Distil-Whisper 系（kotoba 含む）が far-field/低 SNR 音声で 0 segments を返す（仕様）
+**発生**: 2026-05-01 | **Arousal**: 0.95
+**パターン**: distil 系 Whisper（kotoba-whisper-v1/v2 含む）は、訓練時に「ノイズのみのサンプルを空文字で学習」する anti-hallucination 機構を持つ（Distil-Whisper paper: 1% の training データが noise-only with empty transcripts）。さらに kotoba は ReazonSpeech（日本語クリーン TV 音声）+ WER>10 サンプル除外で訓練されているため、iPad 遠距離 + 室内反響のような OOD 音声を「ノイズ」と判定し意図的に 0 segments を返す。これは feature であってバグではない。
+**具体例**: iPad 遠距離音声（peak 0.05〜0.18, rms 0.006）を kotoba-v2 に渡すと `segments=0 lang=ja prob=1.00 duration=*s` で空文字。`chunk_length=15` `condition_on_previous_text=False`（公式推奨）/ `compute_type=int8` / 3 フィルタ閾値緩和（no_speech=0.95, log_prob=-2.0, compression=3.5）/ `vad_filter=False` / PCM gain 正規化（peak→0.5）/ kotoba-v1.0 への切替を全部試して 0 segments。同じ音声を Whisper large-v3（蒸留前）に渡すと precision 47% で transcribe 成功。
+**対策**: **Distil 系 Whisper は far-field/quiet/低 SNR 音声には使わない**。近接発話のクリーン音声専用。OOD で動かす可能性がある場合は Whisper large-v3 / **large-v3-turbo（OpenAI 蒸留版）** を選択する — turbo は速度を維持しつつ anti-hallucination 訓練を持たない。教訓: 同じ Whisper ファミリーでも distil 系 vs 非 distil 系で far-field 適性が決定的に違う。新モデル採用前にこの軸で評価する。
