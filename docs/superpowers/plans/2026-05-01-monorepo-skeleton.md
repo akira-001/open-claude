@@ -37,7 +37,7 @@ cd /Users/akira/workspace/open-claude && git status --short
 cd /Users/akira/workspace/claude-code-slack-bot && git status --short
 ```
 
-期待: 両方空出力（clean）。dirty なら本タスク中断、`git stash` または個別コミットで処理してから再開。
+期待: 両方ほぼ空出力。ただし `open-claude` 側で `?? docs/superpowers/plans/2026-05-01-monorepo-skeleton.md` の untracked 行は OK（Task 11 でコミット予定）。それ以外の dirty 状態（modified / staged）があれば本タスク中断、`git stash` または個別コミットで処理してから再開。
 
 - [ ] **Step 2: リモート push 状況確認**
 
