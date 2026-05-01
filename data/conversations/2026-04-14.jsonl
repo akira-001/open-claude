@@ -1,0 +1,12 @@
+{"timestamp":"2026-04-14T11:48:31.715Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"リンク教えて"}
+{"timestamp":"2026-04-14T11:49:52.431Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"cwd /Users/akira/workspace/claude-code-slack-bot"}
+{"timestamp":"2026-04-14T11:50:03.646Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画のURL教えて"}
+{"timestamp":"2026-04-14T11:50:10.029Z","role":"mei","channel":"D0AMYJ8HLER","text":"Invalid API key · Fix external API key"}
+{"timestamp":"2026-04-14T11:57:16.770Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画のURL教えて"}
+{"timestamp":"2026-04-14T11:57:23.798Z","role":"mei","channel":"D0AMYJ8HLER","text":"Invalid API key · Fix external API key"}
+{"timestamp":"2026-04-14T11:58:28.639Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画のURL教えて"}
+{"timestamp":"2026-04-14T11:58:47.502Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"cwd /Users/akira/workspace/claude-code-slack-bot"}
+{"timestamp":"2026-04-14T11:59:20.036Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画のURL教えて"}
+{"timestamp":"2026-04-14T11:59:47.192Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画のURL教えて"}
+{"timestamp":"2026-04-14T12:01:35.143Z","role":"user","user":"U3SFGQXNH","channel":"D0AMYJ8HLER","text":"映画の *『サルモッチ』のURL教えて"}
+{"timestamp":"2026-04-14T12:01:46.080Z","role":"mei","channel":"D0AMYJ8HLER","text":"はい、これですね。\n\n**『サルモッチ』予告編 / 映画関連URL**\nhttps://www.youtube.com/results?search_query=%E3%82%B5%E3%83%AB%E3%83%A2%E3%83%83%E3%83%81+%E6%98%A0%E7%94%BB\n\nもしAkiraさんが欲しいのが  \n- 公式サイト  \n- 上映館情報  \n- 予告編の直リンク  \n\nのどれかなら、その形で探してすぐ渡せるよ。"}

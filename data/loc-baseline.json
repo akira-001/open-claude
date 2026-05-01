@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-04-25T19:00:00+09:00",
+  "purpose": "rebuild 判定 (2026-06-15) の比較基準。proactive-agent + heartbeat + scheduler を単一 decision-engine に置き換えた時の複雑度税変化を計測する",
+  "tools": {
+    "cloc": "2.08",
+    "madge": "via npx"
+  },
+  "repoTotal": {
+    "filesCount": 81,
+    "blank": 2706,
+    "comment": 1133,
+    "code": 17935,
+    "totalLines": 21774
+  },
+  "rebuildScope": {
+    "proactive-agent.ts": { "lines": 416, "outDeps": 8, "inDeps": 2 },
+    "proactive-state.ts": { "lines": 1988, "outDeps": 9, "inDeps": 10 },
+    "proactive-themes.ts": { "lines": 572, "outDeps": 0, "inDeps": 9 },
+    "scheduler.ts": { "lines": 735, "outDeps": 9, "inDeps": 1 },
+    "heartbeat-context.ts": { "lines": 143, "outDeps": 1, "inDeps": 4 },
+    "shared-proactive-history.ts": { "lines": 243, "outDeps": 1, "inDeps": 7 },
+    "scopeSubtotal": { "lines": 4097, "totalDeps": 51 }
+  },
+  "couplingMetrics": {
+    "circularDependencies": 1,
+    "circularList": ["chatgpt-codex.ts > openai-fallback.ts"],
+    "totalEdges": 203,
+    "avgOutDeps": 2.54
+  },
+  "targets": {
+    "rebuild後30%削減": {
+      "rebuildScope.lines": 4097,
+      "目標": 2868,
+      "削減": 1229
+    }
+  }
+}

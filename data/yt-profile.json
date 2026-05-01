@@ -1,0 +1,659 @@
+{
+  "lastBuilt": "2026-03-29T03:40:27.017771+00:00",
+  "categories": {
+    "ai_agent": {
+      "watchCount": 99,
+      "weightedCount": 18.01,
+      "topKeywords": [
+        "Claude",
+        "AI",
+        "Code",
+        "解説",
+        "徹底解説",
+        "仕事",
+        "ChatGPT",
+        "ClaudeCode",
+        "Gemini",
+        "時代"
+      ],
+      "topQueries": [
+        "Claude AI Code",
+        "Claude 解説 徹底解説"
+      ],
+      "recentBias": [
+        "コツ",
+        "満足度",
+        "Suno"
+      ],
+      "watchedVideoIds": [
+        "5B7xtzYjCSE",
+        "6xsU9OuMFXU",
+        "vypm73a8dFE",
+        "KRIUJ5cE_S8",
+        "LRSSjGwsuv0",
+        "_uZ8XrVV6NI",
+        "hsJZOpxYrOc",
+        "GnxBePQMT84",
+        "VxsAcrUsJwI",
+        "o8j46ZKixhA",
+        "WRbG_22RfeI",
+        "KRIUJ5cE_S8",
+        "R54Owz8V01U",
+        "Bkm6S4oawMw",
+        "32QyL9dle4s",
+        "eSldPuBJQ3Q",
+        "rqdG7YnCK54",
+        "UjemyZApDZY",
+        "TzJVJVRy_pA",
+        "-cEJoZdEQZY",
+        "y65GEpVVvQg",
+        "AQZ_xM1myoI",
+        "0ch_XtLef7s",
+        "eSldPuBJQ3Q",
+        "4RkObjgOpYI",
+        "eoD-EPCxuSA",
+        "ynuqFQHV_Dc",
+        "gt6sFTFfC6I",
+        "UMnA5dFlSDQ",
+        "7fxguUgpIPs",
+        "qVH-OF3MnPY",
+        "rvXqqayL2ls",
+        "_K3okAhfXfg",
+        "epoyIP1qvNE",
+        "od6unRGUFK0",
+        "kDw-VtjV5UA",
+        "OhO0WcRP6Ow",
+        "UnHulgSmqH4",
+        "RAPOhIQbbd0",
+        "Ba7UchKxLMQ",
+        "DMV6BAGuFn0",
+        "UjemyZApDZY",
+        "l0YyFf2CQBI",
+        "XWD-6sp9abU",
+        "4_nWnnM3jpo",
+        "od6unRGUFK0",
+        "bXq3sZbLDsE",
+        "41StY4LnjIg",
+        "u0N7jTvyVLY",
+        "jtybe16yKTo",
+        "O2PFQV_GYgU",
+        "ZXy3YYZNjHc",
+        "m_uBl1whoxc",
+        "YA5HT8mgC78",
+        "aY1MktNGBQc",
+        "oMVzDBA4ykM",
+        "hA6IGyWvwrQ",
+        "s_V7bi1Nig8",
+        "02rZ_XphtGY",
+        "RA32cuGc-04",
+        "IoI__TVlvv4",
+        "AxNj4jj-KrQ",
+        "MYACRiNY7EQ",
+        "lZroPI0mi98",
+        "UzN7siPFxe0",
+        "erLM2q7jK6U",
+        "Or5q-bsfiX4",
+        "tyQe9JwX4Zw",
+        "C5igd5qPCrU",
+        "NeaquQkOhyg",
+        "PKMt2Au2fP0",
+        "9QitIRKZx8U",
+        "q2bAIZmG8tY",
+        "eAt6y5-R65k",
+        "UjemyZApDZY",
+        "iOn9MRGoBRo",
+        "2vHqsLzyhGE",
+        "RbCvK1KgZ0k",
+        "ORm77IH5Btg",
+        "75DbnoJdLSY",
+        "6j4m5D-hJ7k",
+        "KDjuxsWCaD8",
+        "6u-euXGNl-o",
+        "gkcUAtAfw1I",
+        "cfoE_8Llde0",
+        "8zbJbKmUI4U",
+        "22edJsX22u4",
+        "JKSDEgfM4vw",
+        "mCS3xE81O04",
+        "EyYlXCb9aXc",
+        "AMSXfB9IPYE",
+        "SwwTkZmbHrs",
+        "u0N7jTvyVLY",
+        "l0YyFf2CQBI",
+        "EZINHGqu2Cw",
+        "QWKuvNUIQL0",
+        "cwhrGEjgBps",
+        "pKhPfQivMoE",
+        "rlbL7zg62_4"
+      ]
+    },
+    "_music": {
+      "watchCount": 20,
+      "weightedCount": 8.13,
+      "topKeywords": [
+        "BGM",
+        "Playlist",
+        "カフェ",
+        "ジャズ",
+        "作業用",
+        "Relax",
+        "Chill",
+        "洋楽",
+        "音楽",
+        "気分"
+      ],
+      "topQueries": [
+        "BGM Playlist Relax",
+        "BGM Chill 洋楽"
+      ],
+      "recentBias": [
+        "作業用",
+        "ジャズ",
+        "音楽"
+      ],
+      "watchedVideoIds": [
+        "tSU6T04IKs0",
+        "68SY1zvX7WU",
+        "0ed74xtKRzQ",
+        "2-Tv1PIfojQ",
+        "f_AjA1ID4Qs",
+        "ciWxNgX6Ook",
+        "OPFFteDDdgo",
+        "yozboEnM0Gs",
+        "yozboEnM0Gs",
+        "QC2jIQ8xDyE",
+        "Xd1tYODCLwE",
+        "DD8O0RZMS8Q",
+        "dZNMSfbnnh4",
+        "eipQ_s959Tw",
+        "i-gXB_xmCeE",
+        "egBVX_qylzg",
+        "4yYzH2rzFqA",
+        "NfUW4QkVZYQ",
+        "f6Pf-bLxEnY",
+        "7qXkU5WVEEs"
+      ]
+    },
+    "dodgers": {
+      "watchCount": 22,
+      "weightedCount": 6.82,
+      "topKeywords": [
+        "ドジャース",
+        "MLB2026",
+        "大谷",
+        "シーズン",
+        "ダイヤモンドバックス",
+        "MLB",
+        "スプリングトレーニング",
+        "エンゼルス",
+        "Narco",
+        "エドウィン・ディアス"
+      ],
+      "topQueries": [
+        "ドジャース MLB2026 シーズン",
+        "ドジャース ダイヤモンドバックス スプリングトレーニング"
+      ],
+      "recentBias": [
+        "ダイヤモンドバックス",
+        "シーズン"
+      ],
+      "watchedVideoIds": [
+        "DvkIJ3qJC0k",
+        "CMHBryCBEJs",
+        "VWnkfCAM5xo",
+        "lE3OMtDduDU",
+        "9TplTnXYrLI",
+        "Ozf04xDDj6Q",
+        "rq0qw-u-97I",
+        "yfhLzu9SnZQ",
+        "UT4-EAtUja0",
+        "_ttZDMGmiU0",
+        "2nqGCA_qdWU",
+        "_jCpzvPRORg",
+        "GV1-1TVD9hw",
+        "VxHVUiOW9eA",
+        "X02ppGl_D8I",
+        "CbeYBX14clI",
+        "HhVvMgUVLtI",
+        "xK7RJbb3oCQ",
+        "zrtBtXrkBDE",
+        "wPoVKuof52E",
+        "4vtAUul7fFA",
+        "YQp1yPVM6AE"
+      ]
+    },
+    "campingcar": {
+      "watchCount": 18,
+      "weightedCount": 6.15,
+      "topKeywords": [
+        "キャンピングカー",
+        "RV",
+        "ベッド",
+        "常設",
+        "Trip",
+        "Snowboard",
+        "Exhaustion",
+        "Hr",
+        "Drive",
+        "Night"
+      ],
+      "topQueries": [
+        "キャンピングカー ベッド 常設"
+      ],
+      "recentBias": [
+        "Trip",
+        "Snowboard",
+        "Exhaustion"
+      ],
+      "watchedVideoIds": [
+        "AJN4zTdfJbs",
+        "ywz_T8Biq3M",
+        "IP0M2gQpZY4",
+        "ayoLGxdO_qw",
+        "raQJIGSLod8",
+        "7rFnPd36xpw",
+        "n_Tv5RNsmeQ",
+        "QLovZtu57Bs",
+        "M7raHaqXk9Q",
+        "6OCarB2doj8",
+        "mmPyLUDDGyo",
+        "ia-3igUcVyk",
+        "4c3paqir9ps",
+        "DqX7OHwib5c",
+        "sr3RUL246sg",
+        "tivj0QQOU1U",
+        "PWVxwvsdLh8",
+        "0Qj5AvoAkCI"
+      ]
+    },
+    "movie_theater": {
+      "watchCount": 7,
+      "weightedCount": 2.97,
+      "topKeywords": [
+        "映画",
+        "Netflix",
+        "BLUE",
+        "GIANT",
+        "NOTE",
+        "Hiromi",
+        "Uehara",
+        "Band",
+        "Cover",
+        "Uchu"
+      ],
+      "topQueries": [
+        "映画 Netflix"
+      ],
+      "recentBias": [
+        "GIANT",
+        "NOTE",
+        "Hiromi"
+      ],
+      "watchedVideoIds": [
+        "vN5tmIl3PDs",
+        "6VWYCH9imCI",
+        "HN86ON_RIfM",
+        "0vu_J1pVB3I",
+        "EGVFE41kD9Q",
+        "CcWpeHWbWJk",
+        "sTH8TWnBzK0"
+      ]
+    },
+    "_drums": {
+      "watchCount": 6,
+      "weightedCount": 2.72,
+      "topKeywords": [
+        "EGO",
+        "WRAPPIN",
+        "SAX",
+        "DRUMS",
+        "BASS",
+        "ブルース",
+        "アピレ",
+        "サックスインストラクター",
+        "色彩",
+        "島村楽器赤羽"
+      ],
+      "topQueries": [
+        "ドラム EGO WRAPPIN",
+        "ドラム SAX DRUMS"
+      ],
+      "recentBias": [
+        "Swing",
+        "Vibes",
+        "ドラム・コンテスト"
+      ],
+      "watchedVideoIds": [
+        "-me3p1ndBpw",
+        "fQGa2L_bNt0",
+        "2slWk7emB-w",
+        "fQGa2L_bNt0",
+        "chtZwOBmonc",
+        "1UQJDj7i8co"
+      ]
+    },
+    "golf": {
+      "watchCount": 9,
+      "weightedCount": 2.67,
+      "topKeywords": [
+        "ゴルフ",
+        "YouTube",
+        "ハマ",
+        "クリエイター",
+        "普段",
+        "女性",
+        "行動",
+        "ラインアイアンセットプレゼント",
+        "リンク",
+        "プロフィール"
+      ],
+      "topQueries": [
+        "ゴルフ YouTube ハマ",
+        "ゴルフ クリエイター 普段"
+      ],
+      "recentBias": [
+        "ラインアイアンセットプレゼント",
+        "リンク",
+        "プロフィール"
+      ],
+      "watchedVideoIds": [
+        "TqkVlxTyyhQ",
+        "hTCjL_psV4k",
+        "hTCjL_psV4k",
+        "msApFJ_B8Uk",
+        "Eo8p9H5AF_U",
+        "1OD1wUNjuuc",
+        "YHW8rpR2g70",
+        "saTjKJgF2LY",
+        "9r7kKlqU17g"
+      ]
+    },
+    "cat_health": {
+      "watchCount": 4,
+      "weightedCount": 1.49,
+      "topKeywords": [
+        "AI",
+        "Cat",
+        "Returns",
+        "Existed",
+        "Reality",
+        "Action",
+        "恩返",
+        "現実",
+        "実写",
+        "ドイツ"
+      ],
+      "topQueries": [
+        "猫 恩返"
+      ],
+      "recentBias": [],
+      "watchedVideoIds": [
+        "27XIBucya0g",
+        "P0t2f_d1FDQ",
+        "VtBfF_xxNxQ",
+        "0nHLqNocBDM"
+      ]
+    },
+    "business_strategy": {
+      "watchCount": 9,
+      "weightedCount": 1.41,
+      "topKeywords": [
+        "コンサル",
+        "FDE",
+        "AI",
+        "転職",
+        "年収",
+        "カギ",
+        "ビジネス",
+        "万円稼",
+        "方法",
+        "職種"
+      ],
+      "topQueries": [
+        "経営 AI 転職",
+        "経営 年収 カギ"
+      ],
+      "recentBias": [
+        "カギ",
+        "ビジネス",
+        "年収"
+      ],
+      "watchedVideoIds": [
+        "vmb4RAwCmrI",
+        "9lJ_WO_1a6U",
+        "Cf7HcU6eojc",
+        "af5fln2DiQQ",
+        "af5fln2DiQQ",
+        "af5fln2DiQQ",
+        "mQyoLlDiuTA",
+        "BHgn8Fi2mXQ",
+        "LF4yyYA4G-A"
+      ]
+    },
+    "llm_local": {
+      "watchCount": 1,
+      "weightedCount": 0.22,
+      "topKeywords": [
+        "AI",
+        "LLM",
+        "LFM",
+        "JP",
+        "無名",
+        "企業",
+        "超小型日本語",
+        "性能"
+      ],
+      "topQueries": [
+        "LLM 無名"
+      ],
+      "recentBias": [],
+      "watchedVideoIds": [
+        "nwC4Ky0QL-k"
+      ]
+    },
+    "onsen": {
+      "watchCount": 1,
+      "weightedCount": 0.05,
+      "topKeywords": [
+        "APU",
+        "カレッジタウン",
+        "ウーブン・シティ",
+        "ターン",
+        "地方創生",
+        "大学",
+        "日本",
+        "九大",
+        "問題点",
+        "立命館"
+      ],
+      "topQueries": [
+        "温泉 カレッジタウン"
+      ],
+      "recentBias": [],
+      "watchedVideoIds": [
+        "J_5W3OiuxCg"
+      ]
+    }
+  },
+  "feedback": {
+    "recommended": {
+      "t0Mesp118l4": {
+        "title": "Claude Code Is Now 100% Free - Here's How",
+        "category": "ai_agent",
+        "recommendedAt": "2026-05-01T05:50:00.887032+00:00"
+      },
+      "3JLxZBw8q7Y": {
+        "title": "FREE Claude Code is INSANE!",
+        "category": "ai_agent",
+        "recommendedAt": "2026-05-01T05:50:00.887042+00:00"
+      },
+      "nwC4Ky0QL-k": {
+        "title": "The performance of the ultra-compact Japanese LLM created by an unknown AI company is too high [L...",
+        "category": "llm_local",
+        "recommendedAt": "2026-05-01T05:50:00.887046+00:00"
+      },
+      "RN1zxxmEjmo": {
+        "title": "2026年最新！予算別でどこまでのローカルLLMが動くのか？自作PCからAI専用機まで徹底比較！！",
+        "category": "llm_local",
+        "recommendedAt": "2026-05-01T05:50:00.887048+00:00"
+      },
+      "dZK7SIJjCSQ": {
+        "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
+        "category": "dodgers",
+        "recommendedAt": "2026-05-01T05:50:00.887051+00:00"
+      },
+      "Hjyl9guC_-o": {
+        "title": "【“有望株の宝庫”ドジャースNo.2プロスペクトのホープが満塁の場面で結果を残す！】ドジャースvsダイヤモンドバックス MLB2026スプリングトレーニング 2.26",
+        "category": "dodgers",
+        "recommendedAt": "2026-05-01T05:50:00.887053+00:00"
+      },
+      "xS6UMzh5TZc": {
+        "title": "【スライド式縦型2段ダブルベッドは業界初？のキャンピングカー】カトーモーター ”ブルームーンEX”",
+        "category": "campingcar",
+        "recommendedAt": "2026-05-01T05:50:00.887056+00:00"
+      },
+      "y2ymxggOFuk": {
+        "title": "ゆとりある常設ベッドと大きなフリースペース搭載のハイエースキャンピングカー｜カトーモーターのシェスタ",
+        "category": "campingcar",
+        "recommendedAt": "2026-05-01T05:50:00.887058+00:00"
+      },
+      "J_5W3OiuxCg": {
+        "title": "【地方創生の要は大学】カレッジタウンが日本にない／九大の問題点／立命館は上手／APUと温泉街の融合／自動車通学を許可せよ／柏の葉が面白い／豊田市にウーブン・シティを／介護Uターンの支援／現代の参勤交代",
+        "category": "onsen",
+        "recommendedAt": "2026-05-01T05:50:00.887060+00:00"
+      },
+      "ZeW2jzbnibg": {
+        "title": "【バブル遺産】衰退した日本一有名な温泉街が凄い事になっていました。新時代を模索する熱海の現在の姿とは。",
+        "category": "onsen",
+        "recommendedAt": "2026-05-01T05:50:00.887062+00:00"
+      },
+      "QXKQJevdzsk": {
+        "title": "#5【決着】復活のハマちゃんVSゴルフ系アイドル コージ 大接戦の末の大団円…！？",
+        "category": "golf",
+        "recommendedAt": "2026-05-01T05:50:00.887065+00:00"
+      },
+      "hTCjL_psV4k": {
+        "title": "普段ゴルフ系のYouTubeを観ない女性がハマってしまったクリエイターとは？嬉しさのあまり〇〇な行動に！？",
+        "category": "golf",
+        "recommendedAt": "2026-05-01T05:50:00.887067+00:00"
+      },
+      "cU3U-x1AVQg": {
+        "title": "猫の恩返し「風になる」歌：ザ ブリーズ アドベンチャーズ　The Cat Returns - Become the Wind / Song by The Breeze Adventures",
+        "category": "cat_health",
+        "recommendedAt": "2026-05-01T05:50:00.887070+00:00"
+      },
+      "FpJn9ofU9Ag": {
+        "title": "【ジブリ】猫の恩返し／風になる、The Cat Returns/ Become the Wind (Kaze ni Naru) 【SynthesizerV 京町セイカ】",
+        "category": "cat_health",
+        "recommendedAt": "2026-05-01T05:50:00.887072+00:00"
+      },
+      "LF4yyYA4G-A": {
+        "title": "【AI時代の出世法則】「間違えないエリート」の没落／量産型ホワイトカラーは負け組／野生的なリーダーの時代／スラムダンクと宇宙兄弟／コンサルは下火／JTCの価値上昇／転職の２つのミス／年収を下げる転職を",
+        "category": "business_strategy",
+        "recommendedAt": "2026-05-01T05:50:00.887074+00:00"
+      },
+      "J3Nume6sGFM": {
+        "title": "【人の心を動かす“心的資本経営”】従業員の内発的動機がカギ／変化する店長の役割／新たな役職は年収2000万円にも",
+        "category": "business_strategy",
+        "recommendedAt": "2026-05-01T05:50:00.887076+00:00"
+      },
+      "e0ZtT3E-zOE": {
+        "title": "[Tokorozawa Aviation Origin Festival 2026] The history of aviation that began in Tokorozawa",
+        "category": "local_tokorozawa",
+        "recommendedAt": "2026-05-01T05:50:00.887079+00:00"
+      },
+      "aTJWQYi5vVM": {
+        "title": "KK線を歩く！Roof Park Fes & Walk 2026（令和8年4月30日 東京デイリーニュース No.837）",
+        "category": "local_tokorozawa",
+        "recommendedAt": "2026-05-01T05:50:00.887081+00:00"
+      },
+      "mq-7-5lzuxw": {
+        "title": "[Must-see for beginners] 4 steps to learn how to use AI from scratch",
+        "category": "dev_tools",
+        "recommendedAt": "2026-05-01T05:50:00.887084+00:00"
+      },
+      "AT7muM2RpBs": {
+        "title": "[Free] Google's godlike AI tool \"Antigravity\" will change the world! A thorough explanation of th...",
+        "category": "dev_tools",
+        "recommendedAt": "2026-05-01T05:50:00.887086+00:00"
+      },
+      "DaGGoHtbpAQ": {
+        "title": "スタートアップExitの多様化と、M&Aの規模化／株式会社ファイナンスプロデュース 共同創業者 松井 克成さん",
+        "category": "ma_startup",
+        "recommendedAt": "2026-05-01T05:50:00.887088+00:00"
+      },
+      "cJSeFtnyuJI": {
+        "title": "Yayoi's Serious Startup M&A Strategy: Synergy-Focused Growth Strategy [Startup M&A Collection Vol...",
+        "category": "ma_startup",
+        "recommendedAt": "2026-05-01T05:50:00.887090+00:00"
+      },
+      "cg0irmI2JWA": {
+        "title": "【2026年最新】ガチで美味しかった！池袋駅グルメ10軒",
+        "category": "food_dining",
+        "recommendedAt": "2026-05-01T05:50:00.887094+00:00"
+      },
+      "mIDcet5rhJ8": {
+        "title": "[銀座]2026年外食初めは焼肉  叙々苑游玄亭銀座並木通り",
+        "category": "food_dining",
+        "recommendedAt": "2026-05-01T05:50:00.887096+00:00"
+      },
+      "G2e696kigJw": {
+        "title": "【2026年天気大予想】冬の南岸低気圧 夏は猛暑で台風発達？ 桜開花予想も先出し／2026.1.2 16:00配信",
+        "category": "weather_seasonal",
+        "recommendedAt": "2026-05-01T05:50:00.887098+00:00"
+      },
+      "0F6dW8syZLw": {
+        "title": "[Will it snow heavily?] What will the weather be like this winter? Winter patterns are likely to ...",
+        "category": "weather_seasonal",
+        "recommendedAt": "2026-05-01T05:50:00.887100+00:00"
+      },
+      "h1I116oS_Lk": {
+        "title": "2月17(金)公開｜映画『BLUE  GIANT』予告編",
+        "category": "movie_theater",
+        "recommendedAt": "2026-05-01T05:50:00.887103+00:00"
+      },
+      "KaB7tTJ2T5o": {
+        "title": "映画『BLUE  GIANT』│「N.E.W.」ライブシーン特別映像【大ヒット上映中！】",
+        "category": "movie_theater",
+        "recommendedAt": "2026-05-01T05:50:00.887105+00:00"
+      },
+      "9124Rl0IEJU": {
+        "title": "『VIVANT』続編映像初公開！総勢26名のキャスト発表！【TBS】",
+        "category": "tv_drama",
+        "recommendedAt": "2026-05-01T05:50:00.887108+00:00"
+      },
+      "qooVNNWS620": {
+        "title": "2026年 ＃春ドラマ 紹介します",
+        "category": "tv_drama",
+        "recommendedAt": "2026-05-01T05:50:00.887109+00:00"
+      }
+    },
+    "watched": {
+      "nwC4Ky0QL-k": {
+        "title": "The performance of the ultra-compact Japanese LLM created by an unknown AI company is too high [L...",
+        "category": "llm_local",
+        "recommendedAt": "2026-04-21T19:50:16.187425+00:00",
+        "watchedAt": "2026-04-21T20:50:01.047135+00:00"
+      },
+      "IP0M2gQpZY4": {
+        "title": "In the end, these three were chosen. A thorough comparison of 21 rear-entrance campervans.",
+        "category": "campingcar",
+        "recommendedAt": "2026-04-03T14:50:15.867881+00:00",
+        "watchedAt": "2026-04-03T21:51:29.634518+00:00"
+      },
+      "l3pwdLb-qJc": {
+        "title": "Claude Designという神機能を徹底解説！本格デザイン・動画・スライド資料を作成可能",
+        "category": "ai_agent",
+        "recommendedAt": "2026-04-21T20:50:01.047202+00:00",
+        "watchedAt": "2026-04-21T21:51:15.507219+00:00"
+      },
+      "6sF917tgN2I": {
+        "title": "$26k Cheaper!? 2026 All-New Toyota Camroad RV Full Tour[SUB]",
+        "category": "campingcar",
+        "recommendedAt": "2026-04-21T20:50:01.047224+00:00",
+        "watchedAt": "2026-04-21T21:51:15.507251+00:00"
+      }
+    },
+    "hitRate": 0.0
+  }
+}

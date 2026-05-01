@@ -1,0 +1,436 @@
+{
+  "categoryWeights": {
+    "email_reply": 1,
+    "meeting_prep": 1.06,
+    "deadline_risk": 1,
+    "slack_followup": 1.08,
+    "energy_break": 1,
+    "personal_event": 1,
+    "hobby_leisure": 1,
+    "flashback": 1.05
+  },
+  "cooldown": {
+    "until": null,
+    "consecutiveIgnores": 0,
+    "backoffMinutes": 0
+  },
+  "history": [
+    {
+      "id": "41495273-2e50-4a57-87f7-45a332bfd171",
+      "category": "flashback",
+      "sentAt": "2026-03-22T08:41:11.397Z",
+      "slackTs": "1774168871.292769",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "5769926a-6935-46ec-bd53-6e34c9baedae",
+      "category": "hobby_leisure",
+      "sentAt": "2026-03-22T08:50:21.669Z",
+      "slackTs": "1774169421.564159",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "169eac56-4e1d-4f49-a515-5ff57a9925c9",
+      "category": "flashback",
+      "sentAt": "2026-03-22T09:05:42.882Z",
+      "slackTs": "1774170342.686419",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "ea7680cd-2277-4b0e-a738-c2c8192f9e85",
+      "category": "flashback",
+      "sentAt": "2026-03-22T09:15:19.241Z",
+      "slackTs": "1774170919.137489",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "text_engaged",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "7bc6e80a-41b6-4716-b921-ee2b85a3fda5",
+      "category": "flashback",
+      "sentAt": "2026-03-22T09:45:48.069Z",
+      "slackTs": "1774172747.922239",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "text_engaged",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "b64d716c-9b5d-4410-8513-ca77d4c1dd80",
+      "category": "flashback",
+      "sentAt": "2026-03-22T11:00:09.892Z",
+      "slackTs": "1774177209.783909",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "text_engaged",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "cad8baf7-c49d-4fd5-a9a2-c25c0d711555",
+      "category": "slack_followup",
+      "sentAt": "2026-03-22T12:06:12.023Z",
+      "slackTs": "1774181171.906589",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "8129d1cf-96ea-42cb-913d-255effcb43dd",
+      "category": "slack_followup",
+      "sentAt": "2026-03-22T12:27:51.595Z",
+      "slackTs": "1774182471.489859",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "text_engaged",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "3236853f-0ef2-43c0-8d6d-3250fae0988a",
+      "category": "meeting_prep",
+      "sentAt": "2026-03-23T00:00:15.325Z",
+      "slackTs": "1774224015.220289",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "229aa97f-4d1b-42fe-a780-41ea9b871d75",
+      "category": "meeting_prep",
+      "sentAt": "2026-03-23T02:00:18.299Z",
+      "slackTs": "1774231218.186539",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "text_engaged",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "1f1c93e0-2013-4f3d-a67b-38e3fda900eb",
+      "category": "meeting_prep",
+      "sentAt": "2026-03-23T05:00:14.987Z",
+      "slackTs": "1774242014.879159",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": "ok_hand",
+      "reactionDelta": 0.1
+    },
+    {
+      "id": "b4056adb-b622-4bf0-bad8-97fda756efb5",
+      "category": "meeting_prep",
+      "sentAt": "2026-03-23T08:00:17.787Z",
+      "slackTs": "1774252817.676479",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    },
+    {
+      "id": "56920845-5d72-41e0-be59-6ebc6e83ca1a",
+      "category": "meeting_prep",
+      "sentAt": "2026-03-23T11:00:29.684Z",
+      "slackTs": "1774263629.568449",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0
+    }
+  ],
+  "lastCheckAt": "2026-03-27T13:34:09.800Z",
+  "stats": {
+    "totalSent": 13,
+    "positiveReactions": 19,
+    "negativeReactions": 0
+  },
+  "learningState": {
+    "priors": {
+      "timeliness": {
+        "alpha": 5,
+        "beta": 5
+      },
+      "novelty": {
+        "alpha": 4,
+        "beta": 6
+      },
+      "continuity": {
+        "alpha": 4,
+        "beta": 6
+      },
+      "emotional_fit": {
+        "alpha": 3,
+        "beta": 7
+      },
+      "affinity": {
+        "alpha": 2,
+        "beta": 8
+      },
+      "surprise": {
+        "alpha": 2,
+        "beta": 8
+      }
+    },
+    "totalSelections": 0,
+    "categorySelections": {},
+    "lastUpdated": "2026-03-27T13:30:17.139Z",
+    "version": 1
+  },
+  "lastScoredCandidates": [
+    {
+      "topic": "【ヤフコメで話題】「酷暑でアイスが売れにくい？」「通年消費・高価格化が進む」 - アイスの季節性と消費行動の変化に注目 - Yahoo!ニュース",
+      "source": "interest-cache",
+      "category": "_wildcard",
+      "pub_date": "2026-03-27T08:14:42+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9lWmQ3R0VNa0wyVmcxSkJlT0dSaEE4U0tGWTItRF85VGt4YXhORkJwa19NeUlzbTBBYjhLRHY4MDVSQ3dsMG1DVWNldjhieUo5RHdJZU1oZHFqYzNQcVlWRHBlcGFQYzJjR0M1TTh0Yzl1ZVhVWDM2Q1k5R055RW8?oc=5",
+        "mediaSource": "Yahoo!ニュース",
+        "emotion_type": "light",
+        "timeliness": 0.904
+      },
+      "scores": {
+        "timeliness": 0.7782134953703703,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.8
+      },
+      "finalScore": 0.5391022088383661,
+      "reasoning": "気分に合う・新鮮（interest-cache）",
+      "explorationBonus": 0.35,
+      "selectionScore": 0.8891022088383661
+    },
+    {
+      "topic": "Football in 10 Years - the box set - BBC",
+      "source": "interest-cache",
+      "category": "_cross",
+      "pub_date": "2026-03-27T10:58:54+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE1zd3lacjJ5aVdjTkYtN0hPemptWTMzRUxJT1BRaEU3SGttQWdZUlRXVG9nNW90U3pFZF96cHhJMDRVSjBhdVBSX3JreFZjUTZBdnRQdkF5SVBuME9fWTdQMDdybU5nVXM?oc=5",
+        "mediaSource": "BBC",
+        "emotion_type": "light",
+        "timeliness": 0.962,
+        "crossCategories": [
+          "golf",
+          "ai_agent"
+        ]
+      },
+      "scores": {
+        "timeliness": 0.8922412731481482,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.9
+      },
+      "finalScore": 0.5811328395418365,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.30000000000000004,
+      "selectionScore": 0.8811328395418365
+    },
+    {
+      "topic": "【ヤフコメで話題】「藤川球児監督の若手育成力に注目」「阪神の世代交代と主力固定の課題」 - 新体制で問われるチームの未来像 - Yahoo!ニュース",
+      "source": "interest-cache",
+      "category": "_wildcard",
+      "pub_date": "2026-03-27T06:18:08+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTFBFdkVDQXVjTU1rcVgxakNVZ29tY2lRdi1xTlpBdDVWbk9RYi1DeS1rRHYtRkw4WFpHcUE0cVptNTV4TG8ydU85eklwSnVlMURkX0NheEw3N3E0QjJTbzVscGR3WmNTNGJjdWsxbHZKSm02NGZKWFo4dXlLSmI5TDQ?oc=5",
+        "mediaSource": "Yahoo!ニュース",
+        "emotion_type": "light",
+        "timeliness": 0.864
+      },
+      "scores": {
+        "timeliness": 0.7324214737654321,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.8
+      },
+      "finalScore": 0.5263107641961476,
+      "reasoning": "気分に合う・新鮮（interest-cache）",
+      "explorationBonus": 0.35,
+      "selectionScore": 0.8763107641961476
+    },
+    {
+      "topic": "愛犬をフェアウェイまで連れて行ける！ 晴山ゴルフ場が「ワンちゃん同伴ラウンド」サービスを開始（ゴルフ総合サイト ALBA Net） - Yahoo!ニュース",
+      "source": "interest-cache",
+      "category": "_cross",
+      "pub_date": "2026-03-27T05:00:05+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE56MnRkTXFhc3VYaDlnRzFPRmp2dGw2Q1hUeGItV3kwSUhjaG01a2lmT1lrQ3BPTEQ0NlJqZmo4MHBQR09QT3VZc3E5bmFYLVdwT2NEbDNWd0RlWW1DX2Njd3Vad2s3U1pWSndrTTBnNDdKMVlmTjNuOWo3TG5EMUU?oc=5",
+        "mediaSource": "Yahoo!ニュース",
+        "emotion_type": "light",
+        "timeliness": 0.837,
+        "crossCategories": [
+          "golf",
+          "cat_health"
+        ]
+      },
+      "scores": {
+        "timeliness": 0.7143543441358025,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.9
+      },
+      "finalScore": 0.5314422881032803,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.30000000000000004,
+      "selectionScore": 0.8314422881032804
+    },
+    {
+      "topic": "Trump Taps Mark Zuckerberg, Larry Ellison, Jensen Huang For AI Advisory Council: Report - Stocktwits",
+      "source": "interest-cache",
+      "category": "_cross",
+      "pub_date": "2026-03-27T03:13:39+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxPVmhDWExKbUNJZnF2TWQ2a3NNdDRwVU5jbmVIM1NwUFVsUXFGajRnMERhcW9zUDdUU1k0bU5lazZkSjV2ZXZNOFJKOVd3S3luWnZHUTY1cVNQRUZhUjZmYm1WT0IxaF9yVjhXTGlFYWQ4ODBHNHI0cF8xRmxQV3hkbVJTaGhBZ05UVS0tQnJkSXptenZVdnNmTTBrWFA1UklGOXlERXkwS2dVVDlZZUdfR1VQZldqVDE2b1I5UUFmUU5VZ1h4Q01MdjVUOTFidXRVZUVoamVNMUhzTDd1UUE2VEpuU2JvMkk?oc=5",
+        "mediaSource": "Stocktwits",
+        "emotion_type": "light",
+        "timeliness": 0.801,
+        "crossCategories": [
+          "ai_agent",
+          "business_strategy"
+        ]
+      },
+      "scores": {
+        "timeliness": 0.6897169984567901,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.9
+      },
+      "finalScore": 0.5245601450499956,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.30000000000000004,
+      "selectionScore": 0.8245601450499956
+    },
+    {
+      "topic": "ゴルフ場が巨大ドッグランに！「TAMAGAWA DOG & GOLF」4月29日開催 - 月刊 GEW",
+      "source": "interest-cache",
+      "category": "_cross",
+      "pub_date": "2026-03-27T01:45:07+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMiSkFVX3lxTFAyLWF5STI5TDFKaHZkLUhKTnNsUG10VGVmOElVRGJRX1JFc0NBSDFHc1llT2MybzFNcVRiZk15b19JaGFFb2VvWUtB?oc=5",
+        "mediaSource": "月刊 GEW",
+        "emotion_type": "light",
+        "timeliness": 0.77,
+        "crossCategories": [
+          "golf",
+          "cat_health"
+        ]
+      },
+      "scores": {
+        "timeliness": 0.6692231712962963,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.9
+      },
+      "finalScore": 0.518835443531197,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.30000000000000004,
+      "selectionScore": 0.8188354435311971
+    },
+    {
+      "topic": "Cetera CEO urges advisors to lean into AI - Citywire",
+      "source": "interest-cache",
+      "category": "_cross",
+      "pub_date": "2026-03-26T15:24:31+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOcUtJV09IVmM2QzJQTU9wenVFRTBjU0lTMHp1MVhfZ2NtejVMSWlpSlh3ZXNLaXlIejh6dEZyc2l0eW9lVEVyaEtHNllhV01CNFduNTRGTmg4Nl9wZ2VhdzVzS2VwN01ER2Noa0doSy04Nlhwd2MzQTh5dmVOYlFvMHY5Skp5SkRidEhMRlltcw?oc=5",
+        "mediaSource": "Citywire",
+        "emotion_type": "light",
+        "timeliness": 0.554,
+        "crossCategories": [
+          "ai_agent",
+          "business_strategy"
+        ]
+      },
+      "scores": {
+        "timeliness": 0.5255657638888889,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.9
+      },
+      "finalScore": 0.47870649289979905,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.30000000000000004,
+      "selectionScore": 0.7787064928997991
+    },
+    {
+      "topic": "ド軍開幕戦に“世界的セレブ”　大谷翔平も笑顔…まさかの役目に米混乱「何だって」「Wow」 - ｄメニューニュース",
+      "source": "interest-cache",
+      "category": "dodgers",
+      "pub_date": "2026-03-27T10:07:00+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMi1AFBVV95cUxPWGpNTzJqVURjVl9pTzZUVG1haUhUa1VPZ2poUEF4VERYU2RtZnAxUU84amY4S1FFc1BPOTF5MUhZWkhHUGFWVktjZTBLMThna3FSMkNMa1VGN3pxZE5YQ0N3ZnJWV2tabTNfdGZkcGdkUGhWWldXbXBQamtUZ2RlSFN1VDJaWWo2UTZ4LU81RzFUNEdoVWVTdFRKejhPaE5GbmdNRkppT3VaeENiRnVrVHZtUmdZSmdCQlJLSThhZGxFVUdtNUk3MTVkNkNnX1c2azIwctIBhAFBVV95cUxOODdSNU1CY0Fuc3BCV1RoSUs3UmY4T29zbmlyUTRmeFVybXkyN1VsRmx3VVhWNUo5eDFxU3RjMkhULUo1SjNGVmZQY2g5R1RzQkFFYUxzNG1jamhfZkdIc0o4Rm1KWV9jMlRFT3ZsZ1ladkZaeVgzQ25IaU1qNXZHcXdDM3k?oc=5",
+        "mediaSource": "ｄメニューニュース",
+        "emotion_type": "light",
+        "timeliness": 0.944
+      },
+      "scores": {
+        "timeliness": 0.8561996180555556,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.7
+      },
+      "finalScore": 0.5507083273375901,
+      "reasoning": "気分に合う・タイムリー（interest-cache）",
+      "explorationBonus": 0.2,
+      "selectionScore": 0.7507083273375901
+    },
+    {
+      "topic": "大谷翔平・ドジャース2026開幕戦丨放送予定一覧・テレビ・ネット中継・ライブ配信・無料視聴・展望 - olympics.com",
+      "source": "interest-cache",
+      "category": "dodgers",
+      "pub_date": "2026-03-27T09:47:05+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOQVUxRlJPcEhrcE8tRnZwU1djVGlTbTZkbVdZeHA4SkNsR3hqSUFISllTdHdmTndlS2xYZXhpdUd5Vkp1bGM5Rng5Y0dTZUJwOTdyc1NkWktOSVJ3SExES25FOVFkSnNmQ0EwUDRFNVFkOFN4eHZvTWYybkdlZWdoQVdaSF85YXgtWUtuX09PQXNOaFVaY1ZOWU1R?oc=5",
+        "mediaSource": "olympics.com",
+        "emotion_type": "light",
+        "timeliness": 0.937
+      },
+      "scores": {
+        "timeliness": 0.842368599537037,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.7
+      },
+      "finalScore": 0.5468448004277835,
+      "reasoning": "気分に合う・タイムリー（interest-cache）",
+      "explorationBonus": 0.2,
+      "selectionScore": 0.7468448004277835
+    },
+    {
+      "topic": "Rogue AI is already here - Fortune",
+      "source": "interest-cache",
+      "category": "ai_agent",
+      "pub_date": "2026-03-27T11:33:43+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMic0FVX3lxTE5oeE91UkR1Y1dBUlZqdEFCR3kta29sVFhPNVZObnp2VDQ2UGVBd3hnVlo5UzlwNjhpamhmX1JvY20tSGhTakNKUTF0MEpZal85dVBUVnRVY3JaOXRfSV9iSzFaSVZEc3Y5d2dJR3VYaWJEc28?oc=5",
+        "mediaSource": "Fortune",
+        "emotion_type": "heavy",
+        "timeliness": 0.974
+      },
+      "scores": {
+        "timeliness": 0.916419525462963,
+        "novelty": 0.8,
+        "continuity": 0,
+        "emotional_fit": 0.5,
+        "affinity": 0.5,
+        "surprise": 0.7
+      },
+      "finalScore": 0.5322551997139906,
+      "reasoning": "タイムリー・新鮮（interest-cache）",
+      "explorationBonus": 0.2,
+      "selectionScore": 0.7322551997139906
+    }
+  ]
+}

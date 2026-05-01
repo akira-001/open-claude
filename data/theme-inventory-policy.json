@@ -1,0 +1,82 @@
+{
+  "default": {
+    "baseTarget": 4,
+    "minTarget": 2,
+    "maxTarget": 7,
+    "freshnessDays": 7
+  },
+  "roots": {
+    "local/saitama/tokorozawa": {
+      "baseTarget": 5,
+      "minTarget": 3,
+      "maxTarget": 7,
+      "freshnessDays": 4
+    },
+    "local/saitama/other": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 5
+    },
+    "sports/mlb/dodgers": {
+      "baseTarget": 5,
+      "minTarget": 3,
+      "maxTarget": 8,
+      "freshnessDays": 3
+    },
+    "sports/golf": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 5
+    },
+    "ai/enterprise": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 7
+    },
+    "ai/local-llm": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 7
+    },
+    "business/consulting": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 10
+    },
+    "business/client": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 10
+    },
+    "business/benchmark": {
+      "baseTarget": 3,
+      "minTarget": 2,
+      "maxTarget": 5,
+      "freshnessDays": 14
+    },
+    "entertainment/movie-drama": {
+      "baseTarget": 4,
+      "minTarget": 3,
+      "maxTarget": 6,
+      "freshnessDays": 7
+    },
+    "lifestyle/food-wellness": {
+      "baseTarget": 5,
+      "minTarget": 3,
+      "maxTarget": 7,
+      "freshnessDays": 5
+    },
+    "personal/travel-tech": {
+      "baseTarget": 3,
+      "minTarget": 2,
+      "maxTarget": 5,
+      "freshnessDays": 7
+    }
+  }
+}

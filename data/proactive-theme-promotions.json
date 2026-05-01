@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "signature": "misc/flashback/テスト提案",
+      "fallbackPath": [
+        "misc",
+        "flashback",
+        "テスト提案"
+      ],
+      "promotedPath": [
+        "promoted",
+        "misc",
+        "flashback",
+        "テスト提案"
+      ],
+      "label": "misc > flashback > テスト提案",
+      "count": 1,
+      "firstObservedAt": "2026-05-01T06:21:45.637Z",
+      "promotedAt": "",
+      "sampleText": "テスト提案"
+    },
+    {
+      "signature": "misc/flashback/テスト",
+      "fallbackPath": [
+        "misc",
+        "flashback",
+        "テスト"
+      ],
+      "promotedPath": [
+        "promoted",
+        "misc",
+        "flashback",
+        "テスト"
+      ],
+      "label": "misc > flashback > テスト",
+      "count": 1,
+      "firstObservedAt": "2026-05-01T06:21:45.641Z",
+      "promotedAt": "",
+      "sampleText": "テスト"
+    }
+  ]
+}

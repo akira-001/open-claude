@@ -42,12 +42,15 @@ Thumbs.db
 # Local scratch (humanness persona cache 等)
 tmp/
 
-# Slack-bot local symlinks (dangle on other checkouts)
-packages/slack-bot/data
-packages/slack-bot/memory
+# Slack-bot local symlinks (now relative — git-tracked)
+# packages/slack-bot/data → removed (relative symlink ../../data)
+# packages/slack-bot/memory → kept absolute until P4 memory merge decision
 
 # === P2: voice-chat / ember-chat packages ===
 packages/ember-chat/recordings/
 packages/voice-chat/chunk_transcripts.jsonl
 packages/voice-chat/context_summary_feedback.jsonl
 **/.pytest_cache/
+
+# Bot secrets — tokens stored in file, never commit
+data/bot-configs.json

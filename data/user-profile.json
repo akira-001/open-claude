@@ -1,0 +1,399 @@
+{
+  "version": 2,
+  "lastUpdated": "2026-04-03T09:38:47.912Z",
+  "layers": {
+    "identity": {
+      "completionRate": 0.58,
+      "fields": {
+        "coreValues": {
+          "value": [
+            "効率",
+            "シンプル",
+            "自動化",
+            "数字ベースの判断"
+          ],
+          "confidence": "high",
+          "source": "manual",
+          "evidence": "identity/user.md に明記。複数セッションで一貫して観察",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "nonNegotiables": {
+          "value": [
+            "反論歓迎（イエスマン不要）",
+            "絵文字なし",
+            "簡潔・結論ファースト",
+            "外部API使用は事前確認必須"
+          ],
+          "confidence": "high",
+          "source": "manual",
+          "evidence": "CLAUDE.md のコミュニケーション好みと技術スタイルから抽出",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "aversions": {
+          "value": [
+            "冗長な前置き",
+            "曖昧な回答",
+            "不要な複雑さ",
+            "根拠なしの楽観"
+          ],
+          "confidence": "medium",
+          "source": "observation",
+          "evidence": "soul.md の「やらないこと」とユーザーの修正指示パターンから推測",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "cognitiveStyle": {
+          "value": "数字ベース・仮説検証型。最小変更で最大効果を狙う。動くものを作って改善するアプローチ",
+          "confidence": "high",
+          "source": "observation",
+          "evidence": "意思決定パターンの観察。プロトタイプ→実運用のスピード重視",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "problemSolvingPattern": {
+          "value": "探索は網羅的に、検証は実データで。環境要因を先に排除する",
+          "confidence": "high",
+          "source": "observation",
+          "evidence": "error-patterns EP-001〜EP-005 から抽出された判断原則",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "interpersonalStyle": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "チームでの役割（リーダー型/触媒型）、コミュニケーションの傾向"
+        },
+        "energySource": {
+          "value": "ゼロから仕組みを設計しているとき",
+          "confidence": "hypothesis",
+          "source": "inferred",
+          "evidence": "cogmem/Slack Bot の一連の開発を観察",
+          "collectedAt": "2026-03-28",
+          "example": "何をしている時にエネルギーが湧くか（コーディング、戦略議論、温泉など）"
+        },
+        "drainFactors": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "何に消耗するか（長時間会議、曖昧な指示、反復作業など）"
+        },
+        "careerTurningPoints": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "キャリアの転換点（コンサルへの転身、AI開発への参入など）"
+        },
+        "successPatterns": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "うまくいく時のパターン（集中的な短期開発、TDD、自動化先行など）"
+        },
+        "failureLessons": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "失敗から学んだこと（浅い探索で早合点、環境要因の見落としなど）"
+        },
+        "expertiseMap": {
+          "value": {
+            "経営戦略": "expert",
+            "事業分析": "expert",
+            "財務判断": "expert",
+            "Python": "advanced",
+            "TypeScript": "advanced",
+            "AIエージェント設計": "advanced",
+            "Slack Bot運用": "advanced",
+            "cron自動化": "advanced",
+            "ローカルLLM推論": "intermediate"
+          },
+          "confidence": "medium",
+          "source": "manual",
+          "evidence": "identity/user.md の専門性セクション + 実装セッションの観察",
+          "collectedAt": "2026-03-28",
+          "example": null
+        }
+      }
+    },
+    "vision": {
+      "completionRate": 0,
+      "fields": {
+        "futureState": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "3〜5年後の理想の状態（事業規模、働き方、ライフスタイル）"
+        },
+        "aspirationText": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "最も強く望んでいること（自由文）"
+        },
+        "antiVision": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "絶対に避けたい状態（例: 自分でコードを書けなくなる、退屈な仕事ばかり）"
+        },
+        "roleModels": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "尊敬する人物やロールモデル"
+        },
+        "careerGoal": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "キャリアの具体的な目標（例: AIコンサル事業の立ち上げ）"
+        },
+        "personalGoal": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "個人的な目標（例: キャンピングカーで日本一周、ゴルフのスコア改善）"
+        },
+        "relationshipGoal": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "人間関係の目標（チーム構築、パートナーシップなど）"
+        },
+        "maturity": {
+          "value": {
+            "specificity": null,
+            "commitment": null,
+            "consistency": null,
+            "intrinsic": null,
+            "feasibility": null
+          },
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "ビジョンの成熟度（各0-1スケール: 具体性, コミットメント, 一貫性, 内発性, 実現可能性）"
+        }
+      }
+    },
+    "strategy": {
+      "completionRate": 0,
+      "fields": {
+        "gapAnalysis": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "現状と理想のギャップ分析（例: AI事業の売上目標 vs 現在の状態）"
+        },
+        "strategicOptions": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "検討中の戦略オプション（例: cogmem の有料化、コンサル拡大、新規事業）"
+        },
+        "constraints": {
+          "value": {
+            "time": null,
+            "financial": null,
+            "relationship": null,
+            "psychological": null,
+            "skill": null
+          },
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "制約条件（時間: 週何時間使えるか、財務: 投資可能額、スキル: 足りない能力）"
+        }
+      }
+    },
+    "execution": {
+      "completionRate": 0,
+      "fields": {
+        "activeProjects": {
+          "value": [
+            {
+              "name": "cogmem-agent",
+              "goal": "認知記憶エージェント",
+              "phase": "推進",
+              "nextMilestone": "v1.0"
+            },
+            {
+              "name": "Multi-Agent Ember",
+              "goal": "AIチームメイト",
+              "phase": "推進",
+              "nextMilestone": "内発的報酬完成"
+            }
+          ],
+          "confidence": "high",
+          "source": "observation",
+          "evidence": "直近のセッションログ + knowledge/summary.md のアクティブプロジェクト",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "habits": {
+          "value": [
+            {
+              "name": "ゴルフレッスン",
+              "purpose": "健康・趣味",
+              "frequency": "週1",
+              "status": "継続中"
+            }
+          ],
+          "confidence": "medium",
+          "source": "conversation",
+          "evidence": "会話中にゴルフレッスンへの言及あり",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "learningInputs": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "最近読んでいる本、受講中のコース、フォローしている情報源"
+        },
+        "decisionLog": {
+          "value": [],
+          "confidence": "low",
+          "source": "observation",
+          "evidence": "セッションログから決定事項を収集中",
+          "collectedAt": "2026-03-28",
+          "example": null
+        },
+        "currentMilestones": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "直近のマイルストーン（例: cogmem v1.0 リリース、Ember ダッシュボード完成）"
+        }
+      }
+    },
+    "state": {
+      "completionRate": 0.13,
+      "fields": {
+        "physicalEnergy": {
+          "value": "中（外出後ほどほど疲れ、のんびりモード）",
+          "confidence": "high",
+          "source": "conversation",
+          "evidence": "3/28夕方、板橋ステーキランチ帰りの返答「Bかな。のんびりしてる」",
+          "collectedAt": "2026-03-28",
+          "example": "身体的なエネルギーレベル（high/medium/low）"
+        },
+        "mentalEnergy": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "精神的なエネルギーレベル（high/medium/low）"
+        },
+        "motivation": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "モチベーションの状態（high/medium/low）"
+        },
+        "stressLevel": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "ストレスレベル（high/medium/low）"
+        },
+        "currentMode": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "現在のモード（没頭/探索/葛藤/不安/停滞/達成）"
+        },
+        "topConcern": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "今最も気がかりなこと"
+        },
+        "recentSuccess": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "最近の成功体験"
+        },
+        "recentSetback": {
+          "value": null,
+          "confidence": null,
+          "source": null,
+          "evidence": null,
+          "collectedAt": null,
+          "example": "最近の挫折・困難"
+        }
+      },
+      "physicalEnergy": "high",
+      "recentContext": "価値観: 豪華ステイや贅沢な体験が好き; interest-scanner の履歴にない; イヴからメッセージが来ている; Semantic Scholar APIキーを取得するとレートが5倍になる; Semantic Scholarで優先順位の案を出す; 価値観: 上映中の映画に興味がある; ユーザーがイベントの詳細を知りたいと明確に求めている"
+    }
+  },
+  "collectionConfig": {
+    "layerWeights": {
+      "L1": 0.05,
+      "L2": 0.25,
+      "L3": 0.2,
+      "L4": 0.1,
+      "L5": 0.05
+    },
+    "actionReward": 0.15,
+    "frequencyDays": 7,
+    "choiceCount": 4
+  },
+  "collectionHistory": [
+    {
+      "field": "state.physicalEnergy",
+      "layer": 3,
+      "value": "high",
+      "confidence": "high",
+      "collectedAt": "2026-03-28T08:48:10.224Z"
+    }
+  ]
+}
