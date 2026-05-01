@@ -190,8 +190,36 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
       setConsentRequired(true);
       return;
     }
-    void start();
-    return () => stop();
+
+    // Chromium autoplay policy: getUserMedia called BEFORE the first user
+    // gesture in a session can return a "muted" silent stream (no
+    // permission prompt is shown either). After cold restart, the saved
+    // enabled=true triggers this path. Delay start() until the first
+    // click anywhere in the document.
+    let cancelled = false;
+    let started = false;
+    const tryStart = () => {
+      if (cancelled || started) return;
+      started = true;
+      void start();
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.userActivation?.hasBeenActive) {
+      tryStart();
+    } else {
+      const onGesture = () => {
+        tryStart();
+        document.removeEventListener('click', onGesture);
+        document.removeEventListener('keydown', onGesture);
+      };
+      document.addEventListener('click', onGesture, { once: true });
+      document.addEventListener('keydown', onGesture, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      stop();
+    };
   }, [enabled, start, stop]);
 
   const toggle = useCallback(() => {
