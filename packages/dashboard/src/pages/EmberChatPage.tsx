@@ -6,6 +6,7 @@ import { useEmberChat } from '../components/ember-chat/useEmberChat';
 import ChatMessages from '../components/ember-chat/ChatMessages';
 import ChatInput from '../components/ember-chat/ChatInput';
 import ChatSettings from '../components/ember-chat/ChatSettings';
+import DebugPanel from '../components/ember-chat/DebugPanel';
 
 interface ServiceStatus {
   whisper: boolean;
@@ -18,6 +19,7 @@ export default function EmberChatPage() {
   const [status, setStatus] = useState<ServiceStatus>({ whisper: false, voicevox: false, ollama: false });
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState<string | null>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   const chat = useEmberChat();
 
@@ -127,6 +129,11 @@ export default function EmberChatPage() {
             onToggleSettings={() => chat.setSettingsExpanded(!chat.settingsExpanded)}
             settingsExpanded={chat.settingsExpanded}
             onOpenRecording={() => navigate('/voice-enroll')}
+          />
+
+          <DebugPanel
+            open={debugOpen}
+            onToggle={() => setDebugOpen((v) => !v)}
           />
         </>
       ) : (

@@ -1,5 +1,5 @@
 import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, fixRequestBody } from 'http-proxy-middleware';
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { execSync, execFile, spawn } from 'child_process';
 import path from 'path';
@@ -2567,10 +2567,14 @@ app.get('/api/event-log', (_req, res) => {
 const WHISPER_TARGET = 'http://localhost:8767';
 
 // HTTP proxy: /whisper/* → localhost:8767/*
+// fixRequestBody re-injects the body consumed by express.json() so POST requests work correctly.
 app.use('/whisper', createProxyMiddleware({
   target: WHISPER_TARGET,
   changeOrigin: true,
   pathRewrite: { '^/whisper': '' },
+  on: {
+    proxyReq: fixRequestBody,
+  },
 }));
 
 // --- Implicit Memory ---
