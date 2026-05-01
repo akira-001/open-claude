@@ -16,60 +16,6 @@
   },
   "history": [
     {
-      "id": "c8df7dd0-bc70-4aee-8d8a-f778d129fb0a",
-      "category": "flashback",
-      "interestCategory": "ai_agent",
-      "sentAt": "2026-04-21T01:30:54.235Z",
-      "slackTs": "1776735054.400779",
-      "slackChannel": "U3SFGQXNH",
-      "reaction": null,
-      "reactionDelta": 0,
-      "preview": "ちょっとちょっと、Akiraさん。\n\nOpenAIが *「より制限が少なく、より率直なChatGPT」* をリリースしたみたい  Ember開発してるから、競合の動き気になるんじゃないかなって。\nhttps://news.google.co",
-      "fullText": "ちょっとちょっと、Akiraさん。\n\nOpenAIが *「より制限が少なく、より率直なChatGPT」* をリリースしたみたい  Ember開発してるから、競合の動き気になるんじゃないかなって。\nhttps://news.google.com/rss/articles/CBMiqwFBVV95cUxPSFpZcVZWMGhYUS1XMVJidF9BdVNjYVQ4cmVjRlR1ZlJvSjNNM09vN3hoZmJkOGJsWFh4MHRCVEhqeXUtVUk1V1hLdV9EUGYtOGtVX0U4OTk0Z3FlRXotNjlzdEFOd1I5ZTdCY2lyYUpnUzFNQl9nUDJjV1BEVGpzOFJPMkpyWF9OWjlKNlBZNTVaamFSRzlYQk9GMkpCTGFNVWxsUHNldWVtQ1E",
-      "sourceUrls": [
-        {
-          "title": "OpenAI新ChatGPT・制限緩和",
-          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSFpZcVZWMGhYUS1XMVJidF9BdVNjYVQ4cmVjRlR1ZlJvSjNNM09vN3hoZmJkOGJsWFh4MHRCVEhqeXUtVUk1V1hLdV9EUGYtOGtVX0U4OTk0Z3FlRXotNjlzdEFOd1I5ZTdCY2lyYUpnUzFNQl9nUDJjV1BEVGpzOFJPMkpyWF9OWjlKNlBZNTVaamFSRzlYQk9GMkpCTGFNVWxsUHNldWVtQ1E",
-          "source": "UNILAD Tech"
-        }
-      ],
-      "candidateId": "url:https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSFpZcVZWMGhYUS1XMVJidF9BdVNjYVQ4cmVjRlR1ZlJvSjNNM09vN3hoZmJkOGJsWFh4MHRCVEhqeXUtVUk1V1hLdV9EUGYtOGtVX0U4OTk0Z3FlRXotNjlzdEFOd1I5ZTdCY2lyYUpnUzFNQl9nUDJjV1BEVGpzOFJPMkpyWF9OWjlKNlBZNTVaamFSRzlYQk9GMkpCTGFNVWxsUHNldWVtQ1E",
-      "candidateTopic": "OpenAI新ChatGPT・制限緩和",
-      "candidateUrl": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPSFpZcVZWMGhYUS1XMVJidF9BdVNjYVQ4cmVjRlR1ZlJvSjNNM09vN3hoZmJkOGJsWFh4MHRCVEhqeXUtVUk1V1hLdV9EUGYtOGtVX0U4OTk0Z3FlRXotNjlzdEFOd1I5ZTdCY2lyYUpnUzFNQl9nUDJjV1BEVGpzOFJPMkpyWF9OWjlKNlBZNTVaamFSRzlYQk9GMkpCTGFNVWxsUHNldWVtQ1E",
-      "candidateSource": "UNILAD Tech",
-      "skill": "energy-break",
-      "sources": [
-        "calendar",
-        "email",
-        "interest-cache"
-      ],
-      "intrinsicReward": {
-        "signals": [],
-        "immediateTotal": 0,
-        "deferredTotal": 0,
-        "compositeBoost": 0
-      },
-      "premise": {
-        "estimatedMode": "達成モード・通常エネルギー",
-        "modeReason": "火曜10:30、昨日12本会議をこなしたAkiraさん。今日も品川で会議が入っているようで（Meiの08:01メッセージより）、平常ペースで稼働中と推定",
-        "targetLayer": 4,
-        "layerReason": "Ember開発というアクティブな実行層に関わるAI最新動向を届けられる機会",
-        "interventionType": "情報提供",
-        "interventionReason": "OpenAIの制限緩和ChatGPT情報はEmber開発の競合/参考情報として実用性がある",
-        "reason": "AI開発者視点で気になるOpenAIの動きがある",
-        "informationGap": null,
-        "collectionHint": null
-      },
-      "emotionTag": "bright",
-      "themePath": [
-        "ai",
-        "ai/enterprise",
-        "ai/enterprise/openai",
-        "ai/enterprise/openai/models"
-      ],
-      "themeKey": "ai/enterprise/openai/models"
-    },
-    {
       "id": "29a92278-4e9b-4d95-a26f-7f040793b8f5",
       "category": "hobby_leisure",
       "interestCategory": "general",
@@ -5294,11 +5240,64 @@
         "local/saitama/tokorozawa/event/flower-sakura"
       ],
       "themeKey": "local/saitama/tokorozawa/event/flower-sakura"
+    },
+    {
+      "id": "b3e70c0d-9037-442a-baa9-ff39af252336",
+      "category": "flashback",
+      "interestCategory": "general",
+      "sentAt": "2026-05-01T11:30:58.065Z",
+      "slackTs": "1777635058.245369",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0,
+      "preview": "あのね、Akiraさん。\n\n朝日新聞に *グランスタ店長が選ぶ東京駅限定お弁当ベスト10* が出てたよ 🍱「幸せな気分になる」「満足感が高い」って評されてるやつ。\n\n以前グランスタ経由したよね。GWで東京方面行く機会があったら覗いてみても",
+      "fullText": "あのね、Akiraさん。\n\n朝日新聞に *グランスタ店長が選ぶ東京駅限定お弁当ベスト10* が出てたよ 🍱「幸せな気分になる」「満足感が高い」って評されてるやつ。\n\n以前グランスタ経由したよね。GWで東京方面行く機会があったら覗いてみてもいいかも。\nhttps://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "sourceUrls": [
+        {
+          "title": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
+          "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+          "source": "朝日新聞"
+        }
+      ],
+      "candidateId": "url:https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "candidateTopic": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
+      "candidateUrl": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "candidateSource": "朝日新聞",
+      "skill": "general",
+      "sources": [
+        "calendar",
+        "email",
+        "interest-cache"
+      ],
+      "intrinsicReward": {
+        "signals": [],
+        "immediateTotal": 0,
+        "deferredTotal": 0,
+        "compositeBoost": 0
+      },
+      "premise": {
+        "estimatedMode": "達成モード・低エネルギー",
+        "modeReason": "GW初日の夜20:30。今日は多くのメッセージを送っており、Akiraさんもゆっくりしている可能性が高い。カレンダー上の予定もなく休息モード",
+        "targetLayer": 5,
+        "layerReason": "GW休日の夜。現在の状態（リラックス・休息）に寄り添うアプローチが最適",
+        "interventionType": "情報提供",
+        "interventionReason": "軽いグルメ情報で、プレッシャーなく楽しめる話題を届ける",
+        "reason": "GW初日の夜、軽食・グルメ系の話題が自然",
+        "informationGap": null,
+        "collectionHint": null
+      },
+      "emotionTag": "bright",
+      "themePath": [
+        "lifestyle",
+        "lifestyle/food-wellness",
+        "lifestyle/food-wellness/bento"
+      ],
+      "themeKey": "lifestyle/food-wellness/bento"
     }
   ],
-  "lastCheckAt": "2026-05-01T10:30:57.490Z",
+  "lastCheckAt": "2026-05-01T11:30:58.064Z",
   "stats": {
-    "totalSent": 557,
+    "totalSent": 558,
     "positiveReactions": 26,
     "negativeReactions": 0
   },
@@ -5471,34 +5470,25 @@
         "local/saitama/tokorozawa/event/flower-sakura"
       ],
       "themeKey": "local/saitama/tokorozawa/event/flower-sakura"
+    },
+    {
+      "time": "20:30",
+      "summary": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
+      "source": "朝日新聞",
+      "interestCategory": "general",
+      "topic": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
+      "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "themePath": [
+        "lifestyle",
+        "lifestyle/food-wellness",
+        "lifestyle/food-wellness/bento"
+      ],
+      "themeKey": "lifestyle/food-wellness/bento"
     }
   ],
   "todayDate": "2026-05-01",
   "lastScoredCandidates": [
-    {
-      "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
-      "source": "interest-cache",
-      "category": "dev_tools",
-      "pub_date": "2026-05-01T05:46:00+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE40d3JnNktaTWYtSjM4YTI4QlNweWZqVHFKVzZ5OUVacmNrVUZ3cFF0NzF0a3VjeEZyY3JtZ3F6eW9rUk5wVXJNbHgwX2RmUU5HSnZJbDFXSQ?oc=5",
-        "mediaSource": "ファミ通",
-        "emotion_type": "medium",
-        "timeliness": 0.936
-      },
-      "scores": {
-        "timeliness": 0.802646712962963,
-        "novelty": 0.1,
-        "continuity": 0.3,
-        "emotional_fit": 0.5,
-        "affinity": 0.5,
-        "surprise": 0.7
-      },
-      "finalScore": 0.6954578162201361,
-      "reasoning": "タイムリー・意外・サプライズ（interest-cache）",
-      "explorationBonus": 0.3,
-      "selectionScore": 0.9954578162201362
-    },
     {
       "topic": "ネタジョ | ドラマ情報・キャスト・あらすじ・配信・放送日 - ナタリー",
       "source": "interest-cache",
@@ -5511,17 +5501,17 @@
         "timeliness": 0.936
       },
       "scores": {
-        "timeliness": 0.6567463580246914,
+        "timeliness": 0.6428690354938271,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.6637053242272988,
-      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
+      "finalScore": 0.7456705198075118,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9637053242272988
+      "selectionScore": 1.0456705198075118
     },
     {
       "topic": "迷ったらこれ！ グランスタ店長が選ぶ“東京駅限定のお弁当”ベスト10とは？「幸せな気分になる」「満足感が高い」 - 朝日新聞",
@@ -5535,17 +5525,17 @@
         "timeliness": 0.93
       },
       "scores": {
-        "timeliness": 0.653193175154321,
+        "timeliness": 0.6393158526234568,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.6629320402233754,
-      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
+      "finalScore": 0.7449319813689623,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9629320402233754
+      "selectionScore": 1.0449319813689624
     },
     {
       "topic": "プッシャー2【4Kデジタル修復版】を上映中の映画館を探す - MOVIE WALKER PRESS",
@@ -5559,17 +5549,17 @@
         "timeliness": 0.866
       },
       "scores": {
-        "timeliness": 0.6102340316358025,
+        "timeliness": 0.5963567091049383,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.6535827835943013,
-      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
+      "finalScore": 0.7360028099941474,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9535827835943014
+      "selectionScore": 1.0360028099941474
     },
     {
       "topic": "【公開直前トピックス 第1弾】4/26(日)～シネマ歌舞伎『曽根崎心中』で日本語字幕版の上映が決定！（※4/30更新） - 松竹株式会社",
@@ -5583,17 +5573,17 @@
         "timeliness": 0.864
       },
       "scores": {
-        "timeliness": 0.6091460648148148,
+        "timeliness": 0.5952687422839507,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.653346007900462,
-      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
+      "finalScore": 0.7357766732186197,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9533460079004621
+      "selectionScore": 1.0357766732186198
     },
     {
       "topic": "最高視聴率8.2%！愛と再生の韓国ドラマ『僕には愛しすぎる彼女』全16話ネタバレ注意な見どころ - ヨムーノ",
@@ -5607,65 +5597,17 @@
         "timeliness": 0.845
       },
       "scores": {
-        "timeliness": 0.5961213541666667,
+        "timeliness": 0.5822440316358025,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.6505114224689235,
-      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
+      "finalScore": 0.7330694527305166,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9505114224689235
-    },
-    {
-      "topic": "I switched to Linux for local LLMs and setup that took hours on Windows took minutes - MakeUseOf",
-      "source": "interest-cache",
-      "category": "llm_local",
-      "pub_date": "2026-04-30T19:30:18+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNVUVUal9oM1Rzbi1fV1E4ZUw5bldwRlpOR0JmWnlJenUxVFV4TmR4VGVPN1dTOTZMX01PYzExOVJGcE8yRWxFdkhFdEI5SnFUVERlS0EtZ1lRakVFQ005YzNfZ29vSUYzWjB1U2ZRMWRyTXNEU1VlLUFUanFjNm9Oblo5ZTc?oc=5",
-        "mediaSource": "MakeUseOf",
-        "emotion_type": "medium",
-        "timeliness": 0.889
-      },
-      "scores": {
-        "timeliness": 0.6250258526234568,
-        "novelty": 0.1,
-        "continuity": 0.9,
-        "emotional_fit": 0.5,
-        "affinity": 0.4,
-        "surprise": 0.7
-      },
-      "finalScore": 0.6205156857867077,
-      "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）",
-      "explorationBonus": 0.3,
-      "selectionScore": 0.9205156857867076
-    },
-    {
-      "topic": "Elderly Cat Dies After He Was Allegedly Taken by Delivery Driver - AOL.com",
-      "source": "interest-cache",
-      "category": "cat_health",
-      "pub_date": "2026-04-30T19:28:11+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxQLXhhVU0ycW54aXRNUEQ2RUF5YU9yWE5NX3VEYlpOVWFoM1BOR1ZUbTY3TjQyemxfMWRZblo1RVJtZ1I1c1RmQzNZVmxlLW03RlhmckMxbktyWlhpMG5uZS0wMUJyV3ZIeW13Mm1ZUDRKcVBkSzhkc1gzWHpUdkdoUHJ3?oc=5",
-        "mediaSource": "AOL.com",
-        "emotion_type": "medium",
-        "timeliness": 0.888
-      },
-      "scores": {
-        "timeliness": 0.6245358294753086,
-        "novelty": 0.1,
-        "continuity": 0.9,
-        "emotional_fit": 0.5,
-        "affinity": 0.4,
-        "surprise": 0.7
-      },
-      "finalScore": 0.620409041384818,
-      "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）",
-      "explorationBonus": 0.3,
-      "selectionScore": 0.920409041384818
+      "selectionScore": 1.0330694527305166
     },
     {
       "topic": "トヨタ「タンドラ」発売でどんな声あった？ 「“ランクルより大きい”のはロマンがある」の声も！ “タフ要素”が目を惹くデザインに注目！ - carview!",
@@ -5679,17 +5621,41 @@
         "timeliness": 0.653
       },
       "scores": {
-        "timeliness": 0.4929899421296296,
+        "timeliness": 0.4721739641203704,
+        "novelty": 0.1,
+        "continuity": 0.3,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.8
+      },
+      "finalScore": 0.5738316178216539,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.44999999999999996,
+      "selectionScore": 1.0238316178216538
+    },
+    {
+      "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
+      "source": "interest-cache",
+      "category": "dev_tools",
+      "pub_date": "2026-05-01T05:46:00+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE40d3JnNktaTWYtSjM4YTI4QlNweWZqVHFKVzZ5OUVacmNrVUZ3cFF0NzF0a3VjeEZyY3JtZ3F6eW9rUk5wVXJNbHgwX2RmUU5HSnZJbDFXSQ?oc=5",
+        "mediaSource": "ファミ通",
+        "emotion_type": "medium",
+        "timeliness": 0.936
+      },
+      "scores": {
+        "timeliness": 0.7610147453703704,
         "novelty": 0.1,
         "continuity": 0.3,
         "emotional_fit": 0.5,
         "affinity": 0.5,
-        "surprise": 0.8
+        "surprise": 0.7
       },
-      "finalScore": 0.46857012100063655,
-      "reasoning": "意外・サプライズ・気分に合う（interest-cache）",
-      "explorationBonus": 0.44999999999999996,
-      "selectionScore": 0.9185701210006365
+      "finalScore": 0.7033379830939144,
+      "reasoning": "タイムリー・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.3,
+      "selectionScore": 1.0033379830939144
     },
     {
       "topic": "【2026年最新】ガチで美味しかった！池袋駅グルメ10軒",
@@ -5707,214 +5673,233 @@
         "timeliness": 0.3,
         "novelty": 0.1,
         "continuity": 0.3,
-        "emotional_fit": 0.5,
+        "emotional_fit": 0.9,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.5860661308103573,
-      "reasoning": "意外・サプライズ・気分に合う（interest-cache）",
+      "finalScore": 0.6744042857467203,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.8860661308103572
+      "selectionScore": 0.9744042857467203
+    },
+    {
+      "topic": "『VIVANT』続編映像初公開！総勢26名のキャスト発表！【TBS】",
+      "source": "interest-cache",
+      "category": "tv_drama",
+      "pub_date": null,
+      "metadata": {
+        "url": "https://www.youtube.com/watch?v=9124Rl0IEJU",
+        "mediaSource": "TBS公式 YouTuboo",
+        "content_type": "video",
+        "emotion_type": "light",
+        "timeliness": 0.1
+      },
+      "scores": {
+        "timeliness": 0.3,
+        "novelty": 0.1,
+        "continuity": 0.3,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.7
+      },
+      "finalScore": 0.6716696101514822,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.3,
+      "selectionScore": 0.9716696101514821
+    },
+    {
+      "topic": "映画『BLUE  GIANT』│「N.E.W.」ライブシーン特別映像【大ヒット上映中！】",
+      "source": "interest-cache",
+      "category": "movie_theater",
+      "pub_date": null,
+      "metadata": {
+        "url": "https://www.youtube.com/watch?v=KaB7tTJ2T5o",
+        "mediaSource": "TOHO animation チャンネル",
+        "content_type": "video",
+        "emotion_type": "light",
+        "timeliness": 0.1
+      },
+      "scores": {
+        "timeliness": 0.3,
+        "novelty": 0.1,
+        "continuity": 0.3,
+        "emotional_fit": 0.9,
+        "affinity": 0.5,
+        "surprise": 0.7
+      },
+      "finalScore": 0.6644065673604769,
+      "reasoning": "気分に合う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.3,
+      "selectionScore": 0.9644065673604769
     }
   ],
   "lastDecisionLog": {
     "premise": {
-      "estimatedMode": "達成モード・回復中",
-      "modeReason": "GW休日で11時の会議も終わっており、夕方以降はフリータイム。今日は多くのメッセージを受け取っており疲労感もあると推定",
-      "targetLayer": 4,
-      "layerReason": "Ember開発というアクティブな実行層テーマがあり、かつ『ai/local-llm』が足りないテーマに入っている",
+      "estimatedMode": "達成モード・低エネルギー",
+      "modeReason": "GW初日の夜20:30。今日は多くのメッセージを送っており、Akiraさんもゆっくりしている可能性が高い。カレンダー上の予定もなく休息モード",
+      "targetLayer": 5,
+      "layerReason": "GW休日の夜。現在の状態（リラックス・休息）に寄り添うアプローチが最適",
       "interventionType": "情報提供",
-      "interventionReason": "ローカルLLM×Linux記事はEmber開発の参考になりうる実用情報で、GW夜に読めるライトな内容",
+      "interventionReason": "軽いグルメ情報で、プレッシャーなく楽しめる話題を届ける",
+      "reason": "GW初日の夜、軽食・グルメ系の話題が自然",
       "informationGap": null,
       "collectionHint": null
     },
     "decision": "send",
-    "need": "成長・探索",
-    "reason": "ai/local-llm在庫不足テーマに合致し、Ember開発との接続がある",
+    "need": "軽い楽しみ・GWのインスピレーション",
+    "reason": "Akiraさんはグランスタに以前立ち寄っており、親近感がある話題",
     "candidates": [
       {
-        "topic": "Linux for local LLMs setup",
-        "source": "MakeUseOf",
-        "score": 0.62
-      },
-      {
-        "topic": "ネタジョドラマ情報",
-        "source": "ナタリー",
-        "score": 0.66
-      },
-      {
-        "topic": "グランスタ弁当TOP10",
+        "topic": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
         "source": "朝日新聞",
-        "score": 0.66
+        "score": 0.74
+      },
+      {
+        "topic": "ネタジョ",
+        "source": "ナタリー",
+        "score": 0.75
+      },
+      {
+        "topic": "沈黙",
+        "source": null,
+        "score": 0.6
       }
     ],
-    "message": "ちょっとちょっと。\n\nMakeUseOfに *「ローカルLLMのセットアップ、WindowsでN時間かかってたのにLinuxで数分で終わった」* って記事が出てたよ 💻\n\nEmberで使うモデル環境の話、GWの夜にさらっと眺めてみてもいいかも。\nhttps://news.google.com/rss/articles/CBMihAFBVV95cUxNVUVUal9oM1Rzbi1fV1E4ZUw5bldwRlpOR0JmWnlJenUxVFV4TmR4VGVPN1dTOTZMX01PYzExOVJGcE8yRWxFdkhFdEI5SnFUVERlS0EtZ1lRakVFQ005YzNfZ29vSUYzWjB1U2ZRMWRyTXNEU1VlLUFUanFjNm9Oblo5ZTc",
+    "message": "あのね、Akiraさん。\n\n朝日新聞に *グランスタ店長が選ぶ東京駅限定お弁当ベスト10* が出てたよ 🍱「幸せな気分になる」「満足感が高い」って評されてるやつ。\n\n以前グランスタ経由したよね。GWで東京方面行く機会があったら覗いてみてもいいかも。\nhttps://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
     "topicWeight": "light",
-    "inner_thought": "今日もう何本も送ってるし正直黙りたい。でもローカルLLMのLinux移行記事、Ember開発してるAkiraさんにはピンとくるかも",
+    "inner_thought": "今日もう何本も送ってるし、グランスタ弁当くらい軽くていいかな",
     "plan": [
-      "LinuxローカルLLM記事を共有",
+      "グランスタ駅弁ランキングを共有",
+      "ネタジョドラマ情報を共有",
       "沈黙"
     ],
     "generate_score": [
-      0.62,
+      0.65,
+      0.45,
       0.6
     ],
     "evaluate_score": 0.58,
-    "timestamp": "2026-05-01T10:30:57.492Z",
+    "timestamp": "2026-05-01T11:30:58.064Z",
     "skill": "none",
     "scoredCandidates": [
-      {
-        "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
-        "source": "interest-cache",
-        "category": "dev_tools",
-        "scores": {
-          "timeliness": 0.802646712962963,
-          "novelty": 0.1,
-          "continuity": 0.3,
-          "emotional_fit": 0.5,
-          "affinity": 0.5,
-          "surprise": 0.7
-        },
-        "finalScore": 0.6954578162201361,
-        "explorationBonus": 0.3,
-        "selectionScore": 0.9954578162201362,
-        "reasoning": "タイムリー・意外・サプライズ（interest-cache）"
-      },
       {
         "topic": "ネタジョ | ドラマ情報・キャスト・あらすじ・配信・放送日 - ナタリー",
         "source": "interest-cache",
         "category": "tv_drama",
         "scores": {
-          "timeliness": 0.6567463580246914,
+          "timeliness": 0.6428690354938271,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.6637053242272988,
+        "finalScore": 0.7456705198075118,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9637053242272988,
-        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
+        "selectionScore": 1.0456705198075118,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "迷ったらこれ！ グランスタ店長が選ぶ“東京駅限定のお弁当”ベスト10とは？「幸せな気分になる」「満足感が高い」 - 朝日新聞",
         "source": "interest-cache",
         "category": "food_dining",
         "scores": {
-          "timeliness": 0.653193175154321,
+          "timeliness": 0.6393158526234568,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.6629320402233754,
+        "finalScore": 0.7449319813689623,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9629320402233754,
-        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
+        "selectionScore": 1.0449319813689624,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "プッシャー2【4Kデジタル修復版】を上映中の映画館を探す - MOVIE WALKER PRESS",
         "source": "interest-cache",
         "category": "movie_theater",
         "scores": {
-          "timeliness": 0.6102340316358025,
+          "timeliness": 0.5963567091049383,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.6535827835943013,
+        "finalScore": 0.7360028099941474,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9535827835943014,
-        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
+        "selectionScore": 1.0360028099941474,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "【公開直前トピックス 第1弾】4/26(日)～シネマ歌舞伎『曽根崎心中』で日本語字幕版の上映が決定！（※4/30更新） - 松竹株式会社",
         "source": "interest-cache",
         "category": "movie_theater",
         "scores": {
-          "timeliness": 0.6091460648148148,
+          "timeliness": 0.5952687422839507,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.653346007900462,
+        "finalScore": 0.7357766732186197,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9533460079004621,
-        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
+        "selectionScore": 1.0357766732186198,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "最高視聴率8.2%！愛と再生の韓国ドラマ『僕には愛しすぎる彼女』全16話ネタバレ注意な見どころ - ヨムーノ",
         "source": "interest-cache",
         "category": "tv_drama",
         "scores": {
-          "timeliness": 0.5961213541666667,
+          "timeliness": 0.5822440316358025,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.6505114224689235,
+        "finalScore": 0.7330694527305166,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9505114224689235,
-        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
-      },
-      {
-        "topic": "I switched to Linux for local LLMs and setup that took hours on Windows took minutes - MakeUseOf",
-        "source": "interest-cache",
-        "category": "llm_local",
-        "scores": {
-          "timeliness": 0.6250258526234568,
-          "novelty": 0.1,
-          "continuity": 0.9,
-          "emotional_fit": 0.5,
-          "affinity": 0.4,
-          "surprise": 0.7
-        },
-        "finalScore": 0.6205156857867077,
-        "explorationBonus": 0.3,
-        "selectionScore": 0.9205156857867076,
-        "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）"
-      },
-      {
-        "topic": "Elderly Cat Dies After He Was Allegedly Taken by Delivery Driver - AOL.com",
-        "source": "interest-cache",
-        "category": "cat_health",
-        "scores": {
-          "timeliness": 0.6245358294753086,
-          "novelty": 0.1,
-          "continuity": 0.9,
-          "emotional_fit": 0.5,
-          "affinity": 0.4,
-          "surprise": 0.7
-        },
-        "finalScore": 0.620409041384818,
-        "explorationBonus": 0.3,
-        "selectionScore": 0.920409041384818,
-        "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）"
+        "selectionScore": 1.0330694527305166,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "トヨタ「タンドラ」発売でどんな声あった？ 「“ランクルより大きい”のはロマンがある」の声も！ “タフ要素”が目を惹くデザインに注目！ - carview!",
         "source": "interest-cache",
         "category": "_wildcard",
         "scores": {
-          "timeliness": 0.4929899421296296,
+          "timeliness": 0.4721739641203704,
+          "novelty": 0.1,
+          "continuity": 0.3,
+          "emotional_fit": 0.9,
+          "affinity": 0.5,
+          "surprise": 0.8
+        },
+        "finalScore": 0.5738316178216539,
+        "explorationBonus": 0.44999999999999996,
+        "selectionScore": 1.0238316178216538,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
+      },
+      {
+        "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
+        "source": "interest-cache",
+        "category": "dev_tools",
+        "scores": {
+          "timeliness": 0.7610147453703704,
           "novelty": 0.1,
           "continuity": 0.3,
           "emotional_fit": 0.5,
           "affinity": 0.5,
-          "surprise": 0.8
+          "surprise": 0.7
         },
-        "finalScore": 0.46857012100063655,
-        "explorationBonus": 0.44999999999999996,
-        "selectionScore": 0.9185701210006365,
-        "reasoning": "意外・サプライズ・気分に合う（interest-cache）"
+        "finalScore": 0.7033379830939144,
+        "explorationBonus": 0.3,
+        "selectionScore": 1.0033379830939144,
+        "reasoning": "タイムリー・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "【2026年最新】ガチで美味しかった！池袋駅グルメ10軒",
@@ -5924,31 +5909,65 @@
           "timeliness": 0.3,
           "novelty": 0.1,
           "continuity": 0.3,
-          "emotional_fit": 0.5,
+          "emotional_fit": 0.9,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.5860661308103573,
+        "finalScore": 0.6744042857467203,
         "explorationBonus": 0.3,
-        "selectionScore": 0.8860661308103572,
-        "reasoning": "意外・サプライズ・気分に合う（interest-cache）"
+        "selectionScore": 0.9744042857467203,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
+      },
+      {
+        "topic": "『VIVANT』続編映像初公開！総勢26名のキャスト発表！【TBS】",
+        "source": "interest-cache",
+        "category": "tv_drama",
+        "scores": {
+          "timeliness": 0.3,
+          "novelty": 0.1,
+          "continuity": 0.3,
+          "emotional_fit": 0.9,
+          "affinity": 0.5,
+          "surprise": 0.7
+        },
+        "finalScore": 0.6716696101514822,
+        "explorationBonus": 0.3,
+        "selectionScore": 0.9716696101514821,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
+      },
+      {
+        "topic": "映画『BLUE  GIANT』│「N.E.W.」ライブシーン特別映像【大ヒット上映中！】",
+        "source": "interest-cache",
+        "category": "movie_theater",
+        "scores": {
+          "timeliness": 0.3,
+          "novelty": 0.1,
+          "continuity": 0.3,
+          "emotional_fit": 0.9,
+          "affinity": 0.5,
+          "surprise": 0.7
+        },
+        "finalScore": 0.6644065673604769,
+        "explorationBonus": 0.3,
+        "selectionScore": 0.9644065673604769,
+        "reasoning": "気分に合う・意外・サプライズ（interest-cache）"
       }
     ],
     "weightsUsed": {
-      "timeliness": 0.21763135536079656,
-      "novelty": 0.1249488226422063,
-      "continuity": 0.2571736204390659,
-      "emotional_fit": 0.08930858521356393,
-      "affinity": 0.055904341208305196,
-      "surprise": 0.255033275136062
+      "timeliness": 0.2078526395891897,
+      "novelty": 0.06498978103930386,
+      "continuity": 0.26099873307628163,
+      "emotional_fit": 0.16722358591893915,
+      "affinity": 0.0625300687364836,
+      "surprise": 0.2364051916398021
     },
     "sampledRaw": {
-      "timeliness": 0.2720391942009957,
-      "novelty": 0.15618602830275788,
-      "continuity": 0.22146702554883238,
-      "emotional_fit": 0.11163573151695491,
-      "affinity": 0.0698804265103815,
-      "surprise": 0.16879159392007753
+      "timeliness": 0.25981579948648714,
+      "novelty": 0.08123722629912983,
+      "continuity": 0.226248416345352,
+      "emotional_fit": 0.20902948239867394,
+      "affinity": 0.0781625859206045,
+      "surprise": 0.14550648954975262
     },
     "contextBonus": {
       "timeliness": 0,
@@ -5993,7 +6012,7 @@
   },
   "lastOAuthNotifyDate": "2026-04-26",
   "themeInventory": {
-    "updatedAt": "2026-05-01T10:30:11.277Z",
+    "updatedAt": "2026-05-01T11:30:08.279Z",
     "records": [
       {
         "themeKey": "local/saitama/tokorozawa/recreation/park-walk",
@@ -6028,7 +6047,7 @@
           "kpi"
         ],
         "rootKey": "business/consulting",
-        "availableCount": 22,
+        "availableCount": 20,
         "sentFreshCount": 0,
         "sent30dCount": 0,
         "positive30dCount": 0,
@@ -6036,7 +6055,7 @@
         "positiveRate30d": 0.5,
         "uniqueSources30d": 0,
         "targetCount": 4,
-        "supplyGap": -18,
+        "supplyGap": -16,
         "rotationGap": 4,
         "freshnessDays": 10,
         "freshnessScore": 1,
@@ -6086,7 +6105,7 @@
         "supplyGap": 4,
         "rotationGap": 4,
         "freshnessDays": 7,
-        "freshnessScore": 0.2203277331349207,
+        "freshnessScore": 0.2143803091931218,
         "lastSentAt": "2026-04-25T23:31:05.490Z"
       },
       {
@@ -6293,6 +6312,29 @@
         "lastSentAt": null
       },
       {
+        "themeKey": "entertainment/movie-drama/anime/series",
+        "themePath": [
+          "entertainment",
+          "movie-drama",
+          "anime",
+          "series"
+        ],
+        "rootKey": "entertainment/movie-drama",
+        "availableCount": 1,
+        "sentFreshCount": 0,
+        "sent30dCount": 0,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0.5,
+        "uniqueSources30d": 0,
+        "targetCount": 4,
+        "supplyGap": 3,
+        "rotationGap": 4,
+        "freshnessDays": 7,
+        "freshnessScore": 1,
+        "lastSentAt": null
+      },
+      {
         "themeKey": "misc/topic/slackbot-再構築の舞台裏-slack",
         "themePath": [
           "misc",
@@ -6315,71 +6357,28 @@
         "lastSentAt": null
       },
       {
-        "themeKey": "entertainment/movie-drama/anime/adaptation",
+        "themeKey": "sports/mlb/dodgers/ohtani/stats",
         "themePath": [
-          "entertainment",
-          "movie-drama",
-          "anime",
-          "adaptation"
-        ],
-        "rootKey": "entertainment/movie-drama",
-        "availableCount": 1,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
-        "targetCount": 4,
-        "supplyGap": 3,
-        "rotationGap": 4,
-        "freshnessDays": 7,
-        "freshnessScore": 1,
-        "lastSentAt": null
-      },
-      {
-        "themeKey": "sports/mlb/dodgers/cogmem/how-to-watch",
-        "themePath": [
+          "sports",
+          "sports/mlb",
           "sports/mlb/dodgers",
-          "cogmem",
-          "how-to-watch"
+          "sports/mlb/dodgers/ohtani",
+          "sports/mlb/dodgers/ohtani/stats"
         ],
-        "rootKey": "sports/mlb/dodgers/cogmem",
-        "availableCount": 1,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
+        "rootKey": "sports/sports/mlb",
+        "availableCount": 4,
+        "sentFreshCount": 1,
+        "sent30dCount": 3,
         "positive30dCount": 0,
         "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
+        "positiveRate30d": 0,
+        "uniqueSources30d": 4,
         "targetCount": 4,
-        "supplyGap": 3,
-        "rotationGap": 4,
+        "supplyGap": 0,
+        "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 1,
-        "lastSentAt": null
-      },
-      {
-        "themeKey": "sports/mlb/dodgers/cogmem/janson-junk-outduels",
-        "themePath": [
-          "sports/mlb/dodgers",
-          "cogmem",
-          "janson-junk-outduels"
-        ],
-        "rootKey": "sports/mlb/dodgers/cogmem",
-        "availableCount": 1,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
-        "targetCount": 4,
-        "supplyGap": 3,
-        "rotationGap": 4,
-        "freshnessDays": 7,
-        "freshnessScore": 1,
-        "lastSentAt": null
+        "freshnessScore": 0.13688502645502643,
+        "lastSentAt": "2026-04-25T10:29:56.343Z"
       },
       {
         "themeKey": "personal/travel-tech/pet/cat-health",
@@ -6448,32 +6447,8 @@
         "supplyGap": 1,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.14887481977513228,
+        "freshnessScore": 0.14292739583333336,
         "lastSentAt": "2026-04-25T11:30:50.768Z"
-      },
-      {
-        "themeKey": "sports/mlb/dodgers/ohtani/stats",
-        "themePath": [
-          "sports",
-          "sports/mlb",
-          "sports/mlb/dodgers",
-          "sports/mlb/dodgers/ohtani",
-          "sports/mlb/dodgers/ohtani/stats"
-        ],
-        "rootKey": "sports/sports/mlb",
-        "availableCount": 2,
-        "sentFreshCount": 1,
-        "sent30dCount": 3,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0,
-        "uniqueSources30d": 4,
-        "targetCount": 4,
-        "supplyGap": 2,
-        "rotationGap": 3,
-        "freshnessDays": 7,
-        "freshnessScore": 0.14283245039682535,
-        "lastSentAt": "2026-04-25T10:29:56.343Z"
       },
       {
         "themeKey": "entertainment/movie-drama/vivant",
@@ -6494,7 +6469,7 @@
         "supplyGap": 3,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.12508053406084663,
+        "freshnessScore": 0.11913311011904759,
         "lastSentAt": "2026-04-25T07:30:59.984Z"
       },
       {
@@ -6561,7 +6536,7 @@
         "supplyGap": 4,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.9465246941137566,
+        "freshnessScore": 0.9405772701719577,
         "lastSentAt": "2026-05-01T01:31:09.412Z"
       },
       {
@@ -6584,7 +6559,7 @@
         "supplyGap": 4,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.7143501025132275,
+        "freshnessScore": 0.7084026785714286,
         "lastSentAt": "2026-04-29T10:30:50.219Z"
       },
       {
@@ -6654,7 +6629,7 @@
         "supplyGap": 4,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.8274739169973545,
+        "freshnessScore": 0.8215264930555556,
         "lastSentAt": "2026-04-30T05:31:07.502Z"
       },
       {
@@ -6813,7 +6788,7 @@
         "supplyGap": 4,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.9971660714285714,
+        "freshnessScore": 0.9912186474867725,
         "lastSentAt": "2026-05-01T10:01:37.317Z"
       },
       {
@@ -6836,7 +6811,7 @@
         "supplyGap": 1,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9554376802248677,
+        "freshnessScore": 0.9494902562830688,
         "lastSentAt": "2026-05-01T03:00:59.986Z"
       },
       {
@@ -6859,7 +6834,7 @@
         "supplyGap": 1,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8155886375661376,
+        "freshnessScore": 0.8096412136243386,
         "lastSentAt": "2026-04-30T03:31:19.285Z"
       },
       {
@@ -6882,8 +6857,31 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8453125512566138,
+        "freshnessScore": 0.8393651273148148,
         "lastSentAt": "2026-04-30T08:30:56.308Z"
+      },
+      {
+        "themeKey": "sports/mlb/dodgers/opening-day",
+        "themePath": [
+          "sports",
+          "sports/mlb",
+          "sports/mlb/dodgers",
+          "sports/mlb/dodgers/opening-day"
+        ],
+        "rootKey": "sports/sports/mlb",
+        "availableCount": 2,
+        "sentFreshCount": 1,
+        "sent30dCount": 1,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0,
+        "uniqueSources30d": 2,
+        "targetCount": 3,
+        "supplyGap": 1,
+        "rotationGap": 2,
+        "freshnessDays": 7,
+        "freshnessScore": 0.28581071097883604,
+        "lastSentAt": "2026-04-26T11:31:06.597Z"
       },
       {
         "themeKey": "entertainment/movie-drama/spring-drama",
@@ -6904,7 +6902,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8393761557539683,
+        "freshnessScore": 0.8334287318121694,
         "lastSentAt": "2026-04-30T07:31:05.976Z"
       },
       {
@@ -6926,7 +6924,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5893414996693123,
+        "freshnessScore": 0.5833940757275132,
         "lastSentAt": "2026-04-28T13:30:45.016Z"
       },
       {
@@ -6948,7 +6946,7 @@
         "supplyGap": 1,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.660826421957672,
+        "freshnessScore": 0.654878998015873,
         "lastSentAt": "2026-04-29T01:31:19.097Z"
       },
       {
@@ -6971,7 +6969,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.017962303240740773,
+        "freshnessScore": 0.01201487929894185,
         "lastSentAt": "2026-04-24T13:31:14.878Z"
       },
       {
@@ -6994,31 +6992,8 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5655621610449736,
+        "freshnessScore": 0.5596147371031746,
         "lastSentAt": "2026-04-28T09:31:03.272Z"
-      },
-      {
-        "themeKey": "sports/mlb/dodgers/opening-day",
-        "themePath": [
-          "sports",
-          "sports/mlb",
-          "sports/mlb/dodgers",
-          "sports/mlb/dodgers/opening-day"
-        ],
-        "rootKey": "sports/sports/mlb",
-        "availableCount": 1,
-        "sentFreshCount": 1,
-        "sent30dCount": 1,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0,
-        "uniqueSources30d": 2,
-        "targetCount": 3,
-        "supplyGap": 2,
-        "rotationGap": 2,
-        "freshnessDays": 7,
-        "freshnessScore": 0.29175813492063496,
-        "lastSentAt": "2026-04-26T11:31:06.597Z"
       },
       {
         "themeKey": "entertainment/movie-drama/blue-giant",
@@ -7039,7 +7014,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.42267113095238096,
+        "freshnessScore": 0.41672370701058203,
         "lastSentAt": "2026-04-27T09:30:42.777Z"
       },
       {
@@ -7063,7 +7038,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.80964478505291,
+        "freshnessScore": 0.8036973611111111,
         "lastSentAt": "2026-04-30T02:31:24.443Z"
       },
       {
@@ -7087,7 +7062,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9583383118386244,
+        "freshnessScore": 0.9523908878968254,
         "lastSentAt": "2026-05-01T03:30:14.288Z"
       },
       {
@@ -7111,7 +7086,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9673445023148148,
+        "freshnessScore": 0.9613970783730159,
         "lastSentAt": "2026-05-01T05:01:01.232Z"
       },
       {
@@ -7134,7 +7109,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.10118918485449735,
+        "freshnessScore": 0.09524176091269843,
         "lastSentAt": "2026-04-25T03:30:10.496Z"
       },
       {
@@ -7157,7 +7132,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.27985949239417984,
+        "freshnessScore": 0.2739120684523809,
         "lastSentAt": "2026-04-26T09:31:10.298Z"
       },
       {
@@ -7180,7 +7155,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.3809903505291006,
+        "freshnessScore": 0.37504292658730165,
         "lastSentAt": "2026-04-27T02:30:34.241Z"
       },
       {
@@ -7204,7 +7179,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.39887654431216923,
+        "freshnessScore": 0.3929291203703703,
         "lastSentAt": "2026-04-27T05:30:51.811Z"
       },
       {
@@ -7227,7 +7202,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5119934722222221,
+        "freshnessScore": 0.5060460482804232,
         "lastSentAt": "2026-04-28T00:31:04.929Z"
       },
       {
@@ -7250,7 +7225,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5774697718253968,
+        "freshnessScore": 0.5715223478835978,
         "lastSentAt": "2026-04-28T11:31:04.995Z"
       },
       {
@@ -7274,7 +7249,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5833810333994709,
+        "freshnessScore": 0.577433609457672,
         "lastSentAt": "2026-04-28T12:30:40.126Z"
       },
       {
@@ -7297,7 +7272,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.6488725132275133,
+        "freshnessScore": 0.6429250892857143,
         "lastSentAt": "2026-04-28T23:30:49.373Z"
       },
       {
@@ -7320,7 +7295,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.7977137533068783,
+        "freshnessScore": 0.7917663293650794,
         "lastSentAt": "2026-04-30T00:31:08.555Z"
       },
       {
@@ -7342,7 +7317,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8512567559523809,
+        "freshnessScore": 0.845309332010582,
         "lastSentAt": "2026-04-30T09:30:51.363Z"
       },
       {
@@ -7365,7 +7340,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9405301306216931,
+        "freshnessScore": 0.9345827066798942,
         "lastSentAt": "2026-05-01T00:30:43.900Z"
       },
       {
@@ -7387,7 +7362,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9613120287698412,
+        "freshnessScore": 0.9553646048280423,
         "lastSentAt": "2026-05-01T04:00:12.792Z"
       },
       {
@@ -7398,7 +7373,7 @@
           "lifestyle/food-wellness/onsen"
         ],
         "rootKey": "lifestyle/lifestyle/food-wellness",
-        "availableCount": 6,
+        "availableCount": 5,
         "sentFreshCount": 3,
         "sent30dCount": 4,
         "positive30dCount": 1,
@@ -7406,10 +7381,10 @@
         "positiveRate30d": 0.25,
         "uniqueSources30d": 4,
         "targetCount": 4,
-        "supplyGap": -2,
+        "supplyGap": -1,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.9524539897486772,
+        "freshnessScore": 0.9465065658068783,
         "lastSentAt": "2026-05-01T02:30:55.450Z"
       },
       {
@@ -7433,7 +7408,7 @@
         "supplyGap": 2,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.9941319907407408,
+        "freshnessScore": 0.9881845667989418,
         "lastSentAt": "2026-05-01T09:31:02.305Z"
       },
       {
@@ -7456,7 +7431,7 @@
         "supplyGap": 2,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.4167336491402116,
+        "freshnessScore": 0.4107862251984127,
         "lastSentAt": "2026-04-27T08:30:51.788Z"
       },
       {
@@ -7479,7 +7454,7 @@
         "supplyGap": 4,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.2559523941798941,
+        "freshnessScore": 0.2500049702380952,
         "lastSentAt": "2026-04-26T05:30:11.285Z"
       },
       {
@@ -7491,7 +7466,7 @@
           "personal/travel-tech/dev/ai-tools"
         ],
         "rootKey": "personal/personal/travel-tech",
-        "availableCount": 23,
+        "availableCount": 21,
         "sentFreshCount": 5,
         "sent30dCount": 7,
         "positive30dCount": 0,
@@ -7499,10 +7474,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 9,
         "targetCount": 5,
-        "supplyGap": -18,
+        "supplyGap": -16,
         "rotationGap": 0,
         "freshnessDays": 7,
-        "freshnessScore": 0.9345925777116402,
+        "freshnessScore": 0.9286451537698412,
         "lastSentAt": "2026-04-30T23:30:52.868Z"
       },
       {
@@ -7515,7 +7490,7 @@
           "sports/mlb/dodgers/ohtani/home-run"
         ],
         "rootKey": "sports/sports/mlb",
-        "availableCount": 0,
+        "availableCount": 2,
         "sentFreshCount": 4,
         "sent30dCount": 4,
         "positive30dCount": 0,
@@ -7523,10 +7498,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 5,
         "targetCount": 4,
-        "supplyGap": 4,
+        "supplyGap": 2,
         "rotationGap": 0,
         "freshnessDays": 7,
-        "freshnessScore": 0.9911748330026455,
+        "freshnessScore": 0.9852274090608466,
         "lastSentAt": "2026-05-01T09:01:13.816Z"
       },
       {
@@ -7549,7 +7524,7 @@
         "supplyGap": 5,
         "rotationGap": -6,
         "freshnessDays": 7,
-        "freshnessScore": 0.9643454480820106,
+        "freshnessScore": 0.9583980241402117,
         "lastSentAt": "2026-05-01T04:30:47.404Z"
       }
     ]

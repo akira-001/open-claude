@@ -471,6 +471,37 @@
       ],
       "evaluate_score": 0.65,
       "sentAt": "2026-05-01T10:01:37.317Z"
+    },
+    {
+      "botId": "eve",
+      "botName": "Eve（イヴ）",
+      "category": "flashback",
+      "interestCategory": "general",
+      "preview": "あのね、Akiraさん。\n\n朝日新聞に *グランスタ店長が選ぶ東京駅限定お弁当ベスト10* が出てたよ 🍱「幸せな気分になる」「満足感が高い」って評されてるやつ。\n\n以前グランスタ経由したよね。GWで東京方面行く機会があったら覗いてみてもいいかも。\nhttps://news.google.com/",
+      "topic": "グランスタ店長が選ぶ東京駅限定お弁当ベスト10",
+      "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMiV0FVX3lxTE5IZF9XaXgwN1QyS0U0U0ViSU1WVFYzc2tHNGRzMmFGa2kzRlU3TmthMnk1UWVfOFBpdGQyMHU0YVBzTkRMcHhJTzdDMXlLcHk2bWhVejd0TQ?oc=5",
+      "sourceType": "朝日新聞",
+      "skill": "general",
+      "themePath": [
+        "lifestyle",
+        "lifestyle/food-wellness",
+        "lifestyle/food-wellness/bento"
+      ],
+      "themeKey": "lifestyle/food-wellness/bento",
+      "inner_thought": "今日もう何本も送ってるし、グランスタ弁当くらい軽くていいかな",
+      "plan": [
+        "グランスタ駅弁ランキングを共有",
+        "ネタジョドラマ情報を共有",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.65,
+        0.45,
+        0.6
+      ],
+      "evaluate_score": 0.58,
+      "sentAt": "2026-05-01T11:30:58.065Z"
     }
   ]
 }

@@ -10,7 +10,9 @@
       "mcp__claude_ai_Google_Calendar__gcal_list_events",
       "Bash(cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak.pre-rtk)",
       "Bash(cp ~/.claude/settings.json ~/.claude/settings.json.bak.pre-rtk)",
-      "Read(//Users/akira/.claude/**)"
+      "Read(//Users/akira/.claude/**)",
+      "mcp__claude_ai_Google_Calendar__list_events",
+      "mcp__claude_ai_Gmail__search_threads"
     ]
   }
 }
