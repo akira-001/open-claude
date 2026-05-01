@@ -131,6 +131,29 @@ export interface BotConfig {
 const CONFIG_PATH = join(process.cwd(), 'data', 'bot-configs.json');
 
 // ---------------------------------------------------------------------------
+// Identity persona loader
+// ---------------------------------------------------------------------------
+
+/**
+ * Load persona text from identity/personas/<id>.md if it exists.
+ * Falls back to empty string (caller uses customPrompt/generatedPrompt).
+ * Override directory with EMBER_IDENTITY_DIR env var (useful for tests).
+ */
+function loadIdentityPersona(botId: string): string {
+  const identityDir =
+    process.env.EMBER_IDENTITY_DIR || join(process.cwd(), '..', '..', 'identity');
+  const personaPath = join(identityDir, 'personas', `${botId}.md`);
+  if (existsSync(personaPath)) {
+    try {
+      return readFileSync(personaPath, 'utf-8');
+    } catch (e) {
+      console.warn(`[bot-config] failed to read identity persona: ${personaPath}`, e);
+    }
+  }
+  return '';
+}
+
+// ---------------------------------------------------------------------------
 // Load SHARED_CAPABILITIES from skill files
 // ---------------------------------------------------------------------------
 
@@ -213,7 +236,8 @@ export function loadBotConfigs(): BotConfig[] {
         intentionalPause: bot.intentionalPause ?? DEFAULT_INTENTIONAL_PAUSE_CONFIG,
       };
 
-      const basePrompt = bot.personality.customPrompt || bot.personality.generatedPrompt || '';
+      const identityPrompt = loadIdentityPersona(bot.id);
+      const basePrompt = identityPrompt || bot.personality.customPrompt || bot.personality.generatedPrompt || '';
       const systemPrompt = basePrompt + '\n\n' + sharedCaps;
       return {
         id: bot.id,
