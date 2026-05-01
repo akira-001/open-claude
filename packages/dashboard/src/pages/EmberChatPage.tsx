@@ -29,18 +29,14 @@ interface ServiceStatus {
 const pageStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  height: 'calc(100vh - 0px)',
+  flex: 1,
+  minHeight: 0,
+  minWidth: 0,
+  width: '100%',
   background: 'var(--ember-bg)',
   color: 'var(--ember-text)',
   fontFamily: "-apple-system, 'Helvetica Neue', 'Segoe UI', sans-serif",
-  margin: '-1rem',
-  marginTop: '-4rem',
   overflow: 'hidden',
-};
-
-const pageStyleEmbedded: CSSProperties = {
-  ...pageStyle,
-  marginTop: '-1rem',
 };
 
 const textInputRowStyle: CSSProperties = {
@@ -94,9 +90,6 @@ export default function EmberChatPage() {
   const chat = useEmberChat();
   const alwaysOn = useAlwaysOn();
   const meetingRec = useMeetingRecorder();
-
-  const isEmbedded = typeof window !== 'undefined'
-    && new URLSearchParams(window.location.search).get('embedded') === 'true';
 
   const refresh = useCallback(async () => {
     try {
@@ -169,7 +162,7 @@ export default function EmberChatPage() {
   }
 
   return (
-    <div style={isEmbedded ? pageStyleEmbedded : pageStyle}>
+    <div style={pageStyle}>
       <Titlebar
         recording={meetingRec.recording}
         busy={meetingRec.busy}

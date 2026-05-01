@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { saveAudioFixtureIncoming } from '../api';
 
 // Direct connection to voice_chat server (proxy has issues with POST)
@@ -163,6 +164,7 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 export default function VoiceEnrollPage() {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<SpeakerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -560,6 +562,13 @@ export default function VoiceEnrollPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-1.5 text-sm text-[var(--text-dim)] hover:text-[var(--accent)] transition-colors"
+      >
+        ← 戻る
+      </button>
       <h1 className="text-xl font-semibold text-[var(--text)]">録音</h1>
       <p className="text-sm text-[var(--text-dim)]">
         ここでは、MEI 用の声紋登録と、ambient companion の評価に使うテスト音声作成をまとめて進められるよ。

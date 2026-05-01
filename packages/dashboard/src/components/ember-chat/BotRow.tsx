@@ -41,6 +41,8 @@ const selectStyle: CSSProperties = {
   fontSize: 11,
   outline: 'none',
   maxWidth: 140,
+  minWidth: 0,
+  flexShrink: 1,
 };
 
 const playStyle: CSSProperties = {

@@ -47,11 +47,14 @@ export function useEmberChat() {
     return audioCtxRef.current;
   }, []);
 
-  const processQueue = useCallback(() => {
+  const processQueue = useCallback(async () => {
     if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
     isPlayingRef.current = true;
     const buf = audioQueueRef.current.shift()!;
     const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') {
+      try { await ctx.resume(); } catch {}
+    }
     ctx.decodeAudioData(buf.slice(0), (audioBuffer) => {
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
@@ -63,7 +66,8 @@ export function useEmberChat() {
         processQueue();
       };
       source.start(0);
-    }, () => {
+    }, (err) => {
+      console.error('[ember-chat] decodeAudioData error:', err);
       currentSourceRef.current = null;
       isPlayingRef.current = false;
       processQueue();
@@ -102,9 +106,11 @@ export function useEmberChat() {
     }]);
   }, []);
 
-  const parseSpeedValue = useCallback((speed: string) => (
-    speed === 'auto' ? 'auto' : parseFloat(speed)
-  ), []);
+  const parseSpeedValue = useCallback((speed: string) => {
+    if (speed === 'auto') return 1.0;
+    const v = parseFloat(speed);
+    return Number.isFinite(v) ? v : 1.0;
+  }, []);
 
   const updateSetting = useCallback(<K extends keyof EmberSettings>(key: K, value: EmberSettings[K]) => {
     setSettings(prev => {
@@ -329,6 +335,10 @@ export function useEmberChat() {
       try {
         const resp = await fetch(`${API_BASE}/settings`);
         const saved = await resp.json();
+        // Normalize legacy 'auto' speed to '1.0'
+        for (const k of ['speedSelect', 'meiSpeed', 'eveSpeed'] as const) {
+          if (saved[k] === 'auto') saved[k] = '1.0';
+        }
         const merged = { ...DEFAULT_SETTINGS, ...saved };
         setSettings(prev => ({ ...prev, ...saved }));
         await loadSpeakers(merged.ttsEngine);

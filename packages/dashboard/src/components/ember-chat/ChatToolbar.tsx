@@ -46,6 +46,8 @@ const selectStyle: CSSProperties = {
   fontSize: 12,
   outline: 'none',
   maxWidth: 140,
+  minWidth: 0,
+  flexShrink: 1,
 };
 
 export default function ChatToolbar({
