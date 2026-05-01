@@ -1,1 +1,1 @@
-{"ambient_reactivity": 4}
+{"ambient_reactivity": 4, "autoApproveEnabled": false, "ttsEngine": "voicevox", "voiceSelect": "2", "speedSelect": "auto", "modelSelect": "gemma4:e4b", "meiEngine": "irodori", "meiVoice": "irodori-bright-female", "meiSpeed": "auto", "eveEngine": "irodori", "eveVoice": "irodori-calm-female", "eveSpeed": "auto", "ttsEnabled": true, "proactiveEnabled": false, "emojiEnabled": true, "debugMode": false, "settingsExpanded": false, "yomiganaPersonalEntries": [], "lastSeen": {}}
