@@ -25,12 +25,11 @@
     },
     "files": [
       "main.js",
-      "preload.js",
-      "renderer/**/*",
+      "icon.png",
+      "icon-1024.png",
+      "AppIcon.icns",
       "assets/**/*"
     ]
   },
-  "dependencies": {
-    "@ricky0123/vad-web": "^0.0.30"
-  }
+  "dependencies": {}
 }
