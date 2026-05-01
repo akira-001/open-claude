@@ -116,7 +116,12 @@ export function useEmberChat() {
 
   const updateSetting = useCallback(<K extends keyof EmberSettings>(key: K, value: EmberSettings[K]) => {
     setSettings(prev => {
-      const next = { ...prev, [key]: value };
+      const next = { ...prev, [key]: value } as EmberSettings & { listeningDebug?: boolean };
+      // Server-side flag for STT debug stream is `listeningDebug` (legacy name).
+      // Mirror debugMode → listeningDebug so the WS stream is enabled on save.
+      if (key === 'debugMode') {
+        next.listeningDebug = value as boolean;
+      }
       // Debounced save to server
       lastSaveTimeRef.current = Date.now();
       const ws = wsRef.current;
