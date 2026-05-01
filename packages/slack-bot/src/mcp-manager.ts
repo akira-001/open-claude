@@ -36,6 +36,34 @@ export class McpManager {
     this.configPath = path.resolve(configPath);
   }
 
+  /**
+   * Expand ${VAR} references in config strings using process.env.
+   * Used for mcp-servers.json so secrets can live in .env instead.
+   */
+  private expandEnvVars(value: any): any {
+    if (typeof value === 'string') {
+      return value.replace(/\$\{([A-Z_][A-Z0-9_]*)\}/g, (match, name) => {
+        const v = process.env[name];
+        if (v === undefined) {
+          this.logger.warn(`Env var \${${name}} not set, leaving placeholder`, { match });
+          return match;
+        }
+        return v;
+      });
+    }
+    if (Array.isArray(value)) {
+      return value.map((v) => this.expandEnvVars(v));
+    }
+    if (value && typeof value === 'object') {
+      const out: any = {};
+      for (const [k, v] of Object.entries(value)) {
+        out[k] = this.expandEnvVars(v);
+      }
+      return out;
+    }
+    return value;
+  }
+
   loadConfiguration(): McpConfiguration | null {
     if (this.config) {
       return this.config;
@@ -48,7 +76,7 @@ export class McpManager {
       }
 
       const configContent = fs.readFileSync(this.configPath, 'utf-8');
-      const parsedConfig = JSON.parse(configContent);
+      const parsedConfig = this.expandEnvVars(JSON.parse(configContent));
 
       if (!parsedConfig.mcpServers || typeof parsedConfig.mcpServers !== 'object') {
         this.logger.warn('Invalid MCP configuration: missing or invalid mcpServers', { path: this.configPath });

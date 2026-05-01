@@ -28,6 +28,14 @@
       "headers": {
         "Authorization": "Bearer your-api-key"
       }
+    },
+    "google-drive": {
+      "command": "mcp-google-drive",
+      "env": {
+        "GOOGLE_CLIENT_ID": "${MCP_GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${MCP_GOOGLE_CLIENT_SECRET}",
+        "GOOGLE_REFRESH_TOKEN": "${MCP_GOOGLE_REFRESH_TOKEN}"
+      }
     }
   }
 }

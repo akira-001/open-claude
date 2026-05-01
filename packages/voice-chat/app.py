@@ -866,8 +866,8 @@ _MEETING_HINT_SCORE_FOR_PROMOTION = 4
 _MEETING_HINT_SCORE_WITHOUT_GCAL = 6
 
 _SLACK_BOT_DATA_DIR = Path(
-    os.getenv("SLACK_BOT_DATA_DIR",
-              str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data"))
+    os.getenv("EMBER_SLACK_BOT_DATA_DIR",
+              str(Path(__file__).resolve().parents[1] / "slack-bot" / "data"))
 )
 
 
@@ -4074,7 +4074,7 @@ async def get_models():
 
 BOT_STATE_DIR = Path(os.getenv(
     "EMBER_BOT_STATE_DIR",
-    str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data")
+    str(Path(__file__).resolve().parents[1] / "slack-bot" / "data")
 ))
 
 SAMPLE_TEXTS = [
