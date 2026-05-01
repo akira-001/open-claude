@@ -297,6 +297,11 @@ export function useEmberChat() {
             u.lang = 'ja-JP';
             speechSynthesis.speak(u);
           }
+        } else if (msg.type === 'listening_debug') {
+          // Debug button (settings.debugMode) のときだけ表示
+          if (settingsRef.current.debugMode) {
+            addMessage(msg.text, 'debug');
+          }
         } else if (msg.type === 'reply_ended') {
           if (msg.bot_id && msg.reply_ts) {
             updateSetting('lastSeen', { ...settingsRef.current.lastSeen, [msg.bot_id]: msg.reply_ts });

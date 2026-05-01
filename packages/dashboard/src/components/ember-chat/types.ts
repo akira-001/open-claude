@@ -2,7 +2,7 @@
 
 export interface ChatMessage {
   id: string;
-  type: 'user' | 'assistant' | 'status' | 'proactive';
+  type: 'user' | 'assistant' | 'status' | 'proactive' | 'debug';
   text: string;
   botId?: string;
   timestamp: number;

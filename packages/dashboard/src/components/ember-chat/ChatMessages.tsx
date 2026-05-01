@@ -53,6 +53,24 @@ export default function ChatMessages({ messages }: Props) {
             </div>
           );
         }
+        if (msg.type === 'debug') {
+          return (
+            <div
+              key={msg.id}
+              className="self-start max-w-[95%] px-2 py-1 rounded text-[11px]"
+              style={{
+                background: 'rgba(34, 197, 94, 0.06)',
+                border: '1px solid rgba(34, 197, 94, 0.2)',
+                color: 'rgba(34, 197, 94, 0.7)',
+                fontFamily: "'SF Mono', 'Menlo', monospace",
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+            >
+              {msg.text}
+            </div>
+          );
+        }
         const isUser = msg.type === 'user';
         return (
           <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>

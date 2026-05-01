@@ -84,7 +84,6 @@ export default function EmberChatPage() {
   const [status, setStatus] = useState<ServiceStatus>({ whisper: false, voicevox: false, ollama: false });
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState<string | null>(null);
-  const [debugOpen, setDebugOpen] = useState(false);
   const [text, setText] = useState('');
 
   const chat = useEmberChat();
@@ -232,19 +231,19 @@ export default function EmberChatPage() {
             replyMode={chat.replyBot !== null}
             replyBot={chat.replyBot}
             lastBotId={chat.lastBotId}
-            debugOpen={debugOpen}
+            debugOpen={chat.settings.debugMode}
             onStopAudio={() => chat.stopAudio()}
             onToggleProactive={handleToggleProactive}
             onToggleReply={handleToggleReply}
             onPreview={chat.previewVoice}
             onToggleTalk={handleToggleTalk}
             onToggleTts={handleToggleTts}
-            onToggleDebug={() => setDebugOpen((v) => !v)}
+            onToggleDebug={() => chat.updateSetting('debugMode', !chat.settings.debugMode)}
             onOpenRecording={() => navigate('/voice-enroll')}
           />
 
-          <ImproveLoopPanel open={debugOpen} />
-          <ContextSummaryPanel open={debugOpen} />
+          <ImproveLoopPanel open={chat.settings.debugMode} />
+          <ContextSummaryPanel open={chat.settings.debugMode} />
 
           <div style={textInputRowStyle}>
             <input
