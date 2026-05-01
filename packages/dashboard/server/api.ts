@@ -18,7 +18,7 @@ const DEFAULT_CRON_SLACK_TARGET = 'C0AHPJMS5QE';
 const MCP_FILE = path.join(ROOT, 'mcp-servers.json');
 const ENV_FILE = path.join(ROOT, '.env');
 const STAMP_DIR = DATA_DIR; // stamp files in data/
-const AUDIO_FIXTURE_INCOMING_DIR = path.resolve(ROOT, '../../scripts/voice_chat/tests/fixtures/audio/incoming');
+const AUDIO_FIXTURE_INCOMING_DIR = path.resolve(ROOT, '../voice-chat/tests/fixtures/audio/incoming');
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
@@ -2094,7 +2094,7 @@ app.post('/api/local-models/ollama/auto-start', (req, res) => {
 });
 
 // --- Whisper (voice_chat) ---
-const VOICE_CHAT_DIR = path.join(HOME, 'workspace/ember/scripts/voice_chat');
+const VOICE_CHAT_DIR = path.join(HOME, 'workspace/ember/packages/voice-chat');
 
 app.post('/api/local-models/whisper/start', (_req, res) => {
   try {

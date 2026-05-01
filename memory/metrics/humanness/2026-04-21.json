@@ -1,0 +1,76 @@
+{
+  "correction": {
+    "pairs": 5,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 4,
+    "redirect_rate": 0.8,
+    "friction_rate": 0.8,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-21T06:25:05.702000+09:00",
+        "gap_s": 40,
+        "bot": "mei",
+        "bot_text": "なるほど、明日4/22はすでに別の予定がたくさん登録されてるね。これは先週登録した分だと思う。\n\n画像の予定は新しい予定表のようなので、既存の予定を差し替える形",
+        "akira_text": "今日の予定。4/21。22日の予定は、全て削除して。"
+      },
+      {
+        "ts": "2026-04-21T06:26:27.869000+09:00",
+        "gap_s": 46,
+        "bot": "mei",
+        "bot_text": "全8件、登録完了したよ。\n\n| 時間 | 予定 |\n|---|---|\n| 8:00-9:00 | [CSC｜内部] PMP面談@本上 |\n| 12:00-13",
+        "akira_text": "今日の予定。4/21"
+      },
+      {
+        "ts": "2026-04-21T06:27:53.222000+09:00",
+        "gap_s": 14,
+        "bot": "mei",
+        "bot_text": "これは先ほど登録した明日4/22(水)の予定表だね。既にカレンダーに登録済みの内容と同じものが映ってる。\n\n今日4/21(月)の予定を登録したい場合は、4/21",
+        "akira_text": "これが21日"
+      }
+    ]
+  },
+  "proactive_response": {
+    "sent": 21,
+    "text_replied": 0,
+    "stamped": 0,
+    "ignored": 21,
+    "engagement_rate": 0.0,
+    "text_reply_rate": 0.0,
+    "by_bot": {
+      "mei": {
+        "sent": 9,
+        "text_replied": 0,
+        "stamped": 0,
+        "ignored": 9,
+        "engagement_rate": 0.0
+      },
+      "eve": {
+        "sent": 12,
+        "text_replied": 0,
+        "stamped": 0,
+        "ignored": 12,
+        "engagement_rate": 0.0
+      }
+    },
+    "by_category": {
+      "meeting_prep": {
+        "sent": 2,
+        "engaged": 0
+      },
+      "flashback": {
+        "sent": 14,
+        "engaged": 0
+      },
+      "hobby_leisure": {
+        "sent": 3,
+        "engaged": 0
+      },
+      "energy_break": {
+        "sent": 2,
+        "engaged": 0
+      }
+    }
+  }
+}

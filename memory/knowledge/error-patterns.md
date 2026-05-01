@@ -109,3 +109,9 @@
 **パターン**: Claude Code が起動時に提供する `currentDate` フィールド（CLAUDE.md コンテキスト末尾に挿入される `Today's date is YYYY-MM-DD`）は、セッション開始時刻でも実時刻でもなく古い snapshot のことがある。実測で 5 日のズレを確認。「今日」「明日」「昨日」を扱う処理でこの値を信じると、検索結果や API 応答との整合性が取れなくなる。
 **具体例**: ドジャースの「明日の試合」を調べる時、`currentDate: 2026-04-26` を信じて Google 検索したら結果が 4/27 試合「終了」と返ってきて齟齬発生。`date "+%Y-%m-%d %H:%M %A"` で確認したら実時刻は **JST 2026-05-01 金 07:42**（5 日新しい）だった。明日 = 5/2 で再検索して正しい試合情報を取得。
 **対策**: 日時を扱う前に必ず `date "+%Y-%m-%d %H:%M %A"` を実行して実時刻を取得する。`currentDate` は参考値とし、絶対視しない。`datetime-awareness` スキル + livebrowse SKILL.md にも明記済。海外スポーツ等は JST 換算（PT 19:15 ≈ JST 翌朝 09:15）も合わせて行う。
+
+## EP-019: proactive 発火は conversations/*.jsonl には記録されない（state 直読み必須）
+**発生**: 2026-05-01 | **Arousal**: 0.6
+**パターン**: claude-code-slack-bot の `data/conversations/YYYY-MM-DD.jsonl` は **DM 双方向対話のみ** を記録し、proactive 発火（cron 起動の自発メッセージ）は含まれない。Humanness v1 実装時、conversations を走査して「ユーザー発言なしの bot メッセージ」を proactive とみなそうとして 5 週間で 2 件しか検出できなかった（しかもエラー応答）。
+**正しいデータソース**: `data/mei-state.json` / `data/eve-state.json` の `history[]` 配列。各 100 件ローリングで `sentAt`, `category`, `reaction (null/text_engaged/ok_hand 等)`, `reactionDelta` を含む。`data/shared-proactive-history.json` は別物で 13 件しかない（用途未確認）。
+**対策**: proactive を扱う metric / debug は `mei-state.json` / `eve-state.json` を直読みする。長期トレンドが必要なら **日次スナップショット必須**（100 件は約 10 日分）。conversations/ は対話品質指標（friction 等）には使えるが engagement 指標には使えないと覚える。

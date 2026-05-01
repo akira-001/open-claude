@@ -4072,7 +4072,10 @@ async def get_models():
         ]
 
 
-BOT_STATE_DIR = Path("/Users/akira/workspace/claude-code-slack-bot/data")
+BOT_STATE_DIR = Path(os.getenv(
+    "EMBER_BOT_STATE_DIR",
+    str(Path(__file__).resolve().parents[3] / "claude-code-slack-bot" / "data")
+))
 
 SAMPLE_TEXTS = [
     "こんにちは、今日はいい天気ですね。お散歩日和です。",

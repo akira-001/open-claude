@@ -1,0 +1,20 @@
+{
+  "correction": {
+    "pairs": 6,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 1,
+    "redirect_rate": 0.1667,
+    "friction_rate": 0.1667,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-06T06:33:52.490000+09:00",
+        "gap_s": 44,
+        "bot": "mei",
+        "bot_text": "認証の仕組みがわかったよ。再認証スクリプトがあるから、それを実行すればいいね。",
+        "akira_text": "トークン更新完了。\n登録して"
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "correction": {
+    "pairs": 13,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 3,
+    "redirect_rate": 0.2308,
+    "friction_rate": 0.2308,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-05T19:51:18.791000+09:00",
+        "gap_s": 21,
+        "bot": "mei",
+        "bot_text": "撮れたよ。ターミナルを前面に出してスクショ撮った。",
+        "akira_text": "Slackの画面になってるよ"
+      },
+      {
+        "ts": "2026-04-05T19:52:06.507000+09:00",
+        "gap_s": 19,
+        "bot": "mei",
+        "bot_text": "あ、今度はTerminal.appが前面に来たけど、cmuxのセッションじゃなくて新しいターミナルウィンドウだね。右側にはまだSlackが見えてる。\n\ncmux",
+        "akira_text": "CMUX"
+      },
+      {
+        "ts": "2026-04-05T22:08:15.424000+09:00",
+        "gap_s": 58,
+        "bot": "mei",
+        "bot_text": "受信確認OK。Ember Chat からのプロアクティブテスト、正常に届いてるよ。",
+        "akira_text": "おすすめの"
+      }
+    ]
+  }
+}

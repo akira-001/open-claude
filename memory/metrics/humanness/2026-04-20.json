@@ -1,0 +1,40 @@
+{
+  "proactive_response": {
+    "sent": 12,
+    "text_replied": 0,
+    "stamped": 1,
+    "ignored": 11,
+    "engagement_rate": 0.0833,
+    "text_reply_rate": 0.0,
+    "by_bot": {
+      "mei": {
+        "sent": 8,
+        "text_replied": 0,
+        "stamped": 1,
+        "ignored": 7,
+        "engagement_rate": 0.125
+      },
+      "eve": {
+        "sent": 4,
+        "text_replied": 0,
+        "stamped": 0,
+        "ignored": 4,
+        "engagement_rate": 0.0
+      }
+    },
+    "by_category": {
+      "meeting_prep": {
+        "sent": 2,
+        "engaged": 1
+      },
+      "flashback": {
+        "sent": 5,
+        "engaged": 0
+      },
+      "hobby_leisure": {
+        "sent": 5,
+        "engaged": 0
+      }
+    }
+  }
+}

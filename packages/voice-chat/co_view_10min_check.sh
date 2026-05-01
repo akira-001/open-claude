@@ -1,9 +1,9 @@
 #!/bin/bash
 # co_view 10分チェック: 音声監視 + 👍チェック（通常モード時のみ）
-# crontab: */10 * * * * /Users/akira/workspace/open-claude/scripts/voice_chat/co_view_10min_check.sh
+# crontab: */10 * * * * /Users/akira/workspace/ember/packages/voice-chat/co_view_10min_check.sh
 
 CLAUDE_BIN="/Users/akira/.local/bin/claude"
-WORKDIR="/Users/akira/workspace/claude-code-slack-bot"
+WORKDIR="/Users/akira/workspace/ember/packages/slack-bot"
 LOG="/tmp/co_view_cron_10min.log"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] 10min check start" >> "$LOG"

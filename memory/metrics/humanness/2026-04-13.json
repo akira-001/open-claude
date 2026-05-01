@@ -1,0 +1,20 @@
+{
+  "correction": {
+    "pairs": 1,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 1,
+    "redirect_rate": 1.0,
+    "friction_rate": 1.0,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-13T08:22:11.151000+09:00",
+        "gap_s": 30,
+        "bot": "mei",
+        "bot_text": "ファイルがもう消えてるね。Slackの一時ファイルだから時間が経つと削除されるみたい。\n\nAkiraさん、もう一度画像を送ってもらえる？中身を確認してカレンダー",
+        "akira_text": "カレンダー登録して"
+      }
+    ]
+  }
+}

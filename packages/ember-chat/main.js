@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 
 const VOICE_CHAT_HOST = 'localhost';
 const VOICE_CHAT_PORT = 8767;
-const AUDIO_FIXTURE_INCOMING_DIR = path.resolve(__dirname, '../voice_chat/tests/fixtures/audio/incoming');
+const AUDIO_FIXTURE_INCOMING_DIR = path.resolve(__dirname, '../voice-chat/tests/fixtures/audio/incoming');
 const RECORDINGS_DIR = path.join(__dirname, 'recordings');
 
 function sanitizeRecordingFilename(raw) {

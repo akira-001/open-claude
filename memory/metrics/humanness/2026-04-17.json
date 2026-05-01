@@ -1,0 +1,34 @@
+{
+  "correction": {
+    "pairs": 18,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 6,
+    "redirect_rate": 0.3333,
+    "friction_rate": 0.3333,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-17T21:56:38.690000+09:00",
+        "gap_s": 32,
+        "bot": "mei",
+        "bot_text": "できます。方針を整理するとこうですね。\n\n### 追加したいこと\n**co-viewスキルに以下を追加**\n1. **プロアクティブ投稿の重複確認**\n   -",
+        "akira_text": "スキル修正して"
+      },
+      {
+        "ts": "2026-04-17T22:08:09.713000+09:00",
+        "gap_s": 42,
+        "bot": "mei",
+        "bot_text": "了解、Akiraさん。  \n**co-viewスキルの修正内容**を確認するときの観点、こちらに整理しておくね。\n\n## 確認したい修正ポイント\n1. **プロ",
+        "akira_text": "B"
+      },
+      {
+        "ts": "2026-04-17T22:09:06.960000+09:00",
+        "gap_s": 39,
+        "bot": "mei",
+        "bot_text": "了解、Akiraさん。  \n**B案**として受け取ったよ。\n\nこの前提で、co-viewスキルの修正内容はこう整理されるね。\n\n### B案の想定\n- **プ",
+        "akira_text": "進めて"
+      }
+    ]
+  }
+}

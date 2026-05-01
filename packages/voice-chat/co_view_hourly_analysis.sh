@@ -1,10 +1,10 @@
 #!/bin/bash
 # co_view 毎時分析: ログ分析 → Slack投稿（改善案）
 # 自動承認モード時はそのままパッチ適用まで実行
-# crontab: 17 * * * * /Users/akira/workspace/open-claude/scripts/voice_chat/co_view_hourly_analysis.sh
+# crontab: 17 * * * * /Users/akira/workspace/ember/packages/voice-chat/co_view_hourly_analysis.sh
 
 CLAUDE_BIN="/Users/akira/.local/bin/claude"
-WORKDIR="/Users/akira/workspace/claude-code-slack-bot"
+WORKDIR="/Users/akira/workspace/ember/packages/slack-bot"
 LOG="/tmp/co_view_cron_hourly.log"
 
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] hourly analysis start" >> "$LOG"

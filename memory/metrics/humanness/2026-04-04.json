@@ -1,0 +1,12 @@
+{
+  "correction": {
+    "pairs": 6,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 0,
+    "redirect_rate": 0.0,
+    "friction_rate": 0.0,
+    "explicit_examples": [],
+    "redirect_examples": []
+  }
+}

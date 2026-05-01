@@ -6,3 +6,6 @@ requires-python = ">=3.13"
 
 [tool.uv]
 managed = true
+
+[tool.uv.workspace]
+members = ["packages/voice-chat"]

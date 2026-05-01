@@ -1,0 +1,34 @@
+{
+  "correction": {
+    "pairs": 7,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 4,
+    "redirect_rate": 0.5714,
+    "friction_rate": 0.5714,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-12T13:50:38.940000+09:00",
+        "gap_s": 43,
+        "bot": "mei",
+        "bot_text": "Claude Codeの自動改善に関連するスキルは主に **3つ** あるよ。\n\n---\n\n### 1. `/skill-improve` — スキル振り返り・",
+        "akira_text": "co-viewのSlack送信先調べて"
+      },
+      {
+        "ts": "2026-04-12T14:06:12.730000+09:00",
+        "gap_s": 29,
+        "bot": "mei",
+        "bot_text": "OK、方針:\n\n1. `SkillEnhancedProactiveAgentOptions` に `mentionUserId?: string` を追加\n2",
+        "akira_text": "co-viewの送信先のことだよ"
+      },
+      {
+        "ts": "2026-04-12T14:55:23.091000+09:00",
+        "gap_s": 15,
+        "bot": "mei",
+        "bot_text": "Akiraさん、パーミッションがまたタイムアウトした。Claude Codeのターミナル画面を確認して `y` を押してほしいんだけど、今ターミナル画面見れる状",
+        "akira_text": "もう一度送って"
+      }
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "proactive_response": {
+    "sent": 23,
+    "text_replied": 0,
+    "stamped": 0,
+    "ignored": 23,
+    "engagement_rate": 0.0,
+    "text_reply_rate": 0.0,
+    "by_bot": {
+      "mei": {
+        "sent": 11,
+        "text_replied": 0,
+        "stamped": 0,
+        "ignored": 11,
+        "engagement_rate": 0.0
+      },
+      "eve": {
+        "sent": 12,
+        "text_replied": 0,
+        "stamped": 0,
+        "ignored": 12,
+        "engagement_rate": 0.0
+      }
+    },
+    "by_category": {
+      "energy_break": {
+        "sent": 1,
+        "engaged": 0
+      },
+      "meeting_prep": {
+        "sent": 5,
+        "engaged": 0
+      },
+      "flashback": {
+        "sent": 5,
+        "engaged": 0
+      },
+      "hobby_leisure": {
+        "sent": 12,
+        "engaged": 0
+      }
+    }
+  },
+  "persona_consistency": {
+    "window": {
+      "from": "2026-04-01",
+      "to": "2026-04-30"
+    },
+    "by_persona": {
+      "mei": {
+        "n": 25,
+        "mean": 5.68,
+        "median": 6,
+        "p25": 4,
+        "p75": 7,
+        "low_examples": [
+          {
+            "score": 2,
+            "reason": "専門的すぎる技術用語が不自然。",
+            "text": "まず現在のプロセスを停止してログリダイレクト付きで再起動する。"
+          },
+          {
+            "score": 2,
+            "reason": "専門的すぎる技術的な内容で、秘書らしい口調ではない",
+            "text": "`_irodori_lock` をエンジン別ロックに置き換えて、`synthesize_speech` 内で適切なロックを取得するようにする。"
+          },
+          {
+            "score": 2,
+            "reason": "指示が具体的すぎる。秘書らしい配慮がない。",
+            "text": "`fetch_arxiv_rss` 関数を `fetch_arxiv_export` の直後に追加する。"
+          }
+        ]
+      },
+      "eve": {
+        "n": 25,
+        "mean": 3.84,
+        "median": 3,
+        "p25": 3,
+        "p75": 5,
+        "low_examples": [
+          {
+            "score": 2,
+            "reason": "専門的すぎる。陽気さやエネルギッシュさが皆無。",
+            "text": "記事ちゃんとあったよ。まとめるね。\n\n**PinterestのMCPエコシステム（本番運用中）**\n\n架構のポイント：\n- 単一モノリスではなく、**ドメイン別のMCPサーバー群**（Presto, Spark, Airflowそれぞれ独立"
+          },
+          {
+            "score": 3,
+            "reason": "情報伝達が硬く、エネルギッシュさに欠ける",
+            "text": "ちゃんと調べてきたよ。CodeZine記事の内容まとめ：\n\n**Google Antigravity vs Gemini CLI**\n\n| | Antigravity | Gemini CLI |\n|---|---|---|\n| タイプ |"
+          },
+          {
+            "score": 3,
+            "reason": "情報整理のトーンが平坦で、エネルギッシュさに欠ける",
+            "text": "どれの詳細？\n\n1. AIで思考力が落ちた話\n2. 3〜5年後のビジョン（A〜D選択肢）\n3. AiChemy のアーキテクチャ\n4. Google Antigravity / Gemini CLI の記事"
+          }
+        ]
+      }
+    }
+  }
+}

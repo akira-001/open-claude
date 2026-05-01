@@ -1,0 +1,27 @@
+{
+  "correction": {
+    "pairs": 10,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 2,
+    "redirect_rate": 0.2,
+    "friction_rate": 0.2,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-01T06:29:52.112000+09:00",
+        "gap_s": 40,
+        "bot": "mei",
+        "bot_text": "画像から読み取った今日の業務予定:\n\n| 時間 | 予定 |\n|------|------|\n| 9:00 | 【アジア航測・社内】DMM / Shinagaw",
+        "akira_text": "重複登録で。"
+      },
+      {
+        "ts": "2026-04-01T07:15:54.562000+09:00",
+        "gap_s": 47,
+        "bot": "mei",
+        "bot_text": "完了。429 エラーゼロで全15カテゴリ完走したよ。\n\n**Semantic Scholar のレートリミット仕様:**\n- 認証なし: **5,000 req",
+        "akira_text": "取得できた情報の一覧だして"
+      }
+    ]
+  }
+}

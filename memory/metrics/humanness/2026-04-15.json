@@ -1,0 +1,27 @@
+{
+  "correction": {
+    "pairs": 8,
+    "explicit_count": 0,
+    "explicit_rate": 0.0,
+    "redirect_count": 2,
+    "redirect_rate": 0.25,
+    "friction_rate": 0.25,
+    "explicit_examples": [],
+    "redirect_examples": [
+      {
+        "ts": "2026-04-15T05:41:06.494000+09:00",
+        "gap_s": 44,
+        "bot": "mei",
+        "bot_text": "了解、Akiraさん。登録しますね。\n\nただ、今見えている情報だと**記事タイトルが途中まで**で、カレンダーに入れるには少し情報が足りないです。  \n**登録",
+        "akira_text": "カレンダーに登録して"
+      },
+      {
+        "ts": "2026-04-15T05:41:53.911000+09:00",
+        "gap_s": 37,
+        "bot": "mei",
+        "bot_text": "了解、Akiraさん。\n\n今回は **画像 `IMG_0250.jpg` が処理できなかった** ので、まだ内容を確認できていないの。  \nこのままだと正確にカ",
+        "akira_text": "カレンダー登録のスキルを使って登録して"
+      }
+    ]
+  }
+}
