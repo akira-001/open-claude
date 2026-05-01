@@ -21,14 +21,14 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": "dir",
-      "icon": "/Applications/Ember Chat.app/Contents/Resources/AppIcon.icns"
+      "icon": "AppIcon.icns"
     },
     "files": [
       "main.js",
+      "package.json",
       "icon.png",
       "icon-1024.png",
-      "AppIcon.icns",
-      "assets/**/*"
+      "AppIcon.icns"
     ]
   },
   "dependencies": {}
