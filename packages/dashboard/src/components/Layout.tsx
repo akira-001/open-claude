@@ -5,6 +5,19 @@ import Sidebar from './Sidebar';
 
 function LayoutInner() {
   const { activeBotId } = useBotContext();
+  // Embedded mode (?embedded=true) hides sidebar + padding so EmberChatPage
+  // renders fullscreen. Used by the Electron Ember-Chat-only shell.
+  const embedded = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('embedded') === 'true';
+  if (embedded) {
+    return (
+      <div className="flex min-h-screen bg-[var(--bg)]" data-bot={activeBotId}>
+        <main className="flex-1">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
   return (
     <div className="flex min-h-screen bg-[var(--bg)]" data-bot={activeBotId}>
       <Sidebar />

@@ -1,7 +1,9 @@
 const { app, BrowserWindow, nativeImage, Tray, Menu } = require('electron');
 const path = require('path');
 
-const DASHBOARD_URL = process.env.EMBER_DASHBOARD_URL || 'http://localhost:3456/';
+// Default loads the Ember Chat page only (embedded=true hides sidebar in dashboard Layout).
+// Override with EMBER_DASHBOARD_URL=http://localhost:3456/ to get the full dashboard.
+const DASHBOARD_URL = process.env.EMBER_DASHBOARD_URL || 'http://localhost:3456/ember-chat?embedded=true';
 const RETRY_INTERVAL_MS = 3000;
 const APP_ICON_PATH = path.join(__dirname, 'icon-1024.png');
 
