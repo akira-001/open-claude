@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-01T06:30:08.096Z",
+  "updatedAt": "2026-05-01T08:30:07.839Z",
   "records": [
     {
       "themeKey": "local/saitama/tokorozawa/recreation/park-walk",
@@ -92,7 +92,7 @@
       "supplyGap": 4,
       "rotationGap": 4,
       "freshnessDays": 7,
-      "freshnessScore": 0.24414251653439156,
+      "freshnessScore": 0.23223817956349202,
       "lastSentAt": "2026-04-25T23:31:05.490Z"
     },
     {
@@ -474,7 +474,7 @@
       "supplyGap": 3,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.14889531746031737,
+      "freshnessScore": 0.13699098048941794,
       "lastSentAt": "2026-04-25T07:30:59.984Z"
     },
     {
@@ -498,6 +498,30 @@
       "freshnessDays": 7,
       "freshnessScore": 0,
       "lastSentAt": "2026-04-21T05:30:32.529Z"
+    },
+    {
+      "themeKey": "local/saitama/tokorozawa/event/food-fair",
+      "themePath": [
+        "local",
+        "local/saitama",
+        "local/saitama/tokorozawa",
+        "local/saitama/tokorozawa/event",
+        "local/saitama/tokorozawa/event/food-fair"
+      ],
+      "rootKey": "local/local/saitama/local/saitama/tokorozawa",
+      "availableCount": 1,
+      "sentFreshCount": 1,
+      "sent30dCount": 4,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 8,
+      "targetCount": 4,
+      "supplyGap": 3,
+      "rotationGap": 3,
+      "freshnessDays": 7,
+      "freshnessScore": 0.1607852662037038,
+      "lastSentAt": "2026-04-25T11:30:50.768Z"
     },
     {
       "themeKey": "lifestyle/food-wellness/bento",
@@ -541,7 +565,7 @@
       "supplyGap": 4,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.9703394775132275,
+      "freshnessScore": 0.958435140542328,
       "lastSentAt": "2026-05-01T01:31:09.412Z"
     },
     {
@@ -610,7 +634,7 @@
       "supplyGap": 4,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.7381648859126984,
+      "freshnessScore": 0.7262605489417989,
       "lastSentAt": "2026-04-29T10:30:50.219Z"
     },
     {
@@ -680,7 +704,7 @@
       "supplyGap": 4,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.8512887003968255,
+      "freshnessScore": 0.8393843634259259,
       "lastSentAt": "2026-04-30T05:31:07.502Z"
     },
     {
@@ -772,7 +796,7 @@
       "supplyGap": 4,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.1666472337962963,
+      "freshnessScore": 0.15474289682539677,
       "lastSentAt": "2026-04-25T10:29:56.343Z"
     },
     {
@@ -886,7 +910,7 @@
       "supplyGap": 1,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9792524636243386,
+      "freshnessScore": 0.9673481266534392,
       "lastSentAt": "2026-05-01T03:00:59.986Z"
     },
     {
@@ -909,7 +933,7 @@
       "supplyGap": 1,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8394034209656085,
+      "freshnessScore": 0.827499083994709,
       "lastSentAt": "2026-04-30T03:31:19.285Z"
     },
     {
@@ -932,7 +956,7 @@
       "supplyGap": 0,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.041777086640211736,
+      "freshnessScore": 0.029872749669312193,
       "lastSentAt": "2026-04-24T13:31:14.878Z"
     },
     {
@@ -955,7 +979,7 @@
       "supplyGap": 0,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.3155729183201058,
+      "freshnessScore": 0.3036685813492064,
       "lastSentAt": "2026-04-26T11:31:06.597Z"
     },
     {
@@ -978,7 +1002,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8691273346560846,
+      "freshnessScore": 0.8572229976851852,
       "lastSentAt": "2026-04-30T08:30:56.308Z"
     },
     {
@@ -1002,7 +1026,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5834484623015873,
+      "freshnessScore": 0.5715441253306879,
       "lastSentAt": "2026-04-28T08:31:17.726Z"
     },
     {
@@ -1024,7 +1048,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8631909391534391,
+      "freshnessScore": 0.8512866021825397,
       "lastSentAt": "2026-04-30T07:31:05.976Z"
     },
     {
@@ -1046,32 +1070,8 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6131562830687831,
+      "freshnessScore": 0.6012519460978836,
       "lastSentAt": "2026-04-28T13:30:45.016Z"
-    },
-    {
-      "themeKey": "local/saitama/tokorozawa/event/food-fair",
-      "themePath": [
-        "local",
-        "local/saitama",
-        "local/saitama/tokorozawa",
-        "local/saitama/tokorozawa/event",
-        "local/saitama/tokorozawa/event/food-fair"
-      ],
-      "rootKey": "local/local/saitama/local/saitama/tokorozawa",
-      "availableCount": 1,
-      "sentFreshCount": 2,
-      "sent30dCount": 4,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 8,
-      "targetCount": 4,
-      "supplyGap": 3,
-      "rotationGap": 2,
-      "freshnessDays": 7,
-      "freshnessScore": 0.17268960317460313,
-      "lastSentAt": "2026-04-25T11:30:50.768Z"
     },
     {
       "themeKey": "local/saitama/other/road-trip",
@@ -1093,7 +1093,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5893769444444444,
+      "freshnessScore": 0.577472607473545,
       "lastSentAt": "2026-04-28T09:31:03.272Z"
     },
     {
@@ -1115,7 +1115,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.4464859143518518,
+      "freshnessScore": 0.4345815773809524,
       "lastSentAt": "2026-04-27T09:30:42.777Z"
     },
     {
@@ -1137,7 +1137,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6846412053571429,
+      "freshnessScore": 0.6727368683862434,
       "lastSentAt": "2026-04-29T01:31:19.097Z"
     },
     {
@@ -1161,7 +1161,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8334595684523809,
+      "freshnessScore": 0.8215552314814815,
       "lastSentAt": "2026-04-30T02:31:24.443Z"
     },
     {
@@ -1185,7 +1185,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9821530952380952,
+      "freshnessScore": 0.9702487582671958,
       "lastSentAt": "2026-05-01T03:30:14.288Z"
     },
     {
@@ -1209,7 +1209,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9911592857142857,
+      "freshnessScore": 0.9792549487433863,
       "lastSentAt": "2026-05-01T05:01:01.232Z"
     },
     {
@@ -1232,7 +1232,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.1250039682539682,
+      "freshnessScore": 0.11309963128306877,
       "lastSentAt": "2026-04-25T03:30:10.496Z"
     },
     {
@@ -1255,7 +1255,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.3036742757936508,
+      "freshnessScore": 0.2917699388227514,
       "lastSentAt": "2026-04-26T09:31:10.298Z"
     },
     {
@@ -1278,7 +1278,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.40480513392857154,
+      "freshnessScore": 0.392900796957672,
       "lastSentAt": "2026-04-27T02:30:34.241Z"
     },
     {
@@ -1302,7 +1302,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.4226913277116402,
+      "freshnessScore": 0.41078699074074077,
       "lastSentAt": "2026-04-27T05:30:51.811Z"
     },
     {
@@ -1325,7 +1325,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5358082556216931,
+      "freshnessScore": 0.5239039186507937,
       "lastSentAt": "2026-04-28T00:31:04.929Z"
     },
     {
@@ -1348,7 +1348,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6012845552248677,
+      "freshnessScore": 0.5893802182539682,
       "lastSentAt": "2026-04-28T11:31:04.995Z"
     },
     {
@@ -1372,7 +1372,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6071958167989417,
+      "freshnessScore": 0.5952914798280423,
       "lastSentAt": "2026-04-28T12:30:40.126Z"
     },
     {
@@ -1395,7 +1395,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6726872966269841,
+      "freshnessScore": 0.6607829596560846,
       "lastSentAt": "2026-04-28T23:30:49.373Z"
     },
     {
@@ -1418,7 +1418,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8215285367063492,
+      "freshnessScore": 0.8096241997354497,
       "lastSentAt": "2026-04-30T00:31:08.555Z"
     },
     {
@@ -1440,7 +1440,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8750715393518519,
+      "freshnessScore": 0.8631672023809523,
       "lastSentAt": "2026-04-30T09:30:51.363Z"
     },
     {
@@ -1463,7 +1463,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9643449140211641,
+      "freshnessScore": 0.9524405770502645,
       "lastSentAt": "2026-05-01T00:30:43.900Z"
     },
     {
@@ -1485,7 +1485,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9851268121693122,
+      "freshnessScore": 0.9732224751984127,
       "lastSentAt": "2026-05-01T04:00:12.792Z"
     },
     {
@@ -1507,7 +1507,7 @@
       "supplyGap": -2,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.9762687731481482,
+      "freshnessScore": 0.9643644361772487,
       "lastSentAt": "2026-05-01T02:30:55.450Z"
     },
     {
@@ -1530,7 +1530,7 @@
       "supplyGap": 1,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.44054843253968257,
+      "freshnessScore": 0.428644095568783,
       "lastSentAt": "2026-04-27T08:30:51.788Z"
     },
     {
@@ -1553,7 +1553,7 @@
       "supplyGap": 4,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.2797671775793651,
+      "freshnessScore": 0.26786284060846555,
       "lastSentAt": "2026-04-26T05:30:11.285Z"
     },
     {
@@ -1577,7 +1577,7 @@
       "supplyGap": 4,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.8810500925925926,
+      "freshnessScore": 0.8691457556216932,
       "lastSentAt": "2026-04-30T10:31:07.192Z"
     },
     {
@@ -1589,7 +1589,7 @@
         "personal/travel-tech/dev/ai-tools"
       ],
       "rootKey": "personal/personal/travel-tech",
-      "availableCount": 21,
+      "availableCount": 22,
       "sentFreshCount": 5,
       "sent30dCount": 7,
       "positive30dCount": 0,
@@ -1597,10 +1597,10 @@
       "positiveRate30d": 0,
       "uniqueSources30d": 9,
       "targetCount": 5,
-      "supplyGap": -16,
+      "supplyGap": -17,
       "rotationGap": 0,
       "freshnessDays": 7,
-      "freshnessScore": 0.9584073611111111,
+      "freshnessScore": 0.9465030241402116,
       "lastSentAt": "2026-04-30T23:30:52.868Z"
     },
     {
@@ -1623,7 +1623,7 @@
       "supplyGap": 5,
       "rotationGap": -7,
       "freshnessDays": 7,
-      "freshnessScore": 0.9881602314814815,
+      "freshnessScore": 0.976255894510582,
       "lastSentAt": "2026-05-01T04:30:47.404Z"
     }
   ]
