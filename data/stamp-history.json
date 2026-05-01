@@ -1,0 +1,558 @@
+{
+  "weeks": [
+    {
+      "weekStart": "2026-03-22T15:00:00.000Z",
+      "stamps": [
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774313027.031239",
+          "channel": "C0AJT8XU8G0",
+          "timestamp": "2026-03-24T00:49:37.224Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774313025.071679",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T00:49:43.604Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774355506.916299",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T12:32:02.412Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774356048.034089",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T12:43:01.430Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774356429.216469",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T12:47:49.698Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "ok_hand",
+          "messageTs": "1774356761.629569",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T12:52:57.566Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774356991.755289",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T12:57:29.086Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774359528.742219",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-24T13:41:09.417Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774397613.753549",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-25T00:13:57.662Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774476814.637499",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-25T22:13:46.315Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774478936.986389",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-25T22:54:36.961Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774483222.616629",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-26T00:24:43.386Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774485941.115399",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-26T00:51:26.871Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774490420.508479",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-26T02:16:38.996Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774536833.521099",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-26T14:54:03.786Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774536845.968939",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-26T14:54:22.326Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774609288.642279",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-27T13:10:08.709Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774647679.501589",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-27T21:43:26.558Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774652468.105269",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-27T23:23:42.005Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "-1",
+          "messageTs": "1774653804.039779",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-27T23:28:34.077Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774689744.056229",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-28T09:25:23.170Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774690482.386099",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-28T09:40:02.379Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774768446.005219",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-29T07:35:23.815Z"
+        }
+      ],
+      "scores": {
+        "mei": 23
+      }
+    },
+    {
+      "scores": {
+        "mei": 8,
+        "eve": 2
+      },
+      "weekStart": "2026-03-29T15:00:00.000Z",
+      "stamps": [
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774836097.766129",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-30T05:30:31.233Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774846846.294749",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-30T05:31:01.132Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774863517.399099",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-30T09:38:44.676Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1774918900.970749",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-03-31T01:13:03.540Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775002039.450179",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-01T00:40:31.132Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775006133.624179",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-01T02:55:58.895Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775078600.077399",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-01T21:24:17.990Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "ok_hand",
+          "messageTs": "1775302413.055849",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-04T12:08:37.060Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775305369.756719",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-04T12:23:58.294Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775396021.140099",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-05T13:45:50.883Z"
+        }
+      ]
+    },
+    {
+      "scores": {
+        "mei": 11,
+        "eve": 12
+      },
+      "weekStart": "2026-04-05T15:00:00.000Z",
+      "stamps": [
+        {
+          "botId": "mei",
+          "emoji": "-1",
+          "messageTs": "1775432936.345219",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-05T23:49:38.329Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775527264.067899",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-07T02:44:00.863Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "-1",
+          "messageTs": "1775523675.240019",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-07T02:44:05.155Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775534459.645769",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-07T04:14:17.477Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775546973.877979",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-07T07:30:05.818Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775615447.937029",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-08T02:31:26.091Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775700070.488039",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-09T07:58:54.405Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775719872.701889",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-09T07:59:57.168Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775694647.311229",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-09T08:00:39.127Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775727060.562399",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-09T09:35:11.425Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775954778.909169",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T00:47:15.160Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775954778.909169",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T00:47:15.168Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775957488.915029",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T01:53:35.382Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775957488.915029",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T01:53:35.850Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775961086.898769",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T03:03:12.229Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775961086.898769",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T03:03:12.242Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775964723.193429",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T03:56:46.538Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775964723.193429",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T03:56:46.637Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775968278.275729",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T04:37:49.280Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775968278.275729",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T04:37:49.298Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775970487.471739",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-12T05:08:32.384Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775971898.879009",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T05:45:07.287Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775971898.879009",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T05:45:07.484Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775975496.740999",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T06:33:04.798Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775975496.740999",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T06:33:04.947Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1775979147.624759",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T07:32:52.312Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1775979147.624759",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-12T07:32:52.339Z"
+        }
+      ]
+    },
+    {
+      "scores": {
+        "mei": 3
+      },
+      "weekStart": "2026-04-12T15:00:00.000Z",
+      "stamps": [
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1776051086.581239",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-13T03:37:33.839Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1776060095.695999",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-13T06:01:59.165Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1776209427.544249",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-14T23:32:23.695Z"
+        }
+      ]
+    },
+    {
+      "scores": {
+        "eve": 5,
+        "mei": 5
+      },
+      "weekStart": "2026-04-19T15:00:00.000Z",
+      "stamps": [
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1776641444.309969",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-19T23:33:36.541Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1776659499.716909",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-20T04:33:29.603Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1776657652.734789",
+          "channel": "D0AMYJ8HLER",
+          "timestamp": "2026-04-20T04:34:52.968Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1777021681.009529",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T09:10:01.674Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1777021681.009529",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T09:10:01.710Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1777021647.324389",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T09:17:32.851Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1777021647.324389",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T09:17:33.181Z"
+        },
+        {
+          "botId": "mei",
+          "emoji": "+1",
+          "messageTs": "1777043118.600809",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T23:58:58.128Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1777043118.600809",
+          "channel": "C0AHPJMS5QE",
+          "timestamp": "2026-04-24T23:58:59.065Z"
+        },
+        {
+          "botId": "eve",
+          "emoji": "+1",
+          "messageTs": "1777159865.654809",
+          "channel": "D0AHR0SATNE",
+          "timestamp": "2026-04-25T23:35:22.581Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "scores": {
+    "eve": 2,
+    "mei": 1
+  },
+  "weekStart": "2026-04-26T15:00:00.000Z",
+  "stamps": [
+    {
+      "botId": "eve",
+      "emoji": "+1",
+      "messageTs": "1777444254.275339",
+      "channel": "D0AHR0SATNE",
+      "timestamp": "2026-04-29T06:46:19.406Z"
+    },
+    {
+      "botId": "mei",
+      "emoji": "+1",
+      "messageTs": "1777604460.117909",
+      "channel": "D0AMYJ8HLER",
+      "timestamp": "2026-05-01T03:04:55.095Z"
+    },
+    {
+      "botId": "eve",
+      "emoji": "+1",
+      "messageTs": "1777602655.587839",
+      "channel": "D0AHR0SATNE",
+      "timestamp": "2026-05-01T03:06:07.745Z"
+    }
+  ]
+}

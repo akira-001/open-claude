@@ -1,0 +1,60 @@
+{
+  "notes": [
+    {
+      "noteId": "seed-onsen-cabin-20260424",
+      "createdAt": "2026-04-24T12:31:00.000Z",
+      "originalBotId": "eve",
+      "originalCategory": "complex_proposal",
+      "topic": "温泉+車中泊",
+      "preview": "温泉と車中泊を組み合わせた休日提案。Akiraさんから +1 反応",
+      "akiraSignal": "reaction_positive",
+      "signalDetail": "+1 (eve/MEMORY.md 4/24 21:31)",
+      "inner_thought": "温泉好きと車中泊好きを組み合わせれば刺さるはず",
+      "followUpEligibleAt": "2026-05-01T12:31:00.000Z",
+      "followUpStatus": "pending",
+      "followUpAttempts": 0
+    },
+    {
+      "noteId": "843a9d6c-1976-46fe-8241-38204eb06d8c",
+      "createdAt": "2026-04-29T06:46:19.394Z",
+      "originalBotId": "eve",
+      "originalCategory": "meeting_prep",
+      "topic": "KPMG サイバー課題レポート",
+      "preview": "あのさ、Akiraさん。\n\nLOGISTICS TODAYに *KPMGのサイバー課題レポート* が出てたよ。コンサル目線で読んでみると面白そうな内容かも  \n\n開発会議終わったら息抜きにどうぞ。\nhttps://news.google.c",
+      "url": "https://news.google.com/rss/articles/CBMiSEFVX3lxTE1vWkRDRHdZcUU0WmtUSEFOQkNoM3FkODdQbDN6QVVrQm5ZcmI0YTA1Uy1mMlp3NVh2ZHJwX0pTc1hOVzRkNWNPRw?oc=5",
+      "akiraSignal": "reaction_positive",
+      "signalDetail": "+1",
+      "followUpEligibleAt": "2026-05-06T06:46:19.394Z",
+      "followUpStatus": "pending",
+      "followUpAttempts": 0
+    },
+    {
+      "noteId": "2564ec80-c483-4b4c-a195-c836f0b26c77",
+      "createdAt": "2026-05-01T03:04:55.085Z",
+      "originalBotId": "mei",
+      "originalCategory": "meeting_prep",
+      "topic": "関東キャンピングカー商談会（イオンモール日の出）",
+      "preview": "あ、Akiraさん。会議おつかれさま。\n\nCAR CARE PLUSに *関東キャンピングカー商談会* の記事が出てたよ。イオンモール日の出で5月開催だって 🚐\n\n毎週検索してるなら、GW中に実物見に行くチャンスかも。福祉車両商談会も同時",
+      "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1CbXRKa1pHQnpxM3psQ2htZGJjOUhnLTI1ZUw5UTlLVk1jOGoyQ1h0blZkMjRpQ3hnN2RBMng0dFF2TVg1bUFLMlN2LWtWa01RaHBmUmRPV2FVRnViMEFNSG5R?oc=5",
+      "akiraSignal": "reaction_positive",
+      "signalDetail": "+1",
+      "followUpEligibleAt": "2026-05-08T03:04:55.085Z",
+      "followUpStatus": "pending",
+      "followUpAttempts": 0
+    },
+    {
+      "noteId": "43f7e78a-2e28-4293-8fa4-c0c05749e2fb",
+      "createdAt": "2026-05-01T03:06:07.739Z",
+      "originalBotId": "eve",
+      "originalCategory": "flashback",
+      "topic": "GW日帰り入浴施設検索ランキングTOP10",
+      "preview": "ね、Akiraさん。\n\nねとらぼに *GWおすすめ日帰り入浴施設ランキングTOP10* が出てたよ ♨\n\n1位は *スパリゾートハワイアンズ（福島県）* だって。GWの温泉候補、覗いてみてもいいかも。\nhttps://news.google",
+      "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTFBDQUtsZTRyejV2T1B2eEZDcGFocmFoWGg1Z0RESGsxa3hyTTUtb0lsc0N5cXQzSG5BV1gyNExrNWdrRnAtSzNSTFBzbEd4ZE9odklOOXNvakt2ZjltWVHSAWNBVV95cUxPTzlZOUVOZkNhSVhqQ0RIVFdhMGxoMm05TTNfaVllb2w5Z2JMMDRJUjRzaVBQR1V5SV9tUXlRYnZEbjhXY25pbExYQWsweDBKQko2S1R6QW5pdG9RVFByV0NIUFU",
+      "akiraSignal": "reaction_positive",
+      "signalDetail": "+1",
+      "followUpEligibleAt": "2026-05-08T03:06:07.739Z",
+      "followUpStatus": "pending",
+      "followUpAttempts": 0
+    }
+  ]
+}
