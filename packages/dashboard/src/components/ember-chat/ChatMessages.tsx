@@ -56,17 +56,20 @@ export default function ChatMessages({ messages }: Props) {
         const isUser = msg.type === 'user';
         return (
           <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-              isUser
-                ? 'bg-[var(--accent)]/10 border-l-2 border-[var(--accent)] text-[var(--text)]'
-                : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]'
-            } ${isUser ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+            <div
+              className={`max-w-[80%] min-w-0 px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                isUser
+                  ? 'bg-[var(--accent)]/10 border-l-2 border-[var(--accent)] text-[var(--text)]'
+                  : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]'
+              } ${isUser ? 'rounded-br-md' : 'rounded-bl-md'}`}
+              style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+            >
               {msg.botId && !isUser && (
                 <span className="text-[10px] font-semibold text-[var(--accent)] uppercase tracking-wider block mb-1">
                   {msg.botId}
                 </span>
               )}
-              {msg.text}
+              <span style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</span>
             </div>
           </div>
         );

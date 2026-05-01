@@ -102,7 +102,18 @@ export default function Sidebar() {
       {open && <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setOpen(false)} />}
     <aside className={`fixed left-0 top-0 h-screen w-60 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] flex flex-col z-40 transition-transform md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
       <div className="px-5 py-4 border-b border-[var(--sidebar-border)] flex items-center gap-3">
-        <img src="/logo.svg" alt="Ember" className="w-8 h-8" />
+        <svg viewBox="56 20 144 212" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 flex-shrink-0">
+          <defs>
+            <linearGradient id="sb-lo" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stopColor="#dc2626"/><stop offset="40%" stopColor="#ea580c"/><stop offset="70%" stopColor="#f97316"/><stop offset="100%" stopColor="#fb923c"/></linearGradient>
+            <linearGradient id="sb-lm" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stopColor="#ea580c"/><stop offset="50%" stopColor="#f97316"/><stop offset="100%" stopColor="#fdba74"/></linearGradient>
+            <linearGradient id="sb-li" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stopColor="#f97316"/><stop offset="40%" stopColor="#fbbf24"/><stop offset="100%" stopColor="#fde68a"/></linearGradient>
+            <linearGradient id="sb-lc" x1="0.5" y1="1" x2="0.5" y2="0"><stop offset="0%" stopColor="#fbbf24"/><stop offset="100%" stopColor="#fef3c7"/></linearGradient>
+          </defs>
+          <path d="M128 28C128 28 188 80 192 140C194 165 182 192 164 208C158 213 148 220 128 224C108 220 98 213 92 208C74 192 62 165 64 140C68 80 128 28 128 28Z" fill="url(#sb-lo)"/>
+          <path d="M128 60C128 60 172 104 174 148C175 168 166 190 152 204C144 210 136 216 128 218C120 216 112 210 104 204C90 190 81 168 82 148C84 104 128 60 128 60Z" fill="url(#sb-lm)"/>
+          <path d="M128 96C128 96 158 128 160 158C161 172 154 190 144 200C140 204 134 208 128 210C122 208 116 204 112 200C102 190 95 172 96 158C98 128 128 96 128 96Z" fill="url(#sb-li)"/>
+          <path d="M128 140C128 140 146 158 146 174C146 184 140 196 134 202C132 204 130 206 128 206C126 206 124 204 122 202C116 196 110 184 110 174C110 158 128 140 128 140Z" fill="url(#sb-lc)"/>
+        </svg>
         <span className="text-sm font-semibold text-[var(--sidebar-text-active)]">Multi-Agent <span className="text-[var(--accent-light)]">Ember</span></span>
       </div>
       <BotSelector />

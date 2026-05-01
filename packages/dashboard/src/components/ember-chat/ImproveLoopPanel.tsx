@@ -231,6 +231,13 @@ export default function ImproveLoopPanel({ open }: ImproveLoopPanelProps) {
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
+      <span style={statusStyle}>{reactivityNote(reactivity)}</span>
     </div>
   );
+}
+
+function reactivityNote(level: number): string {
+  if (level >= 5) return '→ media_likely でも co_view 発動';
+  if (level <= 1) return '→ ほぼ反応しない';
+  return '→ user発話のみ反応';
 }
