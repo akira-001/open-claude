@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Reconciler } from '/Users/akira/workspace/claude-code-slack-bot/src/implicit-memory/reconciler';
-import { ImplicitMemoryStore } from '/Users/akira/workspace/claude-code-slack-bot/src/implicit-memory/store';
-import { createMemoryEntry } from '/Users/akira/workspace/claude-code-slack-bot/src/implicit-memory/types';
+import { Reconciler } from '../../src/implicit-memory/reconciler';
+import { ImplicitMemoryStore } from '../../src/implicit-memory/store';
+import { createMemoryEntry } from '../../src/implicit-memory/types';
 import { join } from 'path';
 import os from 'os';
 
