@@ -45,3 +45,9 @@ tmp/
 # Slack-bot local symlinks (dangle on other checkouts)
 packages/slack-bot/data
 packages/slack-bot/memory
+
+# === P2: voice-chat / ember-chat packages ===
+packages/ember-chat/recordings/
+packages/voice-chat/chunk_transcripts.jsonl
+packages/voice-chat/context_summary_feedback.jsonl
+**/.pytest_cache/
