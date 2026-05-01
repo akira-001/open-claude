@@ -16,7 +16,8 @@ const containerStyle: CSSProperties = {
   justifyContent: 'center',
   flexShrink: 0,
   position: 'relative',
-};
+  WebkitAppRegion: 'drag',
+} as CSSProperties;
 
 const logoStyle: CSSProperties = {
   display: 'flex',
@@ -48,7 +49,7 @@ const queueBadgeStyle: CSSProperties = {
 };
 
 function recordControlStyle(recording: boolean, busy: boolean): CSSProperties {
-  const base: CSSProperties = {
+  const base = {
     position: 'absolute',
     right: 12,
     top: '50%',
@@ -66,7 +67,8 @@ function recordControlStyle(recording: boolean, busy: boolean): CSSProperties {
     letterSpacing: '0.05em',
     cursor: 'pointer',
     transition: 'background 0.15s, color 0.15s, border-color 0.15s',
-  };
+    WebkitAppRegion: 'no-drag',
+  } as CSSProperties;
   if (recording) {
     return {
       ...base,
