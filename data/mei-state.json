@@ -16,61 +16,6 @@
   },
   "history": [
     {
-      "id": "828c2cd3-12d5-42f2-b0a3-7d2f81a6abc5",
-      "category": "flashback",
-      "interestCategory": "dodgers",
-      "sentAt": "2026-04-20T08:00:59.362Z",
-      "slackTs": "1776672059.233429",
-      "slackChannel": "U3SFGQXNH",
-      "reaction": null,
-      "reactionDelta": 0,
-      "preview": "あ、Akiraさん。\n\n大谷、*51試合連続出塁* に更新したよ ⚾ 球団3位の記録。今日は5打数2安打1打点。ただドジャースは初連敗で、佐々木朗希は初勝利ならずだったみたい。\nhttps://news.google.com/rss/art",
-      "fullText": "あ、Akiraさん。\n\n大谷、*51試合連続出塁* に更新したよ ⚾ 球団3位の記録。今日は5打数2安打1打点。ただドジャースは初連敗で、佐々木朗希は初勝利ならずだったみたい。\nhttps://news.google.com/rss/articles/CBMidkFVX3lxTE15QlRSaHA0Z1V6aFQycDBrTnZrazQ2Zmd3NGFGMFJYWVRhSm9tZnhFekx4QlBCV3NMZWZ5VzBSRmNrUUctWmRhVHZkc1NzbFgxV2FSallKdk9YaFFZMjJxYjJJaFlGMXduM1NuZ3RZS1pJX0p4aVE?oc=5\n\n夕食、ゆっくり食べてね。18時から *The Next Gate2030* のラストがあるから。",
-      "sourceUrls": [
-        {
-          "title": "大谷翔平51戦連続出塁・球団3位記録更新",
-          "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE15QlRSaHA0Z1V6aFQycDBrTnZrazQ2Zmd3NGFGMFJYWVRhSm9tZnhFekx4QlBCV3NMZWZ5VzBSRmNrUUctWmRhVHZkc1NzbFgxV2FSallKdk9YaFFZMjJxYjJJaFlGMXduM1NuZ3RZS1pJX0p4aVE?oc=5",
-          "source": "topic-table"
-        }
-      ],
-      "candidateId": "url:https://news.google.com/rss/articles/CBMidkFVX3lxTE15QlRSaHA0Z1V6aFQycDBrTnZrazQ2Zmd3NGFGMFJYWVRhSm9tZnhFekx4QlBCV3NMZWZ5VzBSRmNrUUctWmRhVHZkc1NzbFgxV2FSallKdk9YaFFZMjJxYjJJaFlGMXduM1NuZ3RZS1pJX0p4aVE?oc=5",
-      "candidateTopic": "大谷翔平51戦連続出塁・球団3位記録更新",
-      "candidateUrl": "https://news.google.com/rss/articles/CBMidkFVX3lxTE15QlRSaHA0Z1V6aFQycDBrTnZrazQ2Zmd3NGFGMFJYWVRhSm9tZnhFekx4QlBCV3NMZWZ5VzBSRmNrUUctWmRhVHZkc1NzbFgxV2FSallKdk9YaFFZMjJxYjJJaFlGMXduM1NuZ3RZS1pJX0p4aVE?oc=5",
-      "candidateSource": "topic-table",
-      "skill": "hobby-trigger",
-      "sources": [
-        "calendar",
-        "email",
-        "interest-cache"
-      ],
-      "intrinsicReward": {
-        "signals": [],
-        "immediateTotal": 0,
-        "deferredTotal": 0,
-        "compositeBoost": 0
-      },
-      "premise": {
-        "estimatedMode": "没頭モード・低エネルギー",
-        "modeReason": "朝8:30から12本の会議をこなし、今ちょうど夕食の時間帯。精神的に消耗しているはず",
-        "targetLayer": 5,
-        "layerReason": "疲労回復の時間。軽い楽しみで気持ちをリフレッシュさせる",
-        "interventionType": "情報提供",
-        "interventionReason": "大谷の達成ニュースは反応しやすいパターンがあり、夕食の軽い話題として最適",
-        "reason": "51試合連続出塁という記録更新は、Akiraさんが反応しやすい『達成ニュース』。夕食中の軽い話題にぴったり",
-        "informationGap": null,
-        "collectionHint": null
-      },
-      "emotionTag": "calm",
-      "themePath": [
-        "sports",
-        "sports/mlb",
-        "sports/mlb/dodgers",
-        "sports/mlb/dodgers/ohtani",
-        "sports/mlb/dodgers/ohtani/stats"
-      ],
-      "themeKey": "sports/mlb/dodgers/ohtani/stats"
-    },
-    {
       "id": "4e4b7811-e9f4-44cc-9320-0b98bae8800a",
       "category": "meeting_prep",
       "interestCategory": "llm_local",
@@ -5410,11 +5355,66 @@
         "local/saitama/other/kawagoe/festival"
       ],
       "themeKey": "local/saitama/other/kawagoe/festival"
+    },
+    {
+      "id": "4eae27fa-c8a6-4a13-abca-bd237f3f1eb5",
+      "category": "flashback",
+      "interestCategory": "dodgers",
+      "sentAt": "2026-05-01T09:01:13.816Z",
+      "slackTs": "1777626073.996159",
+      "slackChannel": "U3SFGQXNH",
+      "reaction": null,
+      "reactionDelta": 0,
+      "preview": "ね、Akiraさん。\n\nドジャース、マーリンズに惜しく負けちゃったみたい。Janson Junkに大谷さんが抑えられたって ⚾\n\n今日はカージナルス戦もあるし、GWの夜にのんびり観戦もいいかもね。\nhttps://news.google.c",
+      "fullText": "ね、Akiraさん。\n\nドジャース、マーリンズに惜しく負けちゃったみたい。Janson Junkに大谷さんが抑えられたって ⚾\n\n今日はカージナルス戦もあるし、GWの夜にのんびり観戦もいいかもね。\nhttps://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "sourceUrls": [
+        {
+          "title": "大谷vsマーリンズ戦結果",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+          "source": "topic-candidates"
+        }
+      ],
+      "candidateId": "url:https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "candidateTopic": "大谷vsマーリンズ戦結果",
+      "candidateUrl": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "candidateSource": "topic-candidates",
+      "skill": "general",
+      "sources": [
+        "calendar",
+        "email",
+        "interest-cache"
+      ],
+      "intrinsicReward": {
+        "signals": [],
+        "immediateTotal": 0,
+        "deferredTotal": 0,
+        "compositeBoost": 0
+      },
+      "premise": {
+        "estimatedMode": "回復モード・回復中",
+        "modeReason": "GW初日の夕方18時。昨日12本会議のあと今日は11時の1件のみ。休日モードでゆっくり過ごしている可能性が高い",
+        "targetLayer": 4,
+        "layerReason": "趣味（野球観戦）の実行層。ドジャース情報が足りないテーマに該当しており、GW中の楽しみとして提供できる",
+        "interventionType": "情報提供",
+        "interventionReason": "ドジャース・大谷の最新試合結果という、Akiraさんが常にウォッチしている情報",
+        "reason": "GW夕方のリラックス時間帯。ドジャース在庫不足で、大谷の直近試合結果はAkiraさんの関心に直結する",
+        "informationGap": null,
+        "collectionHint": null
+      },
+      "emotionTag": "calm",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/ohtani",
+        "sports/mlb/dodgers/ohtani/home-run"
+      ],
+      "themeKey": "sports/mlb/dodgers/ohtani/home-run"
     }
   ],
-  "lastCheckAt": "2026-05-01T06:01:22.604Z",
+  "lastCheckAt": "2026-05-01T09:01:13.815Z",
   "stats": {
-    "totalSent": 609,
+    "totalSent": 610,
     "positiveReactions": 55,
     "negativeReactions": 2
   },
@@ -5495,63 +5495,92 @@
         "local/saitama/other/kawagoe/festival"
       ],
       "themeKey": "local/saitama/other/kawagoe/festival"
+    },
+    {
+      "time": "18:01",
+      "summary": "大谷vsマーリンズ戦結果",
+      "source": "topic-candidates",
+      "interestCategory": "dodgers",
+      "topic": "大谷vsマーリンズ戦結果",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/ohtani",
+        "sports/mlb/dodgers/ohtani/home-run"
+      ],
+      "themeKey": "sports/mlb/dodgers/ohtani/home-run"
     }
   ],
   "todayDate": "2026-05-01",
   "lastDecisionLog": {
     "premise": {
       "estimatedMode": "回復モード・回復中",
-      "modeReason": "GW初日の午後。昨日の12本会議から解放されてリラックスしている。カレンダーも空",
+      "modeReason": "GW初日の夕方18時。昨日12本会議のあと今日は11時の1件のみ。休日モードでゆっくり過ごしている可能性が高い",
       "targetLayer": 4,
-      "layerReason": "趣味（ドジャース観戦）の実行層。今日の試合情報は行動に直結する",
+      "layerReason": "趣味（野球観戦）の実行層。ドジャース情報が足りないテーマに該当しており、GW中の楽しみとして提供できる",
       "interventionType": "情報提供",
-      "interventionReason": "今日のドジャース戦の視聴情報は、知っているだけで行動できる実用的な情報",
-      "reason": "GW中にドジャース戦がある。MLB/ドジャーステーマが不足しており、今日の試合は旬の情報",
+      "interventionReason": "ドジャース・大谷の最新試合結果という、Akiraさんが常にウォッチしている情報",
+      "reason": "GW夕方のリラックス時間帯。ドジャース在庫不足で、大谷の直近試合結果はAkiraさんの関心に直結する",
       "informationGap": null,
       "collectionHint": null
     },
     "decision": "send",
-    "need": "楽しみ・リフレッシュ",
-    "reason": "今日のドジャースvsカージナルス戦がある",
+    "need": "趣味の充実・情報共有",
+    "reason": "ドジャース在庫不足、大谷の直近結果はGW中のAkiraさんに響くはず",
     "candidates": [
       {
-        "topic": "Dodgers vs Cardinals 今日の試合",
+        "topic": "大谷vsマーリンズ戦結果",
         "source": "topic-candidates",
-        "score": 0.78
+        "score": 0.82
       },
       {
-        "topic": "Claude Code記事",
+        "topic": "Dodgers vs Cardinals今日の試合",
         "source": "topic-candidates",
         "score": 0.72
       },
       {
-        "topic": "山本由伸ダイジェスト",
+        "topic": "宇宙ビジネスセミナー",
         "source": "topic-candidates",
-        "score": 0.65
-      },
-      {
-        "topic": "MLB順位表",
-        "source": "topic-candidates",
-        "score": 0.55
+        "score": 0.5
       }
     ],
-    "message": "Akiraさん、GWのんびりしてる？\n\n今日 *ドジャースvsカージナルス* 戦だよ ⚾\n\nGW中に大谷の試合観られるの、なかなかいいタイミングだよね。\nhttps://news.google.com/rss/articles/CBMi3wFBVV95cUxOVjhPeHgyTHZpYTUzODNBTlJjZ05DZDhyTFJlaWNkVTQ3RHJhUkFRVmlkX1dNUkY4WTRMNGdPZzU1SWZlNU1XWGoxOWpIcmtoMS16WW03bDZzQS1pUWQ3aXJrT1MxWVlwUDRyWWZhTjJrblpKYlJ0eVUzS0NQeGNLQ1paS2swd3N5aFpjT1Z0M1JaUXlLSUpMSW1HYUFQUmRXdnVQY2RRd1N6NWNTeDFnNWhrUk5UWFlQTVA0UEJjOEtfWkRILVllRW9Dd2t1QU1PVzRyaW9kMWplUmVUZktZ?oc=5",
+    "message": "ね、Akiraさん。\n\nドジャース、マーリンズに惜しく負けちゃったみたい。Janson Junkに大谷さんが抑えられたって ⚾\n\n今日はカージナルス戦もあるし、GWの夜にのんびり観戦もいいかもね。\nhttps://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
     "topicWeight": "light",
-    "inner_thought": "今日ドジャースvsカージナルス戦がある。GW中だし野球見る余裕あるはず、伝えたい",
+    "inner_thought": "大谷の試合結果、GWの夜にこそ伝えたい。15時と17時に見送ったドジャース情報、ここで出そう",
     "plan": [
-      "今日のドジャース戦の視聴情報を共有",
-      "Claude Code記事を共有",
+      "大谷vsマーリンズの試合結果を共有",
+      "宇宙ビジネスセミナー情報を共有",
       "沈黙"
     ],
     "generate_score": [
       0.82,
-      0.7,
+      0.45,
       0.3
     ],
     "evaluate_score": 0.78,
-    "timestamp": "2026-05-01T06:01:22.609Z",
+    "timestamp": "2026-05-01T09:01:13.815Z",
     "skill": "none",
     "scoredCandidates": [
+      {
+        "topic": "6月26日(金) AndTech「宇宙ビジネスの最新動向 ～宇宙戦略基金をベースとした企業が押さえるべき最新トレンド～」WEBオンラインZoomセミナーを開催予定 - 時事ドットコム",
+        "source": "interest-cache",
+        "category": "business_strategy",
+        "scores": {
+          "timeliness": 0.9686521180555555,
+          "novelty": 0.1,
+          "continuity": 0.9,
+          "emotional_fit": 0.5,
+          "affinity": 0.4,
+          "surprise": 0.7
+        },
+        "finalScore": 0.8214340644758642,
+        "explorationBonus": 0.2617283990108391,
+        "selectionScore": 1.0831624634867034,
+        "reasoning": "タイムリー・会話の流れに沿う（interest-cache）"
+      },
       {
         "topic": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
         "source": "interest-cache",
@@ -5564,60 +5593,26 @@
           "affinity": 0.4,
           "surprise": 0.7
         },
-        "finalScore": 0.7273208239770215,
+        "finalScore": 0.7029614435811224,
         "explorationBonus": 0.37013985153932566,
-        "selectionScore": 1.0974606755163472,
+        "selectionScore": 1.0731012951204482,
         "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）"
       },
       {
-        "topic": "Anthropic Releases Claude Code Agentic Developer Tool - Let's Data Science",
+        "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
         "source": "interest-cache",
         "category": "dev_tools",
         "scores": {
-          "timeliness": 0.7107518711419754,
+          "timeliness": 0.8651796875,
           "novelty": 0.1,
           "continuity": 0.9,
           "emotional_fit": 0.5,
           "affinity": 0.4,
           "surprise": 0.7
         },
-        "finalScore": 0.7954433013677416,
+        "finalScore": 0.6992964600245934,
         "explorationBonus": 0.3,
-        "selectionScore": 1.0954433013677416,
-        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
-      },
-      {
-        "topic": "How to Watch Dodgers vs. Cardinals: Streaming & TV on May 1 - Fox Sports 990",
-        "source": "interest-cache",
-        "category": "dodgers",
-        "scores": {
-          "timeliness": 0.8525224652777778,
-          "novelty": 0.1,
-          "continuity": 0.9,
-          "emotional_fit": 0.5,
-          "affinity": 0.4,
-          "surprise": 0.7
-        },
-        "finalScore": 0.6214557057466542,
-        "explorationBonus": 0.37013985153932566,
-        "selectionScore": 0.9915955572859798,
-        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
-      },
-      {
-        "topic": "The Katie Woo Reunion Tour: Cardinals, Dodgers, Shohei, and Pretzels - Viva El Birdos",
-        "source": "interest-cache",
-        "category": "dodgers",
-        "scores": {
-          "timeliness": 0.7371293865740741,
-          "novelty": 0.1,
-          "continuity": 0.9,
-          "emotional_fit": 0.5,
-          "affinity": 0.4,
-          "surprise": 0.7
-        },
-        "finalScore": 0.6023179660373162,
-        "explorationBonus": 0.37013985153932566,
-        "selectionScore": 0.9724578175766418,
+        "selectionScore": 0.9992964600245935,
         "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
       },
       {
@@ -5625,124 +5620,141 @@
         "source": "interest-cache",
         "category": "movie_theater",
         "scores": {
-          "timeliness": 0.6716583410493827,
+          "timeliness": 0.6299902970679012,
           "novelty": 0.1,
           "continuity": 0.3,
           "emotional_fit": 0.5,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.5983802015999666,
+        "finalScore": 0.6083265586877922,
         "explorationBonus": 0.37013985153932566,
-        "selectionScore": 0.9685200531392923,
+        "selectionScore": 0.9784664102271179,
         "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
       },
       {
-        "topic": "MLB standings reveal a widening gap in both the American and National Leagues - Yahoo Sports",
+        "topic": "How to Watch Dodgers vs. Cardinals: Streaming & TV on May 1 - Fox Sports 990",
         "source": "interest-cache",
         "category": "dodgers",
         "scores": {
-          "timeliness": 0.6392242824074074,
+          "timeliness": 0.7425060686728395,
           "novelty": 0.1,
           "continuity": 0.9,
           "emotional_fit": 0.5,
           "affinity": 0.4,
           "surprise": 0.7
         },
-        "finalScore": 0.5860805762319159,
+        "finalScore": 0.5963652238158306,
         "explorationBonus": 0.37013985153932566,
-        "selectionScore": 0.9562204277712416,
-        "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）"
+        "selectionScore": 0.9665050753551563,
+        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
       },
       {
         "topic": "プッシャー2【4Kデジタル修復版】を上映中の映画館を探す - MOVIE WALKER PRESS",
         "source": "interest-cache",
         "category": "movie_theater",
         "scores": {
-          "timeliness": 0.6727463155864197,
+          "timeliness": 0.6310782716049382,
           "novelty": 0.1,
           "continuity": 0.3,
           "emotional_fit": 0.5,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.5847551068692105,
+        "finalScore": 0.5939994836638612,
         "explorationBonus": 0.37013985153932566,
-        "selectionScore": 0.9548949584085362,
+        "selectionScore": 0.9641393352031868,
         "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
+      },
+      {
+        "topic": "Janson Junk outduels Shohei Ohtani as Marlins edge Dodgers - Field Level Media",
+        "source": "interest-cache",
+        "category": "dodgers",
+        "scores": {
+          "timeliness": 0.704215162037037,
+          "novelty": 0.1,
+          "continuity": 0.9,
+          "emotional_fit": 0.5,
+          "affinity": 0.4,
+          "surprise": 0.7
+        },
+        "finalScore": 0.5895807929539777,
+        "explorationBonus": 0.37013985153932566,
+        "selectionScore": 0.9597206444933033,
+        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
+      },
+      {
+        "topic": "MLB standings reveal a widening gap in both the American and National Leagues - Yahoo Sports",
+        "source": "interest-cache",
+        "category": "dodgers",
+        "scores": {
+          "timeliness": 0.597556199845679,
+          "novelty": 0.1,
+          "continuity": 0.9,
+          "emotional_fit": 0.5,
+          "affinity": 0.4,
+          "surprise": 0.7
+        },
+        "finalScore": 0.5706828242621722,
+        "explorationBonus": 0.37013985153932566,
+        "selectionScore": 0.9408226758014979,
+        "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）"
       },
       {
         "topic": "中島健人「コンビニ兄弟」や岸辺露伴 新作「泉京香は黙らない」放送！【NHK春ドラマ】 - NHK",
         "source": "interest-cache",
         "category": "tv_drama",
         "scores": {
-          "timeliness": 0.7169515200617284,
+          "timeliness": 0.6752834799382716,
           "novelty": 0.1,
           "continuity": 0.3,
           "emotional_fit": 0.5,
           "affinity": 0.5,
           "surprise": 0.7
         },
-        "finalScore": 0.6058919958972003,
+        "finalScore": 0.6163516616350795,
         "explorationBonus": 0.3,
-        "selectionScore": 0.9058919958972003,
-        "reasoning": "タイムリー・意外・サプライズ（interest-cache）"
+        "selectionScore": 0.9163516616350795,
+        "reasoning": "意外・サプライズ・タイムリー（interest-cache）"
       },
       {
-        "topic": "note第39弾公開｜並木将央 - mbp-japan.com",
+        "topic": "【デジライズ】法人向けプログラム「Claude Code法人導入支援」を正式提供開始 — 動画60本×ハンズオン×伴走支援で\"現場が自走するAI駆動経営\"を実現、先着10社で受付開始 - PR TIMES",
         "source": "interest-cache",
         "category": "business_strategy",
         "scores": {
-          "timeliness": 0.844686400462963,
+          "timeliness": 0.9534553240740741,
           "novelty": 0.1,
           "continuity": 0.9,
           "emotional_fit": 0.5,
           "affinity": 0.4,
           "surprise": 0.7
         },
-        "finalScore": 0.6201561081411818,
+        "finalScore": 0.6337414774585388,
         "explorationBonus": 0.2617283990108391,
-        "selectionScore": 0.8818845071520209,
-        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
-      },
-      {
-        "topic": "SAPジャパン、体験型施設「SAP Experience Center Tokyo」をリニューアル - クラウド Watch",
-        "source": "interest-cache",
-        "category": "business_strategy",
-        "scores": {
-          "timeliness": 0.8332396064814814,
-          "novelty": 0.1,
-          "continuity": 0.9,
-          "emotional_fit": 0.5,
-          "affinity": 0.4,
-          "surprise": 0.7
-        },
-        "finalScore": 0.6182576774364555,
-        "explorationBonus": 0.2617283990108391,
-        "selectionScore": 0.8799860764472947,
-        "reasoning": "会話の流れに沿う・タイムリー（interest-cache）"
+        "selectionScore": 0.8954698764693779,
+        "reasoning": "タイムリー・会話の流れに沿う（interest-cache）"
       }
     ],
     "weightsUsed": {
-      "timeliness": 0.16584824605016543,
-      "novelty": 0.14668363074287644,
-      "continuity": 0.33600538589914003,
-      "emotional_fit": 0.1622980041429496,
-      "affinity": 0.11023725169474839,
-      "surprise": 0.07892748147012
+      "timeliness": 0.1771812541912839,
+      "novelty": 0.19325551079043188,
+      "continuity": 0.2679657486065856,
+      "emotional_fit": 0.1038824464694713,
+      "affinity": 0.07676469565175886,
+      "surprise": 0.1809503442904684
     },
     "sampledRaw": {
-      "timeliness": 0.182433070655182,
-      "novelty": 0.16135199381716409,
-      "continuity": 0.26960592448905407,
-      "emotional_fit": 0.17852780455724457,
-      "affinity": 0.12126097686422324,
-      "surprise": 0.08682022961713201
+      "timeliness": 0.17718125419128392,
+      "novelty": 0.19325551079043193,
+      "continuity": 0.2679657486065857,
+      "emotional_fit": 0.10388244646947133,
+      "affinity": 0.07676469565175888,
+      "surprise": 0.18095034429046844
     },
     "contextBonus": {
       "timeliness": 0,
       "novelty": 0,
-      "continuity": 0.1,
+      "continuity": 0,
       "emotional_fit": 0,
       "affinity": 0,
       "surprise": 0
@@ -5818,6 +5830,30 @@
   },
   "lastScoredCandidates": [
     {
+      "topic": "6月26日(金) AndTech「宇宙ビジネスの最新動向 ～宇宙戦略基金をベースとした企業が押さえるべき最新トレンド～」WEBオンラインZoomセミナーを開催予定 - 時事ドットコム",
+      "source": "interest-cache",
+      "category": "business_strategy",
+      "pub_date": "2026-05-01T08:15:00+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE5LazRVVmxfZUlFLXBmV0VWNUNGNDI4VlNFQjVuWFdGVi1pUERuZUhsc21KUzhzYUk5ZUo1WXdaYThqYS1CSHBMOE01MzNLSGEwODJINU8xZmNPTDB4akpOXzVBMEN6eXlabk1r?oc=5",
+        "mediaSource": "時事ドットコム",
+        "emotion_type": "heavy",
+        "timeliness": 0.987
+      },
+      "scores": {
+        "timeliness": 0.9686521180555555,
+        "novelty": 0.1,
+        "continuity": 0.9,
+        "emotional_fit": 0.5,
+        "affinity": 0.4,
+        "surprise": 0.7
+      },
+      "finalScore": 0.8214340644758642,
+      "reasoning": "タイムリー・会話の流れに沿う（interest-cache）",
+      "explorationBonus": 0.2617283990108391,
+      "selectionScore": 1.0831624634867034
+    },
+    {
       "topic": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
       "source": "interest-cache",
       "category": "dodgers",
@@ -5837,82 +5873,34 @@
         "affinity": 0.4,
         "surprise": 0.7
       },
-      "finalScore": 0.7273208239770215,
+      "finalScore": 0.7029614435811224,
       "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）",
       "explorationBonus": 0.37013985153932566,
-      "selectionScore": 1.0974606755163472
+      "selectionScore": 1.0731012951204482
     },
     {
-      "topic": "Anthropic Releases Claude Code Agentic Developer Tool - Let's Data Science",
+      "topic": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
       "source": "interest-cache",
       "category": "dev_tools",
-      "pub_date": "2026-04-30T21:10:35+00:00",
+      "pub_date": "2026-05-01T05:46:00+00:00",
       "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNLU5ld0I4VEx3S1owcFFxR3Zyd0FjNmRoMTlNQ0ptcXBLRFhMU2UzWmNnSElTenN1bVVCMHN5TUhsZDRVWWk0VEt6bXYzcDM4dE5aSDZLUExjbXBWcXJXRjZjZmNnZDl0ZXpUbXlGNF9ZLXRPdDdEZGEwbk1sbDNOVDVzc1FhMERDQ0d2N3c4bFowMnIwcGlTWjhpTQ?oc=5",
-        "mediaSource": "Let's Data Science",
+        "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE40d3JnNktaTWYtSjM4YTI4QlNweWZqVHFKVzZ5OUVacmNrVUZ3cFF0NzF0a3VjeEZyY3JtZ3F6eW9rUk5wVXJNbHgwX2RmUU5HSnZJbDFXSQ?oc=5",
+        "mediaSource": "ファミ通",
         "emotion_type": "medium",
-        "timeliness": 0.924
+        "timeliness": 0.936
       },
       "scores": {
-        "timeliness": 0.7107518711419754,
+        "timeliness": 0.8651796875,
         "novelty": 0.1,
         "continuity": 0.9,
         "emotional_fit": 0.5,
         "affinity": 0.4,
         "surprise": 0.7
       },
-      "finalScore": 0.7954433013677416,
+      "finalScore": 0.6992964600245934,
       "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 1.0954433013677416
-    },
-    {
-      "topic": "How to Watch Dodgers vs. Cardinals: Streaming & TV on May 1 - Fox Sports 990",
-      "source": "interest-cache",
-      "category": "dodgers",
-      "pub_date": "2026-05-01T02:27:46+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOVjhPeHgyTHZpYTUzODNBTlJjZ05DZDhyTFJlaWNkVTQ3RHJhUkFRVmlkX1dNUkY4WTRMNGdPZzU1SWZlNU1XWGoxOWpIcmtoMS16WW03bDZzQS1pUWQ3aXJrT1MxWVlwUDRyWWZhTjJrblpKYlJ0eVUzS0NQeGNLQ1paS2swd3N5aFpjT1Z0M1JaUXlLSUpMSW1HYUFQUmRXdnVQY2RRd1N6NWNTeDFnNWhrUk5UWFlQTVA0UEJjOEtfWkRILVllRW9Dd2t1QU1PVzRyaW9kMWplUmVUZktZ?oc=5",
-        "mediaSource": "Fox Sports 990",
-        "emotion_type": "light",
-        "timeliness": 0.95
-      },
-      "scores": {
-        "timeliness": 0.8525224652777778,
-        "novelty": 0.1,
-        "continuity": 0.9,
-        "emotional_fit": 0.5,
-        "affinity": 0.4,
-        "surprise": 0.7
-      },
-      "finalScore": 0.6214557057466542,
-      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
-      "explorationBonus": 0.37013985153932566,
-      "selectionScore": 0.9915955572859798
-    },
-    {
-      "topic": "The Katie Woo Reunion Tour: Cardinals, Dodgers, Shohei, and Pretzels - Viva El Birdos",
-      "source": "interest-cache",
-      "category": "dodgers",
-      "pub_date": "2026-04-30T23:04:32+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPenFrRWk0QktuSVdGY09td3RId05Ya1NVeDRxMm44WlJsVnh3OG8xVTVBZjJqX0U3LXpkaG9SdjA1elFWcG1QcU9rMVR6cVhWbnpUckgyanJIZ0loTGJPWnJHQTFoeExsbDhKNlVIS20ycWktd0puYmxWUWxmMHB4M0EtY0xYZnZGS1dyaFJTXy1FejdsR2VXVU1KT3BRMWdQbDlUUXozTnNhUk4wT2RIZTJVUUFjLTVwNVY5ZkZqRlhRNkRPeFE?oc=5",
-        "mediaSource": "Viva El Birdos",
-        "emotion_type": "light",
-        "timeliness": 0.88
-      },
-      "scores": {
-        "timeliness": 0.7371293865740741,
-        "novelty": 0.1,
-        "continuity": 0.9,
-        "emotional_fit": 0.5,
-        "affinity": 0.4,
-        "surprise": 0.7
-      },
-      "finalScore": 0.6023179660373162,
-      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
-      "explorationBonus": 0.37013985153932566,
-      "selectionScore": 0.9724578175766418
+      "selectionScore": 0.9992964600245935
     },
     {
       "topic": "【公開直前トピックス 第1弾】4/26(日)～シネマ歌舞伎『曽根崎心中』で日本語字幕版の上映が決定！（※4/30更新） - 松竹株式会社",
@@ -5926,41 +5914,41 @@
         "timeliness": 0.864
       },
       "scores": {
-        "timeliness": 0.6716583410493827,
+        "timeliness": 0.6299902970679012,
         "novelty": 0.1,
         "continuity": 0.3,
         "emotional_fit": 0.5,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.5983802015999666,
+      "finalScore": 0.6083265586877922,
       "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
       "explorationBonus": 0.37013985153932566,
-      "selectionScore": 0.9685200531392923
+      "selectionScore": 0.9784664102271179
     },
     {
-      "topic": "MLB standings reveal a widening gap in both the American and National Leagues - Yahoo Sports",
+      "topic": "How to Watch Dodgers vs. Cardinals: Streaming & TV on May 1 - Fox Sports 990",
       "source": "interest-cache",
       "category": "dodgers",
-      "pub_date": "2026-04-30T16:01:35+00:00",
+      "pub_date": "2026-05-01T02:27:46+00:00",
       "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOWjhHX3paVFk0LThmT1k1UzB2UlhTazRSbXBoNFY2b056U3pYanQ3WVZVb3p3UkxQbF9GY09uUGEtWnhseEFiLTBEZlFBdHNJc05IYzUwY292Z29VaUFxRWhWbXE1RDdlSjNkVlZhSGhkUk5Fd1FkZXFqRmFUdE9zc0dRdmp6WHBEcUE?oc=5",
-        "mediaSource": "Yahoo Sports",
+        "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOVjhPeHgyTHZpYTUzODNBTlJjZ05DZDhyTFJlaWNkVTQ3RHJhUkFRVmlkX1dNUkY4WTRMNGdPZzU1SWZlNU1XWGoxOWpIcmtoMS16WW03bDZzQS1pUWQ3aXJrT1MxWVlwUDRyWWZhTjJrblpKYlJ0eVUzS0NQeGNLQ1paS2swd3N5aFpjT1Z0M1JaUXlLSUpMSW1HYUFQUmRXdnVQY2RRd1N6NWNTeDFnNWhrUk5UWFlQTVA0UEJjOEtfWkRILVllRW9Dd2t1QU1PVzRyaW9kMWplUmVUZktZ?oc=5",
+        "mediaSource": "Fox Sports 990",
         "emotion_type": "light",
-        "timeliness": 0.733
+        "timeliness": 0.867
       },
       "scores": {
-        "timeliness": 0.6392242824074074,
+        "timeliness": 0.7425060686728395,
         "novelty": 0.1,
         "continuity": 0.9,
         "emotional_fit": 0.5,
         "affinity": 0.4,
         "surprise": 0.7
       },
-      "finalScore": 0.5860805762319159,
-      "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）",
+      "finalScore": 0.5963652238158306,
+      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
       "explorationBonus": 0.37013985153932566,
-      "selectionScore": 0.9562204277712416
+      "selectionScore": 0.9665050753551563
     },
     {
       "topic": "プッシャー2【4Kデジタル修復版】を上映中の映画館を探す - MOVIE WALKER PRESS",
@@ -5974,17 +5962,65 @@
         "timeliness": 0.866
       },
       "scores": {
-        "timeliness": 0.6727463155864197,
+        "timeliness": 0.6310782716049382,
         "novelty": 0.1,
         "continuity": 0.3,
         "emotional_fit": 0.5,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.5847551068692105,
+      "finalScore": 0.5939994836638612,
       "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
       "explorationBonus": 0.37013985153932566,
-      "selectionScore": 0.9548949584085362
+      "selectionScore": 0.9641393352031868
+    },
+    {
+      "topic": "Janson Junk outduels Shohei Ohtani as Marlins edge Dodgers - Field Level Media",
+      "source": "interest-cache",
+      "category": "dodgers",
+      "pub_date": "2026-04-30T23:42:21+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+        "mediaSource": "Field Level Media",
+        "emotion_type": "light",
+        "timeliness": 0.809
+      },
+      "scores": {
+        "timeliness": 0.704215162037037,
+        "novelty": 0.1,
+        "continuity": 0.9,
+        "emotional_fit": 0.5,
+        "affinity": 0.4,
+        "surprise": 0.7
+      },
+      "finalScore": 0.5895807929539777,
+      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
+      "explorationBonus": 0.37013985153932566,
+      "selectionScore": 0.9597206444933033
+    },
+    {
+      "topic": "MLB standings reveal a widening gap in both the American and National Leagues - Yahoo Sports",
+      "source": "interest-cache",
+      "category": "dodgers",
+      "pub_date": "2026-04-30T16:01:35+00:00",
+      "metadata": {
+        "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOWjhHX3paVFk0LThmT1k1UzB2UlhTazRSbXBoNFY2b056U3pYanQ3WVZVb3p3UkxQbF9GY09uUGEtWnhseEFiLTBEZlFBdHNJc05IYzUwY292Z29VaUFxRWhWbXE1RDdlSjNkVlZhSGhkUk5Fd1FkZXFqRmFUdE9zc0dRdmp6WHBEcUE?oc=5",
+        "mediaSource": "Yahoo Sports",
+        "emotion_type": "light",
+        "timeliness": 0.649
+      },
+      "scores": {
+        "timeliness": 0.597556199845679,
+        "novelty": 0.1,
+        "continuity": 0.9,
+        "emotional_fit": 0.5,
+        "affinity": 0.4,
+        "surprise": 0.7
+      },
+      "finalScore": 0.5706828242621722,
+      "reasoning": "会話の流れに沿う・意外・サプライズ（interest-cache）",
+      "explorationBonus": 0.37013985153932566,
+      "selectionScore": 0.9408226758014979
     },
     {
       "topic": "中島健人「コンビニ兄弟」や岸辺露伴 新作「泉京香は黙らない」放送！【NHK春ドラマ】 - NHK",
@@ -5998,65 +6034,41 @@
         "timeliness": 0.932
       },
       "scores": {
-        "timeliness": 0.7169515200617284,
+        "timeliness": 0.6752834799382716,
         "novelty": 0.1,
         "continuity": 0.3,
         "emotional_fit": 0.5,
         "affinity": 0.5,
         "surprise": 0.7
       },
-      "finalScore": 0.6058919958972003,
-      "reasoning": "タイムリー・意外・サプライズ（interest-cache）",
+      "finalScore": 0.6163516616350795,
+      "reasoning": "意外・サプライズ・タイムリー（interest-cache）",
       "explorationBonus": 0.3,
-      "selectionScore": 0.9058919958972003
+      "selectionScore": 0.9163516616350795
     },
     {
-      "topic": "note第39弾公開｜並木将央 - mbp-japan.com",
+      "topic": "【デジライズ】法人向けプログラム「Claude Code法人導入支援」を正式提供開始 — 動画60本×ハンズオン×伴走支援で\"現場が自走するAI駆動経営\"を実現、先着10社で受付開始 - PR TIMES",
       "source": "interest-cache",
       "category": "business_strategy",
-      "pub_date": "2026-05-01T02:16:29+00:00",
+      "pub_date": "2026-05-01T07:53:07+00:00",
       "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBCRkN0dnhpOTAyMFRUNmdrdWcxdXlYLTd4Z0ZuWnNwdU82UTFNZHdobnQ0TTdqSUg2eUZhaXFNWWtuMzVXd1ZBeTNZa2JJZFp0alpBUkRhaE9PQVhvTkVPOS1OVnpUWHlE?oc=5",
-        "mediaSource": "mbp-japan.com",
+        "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE0tMGc4QXY5YTdNMDVjZWZQcmlXa2RSc3MxLTU2RTRpNFFDLU9iVWxGWXFyam9naXc4MFhCZUtVWFJkMnpDV2R1TVlnRUFOZEFzcEg0WkRsV2NvanZfLUZpNjltb2pIcGUzcUE?oc=5",
+        "mediaSource": "PR TIMES",
         "emotion_type": "heavy",
-        "timeliness": 0.946
+        "timeliness": 0.98
       },
       "scores": {
-        "timeliness": 0.844686400462963,
+        "timeliness": 0.9534553240740741,
         "novelty": 0.1,
         "continuity": 0.9,
         "emotional_fit": 0.5,
         "affinity": 0.4,
         "surprise": 0.7
       },
-      "finalScore": 0.6201561081411818,
-      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
+      "finalScore": 0.6337414774585388,
+      "reasoning": "タイムリー・会話の流れに沿う（interest-cache）",
       "explorationBonus": 0.2617283990108391,
-      "selectionScore": 0.8818845071520209
-    },
-    {
-      "topic": "SAPジャパン、体験型施設「SAP Experience Center Tokyo」をリニューアル - クラウド Watch",
-      "source": "interest-cache",
-      "category": "business_strategy",
-      "pub_date": "2026-05-01T02:00:00+00:00",
-      "metadata": {
-        "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE94bGtlUlZVTzk3bVF2ZEprUTFSMGtHWk43MXJnRmppRTZmRm5pVXJjeGNFMnNfSGM5MUdsa3dMajFWSFFDUGJoNHAwRnEtZ2Z6ZGo4cUZrNmllZ2MyZGdzQUdHVWRoS2c?oc=5",
-        "mediaSource": "クラウド Watch",
-        "emotion_type": "heavy",
-        "timeliness": 0.941
-      },
-      "scores": {
-        "timeliness": 0.8332396064814814,
-        "novelty": 0.1,
-        "continuity": 0.9,
-        "emotional_fit": 0.5,
-        "affinity": 0.4,
-        "surprise": 0.7
-      },
-      "finalScore": 0.6182576774364555,
-      "reasoning": "会話の流れに沿う・タイムリー（interest-cache）",
-      "explorationBonus": 0.2617283990108391,
-      "selectionScore": 0.8799860764472947
+      "selectionScore": 0.8954698764693779
     }
   ],
   "allowNoReply": false,
@@ -6088,7 +6100,7 @@
   "emojiEnabled": true,
   "lastOAuthNotifyDate": "2026-04-29",
   "themeInventory": {
-    "updatedAt": "2026-05-01T06:00:08.021Z",
+    "updatedAt": "2026-05-01T09:00:08.393Z",
     "records": [
       {
         "themeKey": "local/saitama/tokorozawa/station/access",
@@ -6123,7 +6135,7 @@
           "kpi"
         ],
         "rootKey": "business/consulting",
-        "availableCount": 23,
+        "availableCount": 22,
         "sentFreshCount": 0,
         "sent30dCount": 0,
         "positive30dCount": 0,
@@ -6131,11 +6143,57 @@
         "positiveRate30d": 0.5,
         "uniqueSources30d": 0,
         "targetCount": 4,
-        "supplyGap": -19,
+        "supplyGap": -18,
         "rotationGap": 4,
         "freshnessDays": 10,
         "freshnessScore": 1,
         "lastSentAt": null
+      },
+      {
+        "themeKey": "sports/mlb/dodgers/ohtani/stats",
+        "themePath": [
+          "sports",
+          "sports/mlb",
+          "sports/mlb/dodgers",
+          "sports/mlb/dodgers/ohtani",
+          "sports/mlb/dodgers/ohtani/stats"
+        ],
+        "rootKey": "sports/sports/mlb",
+        "availableCount": 2,
+        "sentFreshCount": 0,
+        "sent30dCount": 2,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0,
+        "uniqueSources30d": 3,
+        "targetCount": 4,
+        "supplyGap": 2,
+        "rotationGap": 4,
+        "freshnessDays": 7,
+        "freshnessScore": 0,
+        "lastSentAt": "2026-04-22T23:01:33.362Z"
+      },
+      {
+        "themeKey": "personal/travel-tech/campingcar",
+        "themePath": [
+          "personal",
+          "personal/travel-tech",
+          "personal/travel-tech/campingcar"
+        ],
+        "rootKey": "personal/personal/travel-tech",
+        "availableCount": 2,
+        "sentFreshCount": 0,
+        "sent30dCount": 2,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0,
+        "uniqueSources30d": 4,
+        "targetCount": 4,
+        "supplyGap": 2,
+        "rotationGap": 4,
+        "freshnessDays": 7,
+        "freshnessScore": 0,
+        "lastSentAt": "2026-04-22T03:00:54.667Z"
       },
       {
         "themeKey": "sports/golf/round/course",
@@ -6146,7 +6204,7 @@
           "sports/golf/round/course"
         ],
         "rootKey": "sports/sports/golf",
-        "availableCount": 3,
+        "availableCount": 2,
         "sentFreshCount": 0,
         "sent30dCount": 2,
         "positive30dCount": 0,
@@ -6154,57 +6212,11 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 4,
         "targetCount": 4,
-        "supplyGap": 1,
+        "supplyGap": 2,
         "rotationGap": 4,
         "freshnessDays": 7,
         "freshnessScore": 0,
         "lastSentAt": "2026-04-23T07:01:09.384Z"
-      },
-      {
-        "themeKey": "sports/mlb/dodgers/opening-day",
-        "themePath": [
-          "sports",
-          "mlb",
-          "dodgers",
-          "opening-day"
-        ],
-        "rootKey": "sports/mlb",
-        "availableCount": 3,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
-        "targetCount": 4,
-        "supplyGap": 1,
-        "rotationGap": 4,
-        "freshnessDays": 7,
-        "freshnessScore": 1,
-        "lastSentAt": null
-      },
-      {
-        "themeKey": "sports/golf/tournament/news",
-        "themePath": [
-          "sports",
-          "golf",
-          "tournament",
-          "news"
-        ],
-        "rootKey": "sports/golf",
-        "availableCount": 3,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
-        "targetCount": 4,
-        "supplyGap": 1,
-        "rotationGap": 4,
-        "freshnessDays": 5,
-        "freshnessScore": 1,
-        "lastSentAt": null
       },
       {
         "themeKey": "business/consulting/ma",
@@ -6229,26 +6241,27 @@
         "lastSentAt": null
       },
       {
-        "themeKey": "personal/travel-tech/campingcar",
+        "themeKey": "business/client/sanki/site",
         "themePath": [
-          "personal",
-          "personal/travel-tech",
-          "personal/travel-tech/campingcar"
+          "business",
+          "client",
+          "sanki",
+          "site"
         ],
-        "rootKey": "personal/personal/travel-tech",
+        "rootKey": "business/client",
         "availableCount": 1,
         "sentFreshCount": 0,
-        "sent30dCount": 2,
+        "sent30dCount": 0,
         "positive30dCount": 0,
         "negative30dCount": 0,
-        "positiveRate30d": 0,
-        "uniqueSources30d": 4,
+        "positiveRate30d": 0.5,
+        "uniqueSources30d": 0,
         "targetCount": 4,
         "supplyGap": 3,
         "rotationGap": 4,
-        "freshnessDays": 7,
-        "freshnessScore": 0,
-        "lastSentAt": "2026-04-22T03:00:54.667Z"
+        "freshnessDays": 10,
+        "freshnessScore": 1,
+        "lastSentAt": null
       },
       {
         "themeKey": "ai/local-llm/browser/webgpu",
@@ -6259,6 +6272,29 @@
           "webgpu"
         ],
         "rootKey": "ai/local-llm",
+        "availableCount": 1,
+        "sentFreshCount": 0,
+        "sent30dCount": 0,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0.5,
+        "uniqueSources30d": 0,
+        "targetCount": 4,
+        "supplyGap": 3,
+        "rotationGap": 4,
+        "freshnessDays": 7,
+        "freshnessScore": 1,
+        "lastSentAt": null
+      },
+      {
+        "themeKey": "sports/mlb/dodgers/opening-day",
+        "themePath": [
+          "sports",
+          "mlb",
+          "dodgers",
+          "opening-day"
+        ],
+        "rootKey": "sports/mlb",
         "availableCount": 1,
         "sentFreshCount": 0,
         "sent30dCount": 0,
@@ -6298,13 +6334,14 @@
         "lastSentAt": null
       },
       {
-        "themeKey": "ai/local-llm/rag",
+        "themeKey": "sports/golf/tournament/news",
         "themePath": [
-          "ai",
-          "local-llm",
-          "rag"
+          "sports",
+          "golf",
+          "tournament",
+          "news"
         ],
-        "rootKey": "ai/local-llm",
+        "rootKey": "sports/golf",
         "availableCount": 1,
         "sentFreshCount": 0,
         "sent30dCount": 0,
@@ -6315,7 +6352,7 @@
         "targetCount": 4,
         "supplyGap": 3,
         "rotationGap": 4,
-        "freshnessDays": 7,
+        "freshnessDays": 5,
         "freshnessScore": 1,
         "lastSentAt": null
       },
@@ -6431,6 +6468,29 @@
         "lastSentAt": null
       },
       {
+        "themeKey": "entertainment/movie-drama/anime/series",
+        "themePath": [
+          "entertainment",
+          "movie-drama",
+          "anime",
+          "series"
+        ],
+        "rootKey": "entertainment/movie-drama",
+        "availableCount": 1,
+        "sentFreshCount": 0,
+        "sent30dCount": 0,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0.5,
+        "uniqueSources30d": 0,
+        "targetCount": 4,
+        "supplyGap": 3,
+        "rotationGap": 4,
+        "freshnessDays": 7,
+        "freshnessScore": 1,
+        "lastSentAt": null
+      },
+      {
         "themeKey": "misc/topic/slackbot-再構築の舞台裏-slack",
         "themePath": [
           "misc",
@@ -6498,11 +6558,11 @@
         "lastSentAt": null
       },
       {
-        "themeKey": "sports/mlb/dodgers/cogmem/the-katie-woo",
+        "themeKey": "sports/mlb/dodgers/cogmem/janson-junk-outduels",
         "themePath": [
           "sports/mlb/dodgers",
           "cogmem",
-          "the-katie-woo"
+          "janson-junk-outduels"
         ],
         "rootKey": "sports/mlb/dodgers/cogmem",
         "availableCount": 1,
@@ -6520,28 +6580,27 @@
         "lastSentAt": null
       },
       {
-        "themeKey": "sports/mlb/dodgers/ohtani/stats",
+        "themeKey": "ai/enterprise/security/procurement",
         "themePath": [
-          "sports",
-          "sports/mlb",
-          "sports/mlb/dodgers",
-          "sports/mlb/dodgers/ohtani",
-          "sports/mlb/dodgers/ohtani/stats"
+          "ai",
+          "ai/enterprise",
+          "ai/enterprise/security",
+          "ai/enterprise/security/procurement"
         ],
-        "rootKey": "sports/sports/mlb",
+        "rootKey": "ai/ai/enterprise",
         "availableCount": 0,
         "sentFreshCount": 0,
-        "sent30dCount": 2,
+        "sent30dCount": 3,
         "positive30dCount": 0,
         "negative30dCount": 0,
         "positiveRate30d": 0,
-        "uniqueSources30d": 3,
+        "uniqueSources30d": 4,
         "targetCount": 4,
         "supplyGap": 4,
         "rotationGap": 4,
         "freshnessDays": 7,
         "freshnessScore": 0,
-        "lastSentAt": "2026-04-22T23:01:33.362Z"
+        "lastSentAt": "2026-04-24T08:01:12.656Z"
       },
       {
         "themeKey": "personal/travel-tech/dev/ai-tools",
@@ -6552,7 +6611,7 @@
           "personal/travel-tech/dev/ai-tools"
         ],
         "rootKey": "personal/personal/travel-tech",
-        "availableCount": 22,
+        "availableCount": 23,
         "sentFreshCount": 1,
         "sent30dCount": 2,
         "positive30dCount": 0,
@@ -6560,10 +6619,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 4,
         "targetCount": 4,
-        "supplyGap": -18,
+        "supplyGap": -19,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.8334440459656085,
+        "freshnessScore": 0.8155862880291005,
         "lastSentAt": "2026-04-30T02:01:14.980Z"
       },
       {
@@ -6609,7 +6668,7 @@
         "supplyGap": 2,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.9822287781084656,
+        "freshnessScore": 0.9643710201719576,
         "lastSentAt": "2026-05-01T03:00:59.986Z"
       },
       {
@@ -6658,57 +6717,36 @@
         "lastSentAt": "2026-04-22T05:01:18.699Z"
       },
       {
+        "themeKey": "local/saitama/tokorozawa/event/flower-sakura",
+        "themePath": [
+          "local",
+          "local/saitama",
+          "local/saitama/tokorozawa",
+          "local/saitama/tokorozawa/event",
+          "local/saitama/tokorozawa/event/flower-sakura"
+        ],
+        "rootKey": "local/local/saitama/local/saitama/tokorozawa",
+        "availableCount": 2,
+        "sentFreshCount": 1,
+        "sent30dCount": 2,
+        "positive30dCount": 0,
+        "negative30dCount": 0,
+        "positiveRate30d": 0,
+        "uniqueSources30d": 3,
+        "targetCount": 4,
+        "supplyGap": 2,
+        "rotationGap": 3,
+        "freshnessDays": 7,
+        "freshnessScore": 0.29771322420634927,
+        "lastSentAt": "2026-04-26T11:01:05.351Z"
+      },
+      {
         "themeKey": "ai/enterprise/anthropic/security",
         "themePath": [
           "ai",
           "ai/enterprise",
           "ai/enterprise/anthropic",
           "ai/enterprise/anthropic/security"
-        ],
-        "rootKey": "ai/ai/enterprise",
-        "availableCount": 1,
-        "sentFreshCount": 1,
-        "sent30dCount": 3,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0,
-        "uniqueSources30d": 4,
-        "targetCount": 4,
-        "supplyGap": 3,
-        "rotationGap": 3,
-        "freshnessDays": 7,
-        "freshnessScore": 0.5477089384920635,
-        "lastSentAt": "2026-04-28T02:01:02.387Z"
-      },
-      {
-        "themeKey": "personal/travel-tech/browser",
-        "themePath": [
-          "personal",
-          "travel-tech",
-          "browser"
-        ],
-        "rootKey": "personal/travel-tech",
-        "availableCount": 1,
-        "sentFreshCount": 0,
-        "sent30dCount": 0,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0.5,
-        "uniqueSources30d": 0,
-        "targetCount": 3,
-        "supplyGap": 2,
-        "rotationGap": 3,
-        "freshnessDays": 7,
-        "freshnessScore": 1,
-        "lastSentAt": null
-      },
-      {
-        "themeKey": "ai/enterprise/security/procurement",
-        "themePath": [
-          "ai",
-          "ai/enterprise",
-          "ai/enterprise/security",
-          "ai/enterprise/security/procurement"
         ],
         "rootKey": "ai/ai/enterprise",
         "availableCount": 0,
@@ -6722,8 +6760,8 @@
         "supplyGap": 4,
         "rotationGap": 3,
         "freshnessDays": 7,
-        "freshnessScore": 0.012011631944444434,
-        "lastSentAt": "2026-04-24T08:01:12.656Z"
+        "freshnessScore": 0.5298511805555556,
+        "lastSentAt": "2026-04-28T02:01:02.387Z"
       },
       {
         "themeKey": "business/client/kyocera/proposal",
@@ -6860,32 +6898,8 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5893797519841271,
+        "freshnessScore": 0.571521994047619,
         "lastSentAt": "2026-04-28T09:01:04.895Z"
-      },
-      {
-        "themeKey": "local/saitama/tokorozawa/event/flower-sakura",
-        "themePath": [
-          "local",
-          "local/saitama",
-          "local/saitama/tokorozawa",
-          "local/saitama/tokorozawa/event",
-          "local/saitama/tokorozawa/event/flower-sakura"
-        ],
-        "rootKey": "local/local/saitama/local/saitama/tokorozawa",
-        "availableCount": 2,
-        "sentFreshCount": 2,
-        "sent30dCount": 2,
-        "positive30dCount": 0,
-        "negative30dCount": 0,
-        "positiveRate30d": 0,
-        "uniqueSources30d": 3,
-        "targetCount": 4,
-        "supplyGap": 2,
-        "rotationGap": 2,
-        "freshnessDays": 7,
-        "freshnessScore": 0.31557098214285717,
-        "lastSentAt": "2026-04-26T11:01:05.351Z"
       },
       {
         "themeKey": "sports/golf/youtube/tips",
@@ -6907,7 +6921,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8453527579365079,
+        "freshnessScore": 0.827495,
         "lastSentAt": "2026-04-30T04:01:17.369Z"
       },
       {
@@ -6930,7 +6944,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.26795661706349205,
+        "freshnessScore": 0.25009885912698415,
         "lastSentAt": "2026-04-26T03:01:08.183Z"
       },
       {
@@ -6952,7 +6966,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8572676438492064,
+        "freshnessScore": 0.8394098859126984,
         "lastSentAt": "2026-04-30T06:01:23.492Z"
       },
       {
@@ -6975,7 +6989,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9733157919973545,
+        "freshnessScore": 0.9554580340608465,
         "lastSentAt": "2026-05-01T01:31:09.412Z"
       },
       {
@@ -6997,7 +7011,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.32152833167989414,
+        "freshnessScore": 0.30367057374338624,
         "lastSentAt": "2026-04-26T12:01:08.356Z"
       },
       {
@@ -7021,7 +7035,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5536755406746032,
+        "freshnessScore": 0.5358177827380952,
         "lastSentAt": "2026-04-28T03:01:10.988Z"
       },
       {
@@ -7043,7 +7057,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.43460437500000004,
+        "freshnessScore": 0.41674661706349203,
         "lastSentAt": "2026-04-27T07:00:56.747Z"
       },
       {
@@ -7067,7 +7081,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.7262721808862433,
+        "freshnessScore": 0.7084144229497354,
         "lastSentAt": "2026-04-29T08:00:57.436Z"
       },
       {
@@ -7089,7 +7103,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.7500781084656085,
+        "freshnessScore": 0.7322203505291005,
         "lastSentAt": "2026-04-29T12:00:55.261Z"
       },
       {
@@ -7113,7 +7127,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9941355985449736,
+        "freshnessScore": 0.9762778406084656,
         "lastSentAt": "2026-05-01T05:01:01.231Z"
       },
       {
@@ -7137,7 +7151,7 @@
         "supplyGap": 2,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9851294113756613,
+        "freshnessScore": 0.9672716534391534,
         "lastSentAt": "2026-05-01T03:30:14.289Z"
       },
       {
@@ -7161,7 +7175,7 @@
         "supplyGap": 5,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8156312433862434,
+        "freshnessScore": 0.7977734854497355,
         "lastSentAt": "2026-04-29T23:01:41.797Z"
       },
       {
@@ -7184,7 +7198,7 @@
         "supplyGap": 4,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.24940963293650786,
+        "freshnessScore": 0.23155187499999996,
         "lastSentAt": "2026-04-25T23:54:10.967Z"
       },
       {
@@ -7208,7 +7222,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.2501311326058201,
+        "freshnessScore": 0.23227337466931208,
         "lastSentAt": "2026-04-26T00:01:27.330Z"
       },
       {
@@ -7231,7 +7245,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.26199699239417995,
+        "freshnessScore": 0.24413923445767194,
         "lastSentAt": "2026-04-26T02:01:03.802Z"
       },
       {
@@ -7254,7 +7268,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.3930162351190477,
+        "freshnessScore": 0.3751584771825397,
         "lastSentAt": "2026-04-27T00:01:44.240Z"
       },
       {
@@ -7276,7 +7290,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.3989122486772487,
+        "freshnessScore": 0.3810544907407408,
         "lastSentAt": "2026-04-27T01:01:10.149Z"
       },
       {
@@ -7299,7 +7313,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.4226859259259259,
+        "freshnessScore": 0.404828167989418,
         "lastSentAt": "2026-04-27T05:00:48.469Z"
       },
       {
@@ -7322,7 +7336,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.45841558366402124,
+        "freshnessScore": 0.44055782572751323,
         "lastSentAt": "2026-04-27T11:00:57.766Z"
       },
       {
@@ -7345,7 +7359,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.5655818882275132,
+        "freshnessScore": 0.5477241302910053,
         "lastSentAt": "2026-04-28T05:01:11.947Z"
       },
       {
@@ -7367,7 +7381,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.7084257589285714,
+        "freshnessScore": 0.6905680009920635,
         "lastSentAt": "2026-04-29T05:01:03.920Z"
       },
       {
@@ -7389,7 +7403,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.7441627132936508,
+        "freshnessScore": 0.7263049553571428,
         "lastSentAt": "2026-04-29T11:01:17.630Z"
       },
       {
@@ -7412,7 +7426,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8215351124338625,
+        "freshnessScore": 0.8036773544973546,
         "lastSentAt": "2026-04-30T00:01:12.457Z"
       },
       {
@@ -7435,7 +7449,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.8930024437830688,
+        "freshnessScore": 0.8751446858465608,
         "lastSentAt": "2026-04-30T12:01:35.899Z"
       },
       {
@@ -7457,7 +7471,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.988103125,
+        "freshnessScore": 0.9702453670634921,
         "lastSentAt": "2026-05-01T04:00:12.791Z"
       },
       {
@@ -7480,7 +7494,7 @@
         "supplyGap": 3,
         "rotationGap": 2,
         "freshnessDays": 7,
-        "freshnessScore": 0.9673212301587302,
+        "freshnessScore": 0.9494634722222223,
         "lastSentAt": "2026-05-01T00:30:43.901Z"
       },
       {
@@ -7491,7 +7505,7 @@
           "lifestyle/food-wellness/onsen"
         ],
         "rootKey": "lifestyle/lifestyle/food-wellness",
-        "availableCount": 6,
+        "availableCount": 5,
         "sentFreshCount": 4,
         "sent30dCount": 6,
         "positive30dCount": 0,
@@ -7499,10 +7513,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 8,
         "targetCount": 5,
-        "supplyGap": -1,
+        "supplyGap": 0,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.9792450892857143,
+        "freshnessScore": 0.9613873313492064,
         "lastSentAt": "2026-05-01T02:30:55.451Z"
       },
       {
@@ -7514,7 +7528,7 @@
           "personal/travel-tech/dev/tools"
         ],
         "rootKey": "personal/personal/travel-tech",
-        "availableCount": 2,
+        "availableCount": 4,
         "sentFreshCount": 2,
         "sent30dCount": 2,
         "positive30dCount": 0,
@@ -7522,10 +7536,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 2,
         "targetCount": 3,
-        "supplyGap": 1,
+        "supplyGap": -1,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.8394186888227513,
+        "freshnessScore": 0.8215609308862434,
         "lastSentAt": "2026-04-30T03:01:28.444Z"
       },
       {
@@ -7538,7 +7552,7 @@
           "local/saitama/tokorozawa/event/food-fair"
         ],
         "rootKey": "local/local/saitama/local/saitama/tokorozawa",
-        "availableCount": 1,
+        "availableCount": 3,
         "sentFreshCount": 4,
         "sent30dCount": 7,
         "positive30dCount": 0,
@@ -7546,10 +7560,10 @@
         "positiveRate30d": 0,
         "uniqueSources30d": 8,
         "targetCount": 5,
-        "supplyGap": 4,
+        "supplyGap": 2,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.887009083994709,
+        "freshnessScore": 0.8691513260582011,
         "lastSentAt": "2026-04-30T11:01:11.115Z"
       },
       {
@@ -7571,7 +7585,7 @@
         "supplyGap": 3,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.8691643617724868,
+        "freshnessScore": 0.8513066038359789,
         "lastSentAt": "2026-04-30T08:01:18.627Z"
       },
       {
@@ -7594,7 +7608,7 @@
         "supplyGap": 4,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.8631962665343915,
+        "freshnessScore": 0.8453385085978836,
         "lastSentAt": "2026-04-30T07:01:09.123Z"
       },
       {
@@ -7617,7 +7631,7 @@
         "supplyGap": 4,
         "rotationGap": 1,
         "freshnessDays": 7,
-        "freshnessScore": 0.9584361458333334,
+        "freshnessScore": 0.9405783878968254,
         "lastSentAt": "2026-04-30T23:01:10.202Z"
       },
       {
@@ -7641,7 +7655,7 @@
         "supplyGap": 5,
         "rotationGap": 0,
         "freshnessDays": 4,
-        "freshnessScore": 0.9414519097222223,
+        "freshnessScore": 0.9102008333333333,
         "lastSentAt": "2026-05-01T00:22:53.801Z"
       },
       {
@@ -7663,7 +7677,7 @@
         "supplyGap": 4,
         "rotationGap": -1,
         "freshnessDays": 7,
-        "freshnessScore": 0.9665439500661376,
+        "freshnessScore": 0.9486861921296297,
         "lastSentAt": "2026-05-01T00:22:53.802Z"
       },
       {
@@ -7686,7 +7700,7 @@
         "supplyGap": 4,
         "rotationGap": -2,
         "freshnessDays": 5,
-        "freshnessScore": 0.9531615231481482,
+        "freshnessScore": 0.9281606620370371,
         "lastSentAt": "2026-05-01T00:22:53.799Z"
       },
       {
@@ -7709,7 +7723,7 @@
         "supplyGap": 4,
         "rotationGap": -3,
         "freshnessDays": 7,
-        "freshnessScore": 0.9911365459656085,
+        "freshnessScore": 0.9732787880291005,
         "lastSentAt": "2026-05-01T04:30:47.404Z"
       }
     ]

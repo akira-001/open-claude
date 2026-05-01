@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-01T05:50:00.881649+00:00",
+  "lastUpdated": "2026-05-01T08:51:45.203868+00:00",
   "priorities": {
     "ai_agent": 0.7,
     "llm_local": 0.364,
@@ -22,48 +22,48 @@
       "label": "AIエージェント",
       "items": [
         {
-          "title": "Google、エージェント構築を実践的に学習できる無料コースを6月に開催 - CodeZine",
-          "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE12WEE4V3NOREN5WURSQW5oSl96Q0RtSWlsNy1uZnd1VkYzc3FTMVZrYWRfYWtfa1dqMEtZV2J3WmViNlVwYTBSTjdfYTBTZw?oc=5",
+          "title": "仕様駆動開発への期待と誤解 ～「仕様」とは、結局何なのか～ - CodeZine",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE1HQmlTY0xkU0VwZXIzbjJsb2NJdVVYREt2enUweEwtQVVkc1JvTkg3WjdEOFVDYzBPckxpbDFidVVHWF84S1g2Y0tPajRNSXo0bGc?oc=5",
           "source": "CodeZine",
-          "pub_date": "2026-05-01T04:17:57+00:00",
-          "timeliness": 0.989,
-          "score": 0.775
+          "pub_date": "2026-05-01T04:42:19+00:00",
+          "timeliness": 0.914,
+          "score": 0.746
         },
         {
           "title": "AWS、4月19日週に発表した新機能をまとめて紹介 - CodeZine",
           "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE52WTlQRS0tTHhfQ0lBcnVHbHJCbVFLWEdCTlBqRW8zbnhEODR5YVRfMjYxMkl3ZUR6Z3JVeE9WOXRPc0F3MExSOHdnQW9vQQ?oc=5",
           "source": "CodeZine",
           "pub_date": "2026-05-01T03:05:40+00:00",
-          "timeliness": 0.964,
-          "score": 0.765
+          "timeliness": 0.88,
+          "score": 0.732
         },
         {
-          "title": "はじめてのClaude Code講座 ～デザイナーのためのAIツール活用術～ - CREATIVE VILLAGE",
-          "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9CWm8zYnp4T0R5ZTlsdi1aVVVRTU9KWmg5bHZkUVlYeXUzUGRhN29RcVBsRFd6WklYWVBJU0NySWRmWHlaUGNlNHRBcVcwUFNWRTV3T2xFOVFSVm5Gd1NQaEtUd1RPVWlZRFNkcA?oc=5",
-          "source": "CREATIVE VILLAGE",
-          "pub_date": "2026-05-01T02:22:29+00:00",
-          "timeliness": 0.949,
-          "score": 0.659
+          "title": "Mark Zuckerberg says most AI agents don't pass the 'mother' test - Business Insider",
+          "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxOZE9nTkIzQ2h5MlNxRnBaaFp6Tk1BeGk5UkxSdFlxMHctcUpRYU8zUG0wT2VuRXRKam5OU1YxMm8tRXNEaGQ1U3RaeXp3dEo2aXRkOV9SdUE2Q3hjcm5sVWlHc2NTWEpVR1R2cGxlZjhfUXowOGEtZFBVTkFYbnlTVzk0TWxtQjR3TXdVeVhn?oc=5",
+          "source": "Business Insider",
+          "pub_date": "2026-05-01T08:39:11+00:00",
+          "timeliness": 0.996,
+          "score": 0.678
         },
         {
-          "title": "Claude Code Is Now 100% Free - Here's How",
-          "url": "https://www.youtube.com/watch?v=t0Mesp118l4",
-          "source": "Hasan Aboul Hasan",
+          "title": "流行りの「Claude Code」を現場で使いまくる社長が解説。一気に中級レベルまでぶっ飛べる基礎解説するで",
+          "url": "https://www.youtube.com/watch?v=d5LdEr_sKkw",
+          "source": "AI仙人 【AI歴10年・ガチADHD男】",
           "pub_date": null,
           "content_type": "video",
-          "duration": "5:30",
-          "view_count": 286506,
+          "duration": "44:59",
+          "view_count": 32988,
           "timeliness": 0.1,
-          "score": 0.58
+          "score": 0.53
         },
         {
-          "title": "FREE Claude Code is INSANE!",
-          "url": "https://www.youtube.com/watch?v=3JLxZBw8q7Y",
-          "source": "Julian Goldie SEO",
+          "title": "21 Ways to STOP Hitting Your Claude Limits (Code & Cowork)",
+          "url": "https://www.youtube.com/watch?v=MxE76CbiXOs",
+          "source": "Zinho Automates",
           "pub_date": null,
           "content_type": "video",
-          "duration": "7:23",
-          "view_count": 16157,
+          "duration": "16:04",
+          "view_count": 10545,
           "timeliness": 0.1,
           "score": 0.53
         },
@@ -96,7 +96,7 @@
       "priority": 0.7,
       "tier": "A",
       "emotion_type": "heavy",
-      "lastChecked": "2026-05-01T04:50:35.958488+00:00"
+      "lastChecked": "2026-05-01T08:50:36.299596+00:00"
     },
     "llm_local": {
       "label": "ローカルLLM・オープンソースAI",
@@ -187,24 +187,36 @@
           "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOVjhPeHgyTHZpYTUzODNBTlJjZ05DZDhyTFJlaWNkVTQ3RHJhUkFRVmlkX1dNUkY4WTRMNGdPZzU1SWZlNU1XWGoxOWpIcmtoMS16WW03bDZzQS1pUWQ3aXJrT1MxWVlwUDRyWWZhTjJrblpKYlJ0eVUzS0NQeGNLQ1paS2swd3N5aFpjT1Z0M1JaUXlLSUpMSW1HYUFQUmRXdnVQY2RRd1N6NWNTeDFnNWhrUk5UWFlQTVA0UEJjOEtfWkRILVllRW9Dd2t1QU1PVzRyaW9kMWplUmVUZktZ?oc=5",
           "source": "Fox Sports 990",
           "pub_date": "2026-05-01T02:27:46+00:00",
-          "timeliness": 0.95,
-          "score": 0.743
+          "timeliness": 0.867,
+          "score": 0.71
         },
         {
-          "title": "The Katie Woo Reunion Tour: Cardinals, Dodgers, Shohei, and Pretzels - Viva El Birdos",
-          "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPenFrRWk0QktuSVdGY09td3RId05Ya1NVeDRxMm44WlJsVnh3OG8xVTVBZjJqX0U3LXpkaG9SdjA1elFWcG1QcU9rMVR6cVhWbnpUckgyanJIZ0loTGJPWnJHQTFoeExsbDhKNlVIS20ycWktd0puYmxWUWxmMHB4M0EtY0xYZnZGS1dyaFJTXy1FejdsR2VXVU1KT3BRMWdQbDlUUXozTnNhUk4wT2RIZTJVUUFjLTVwNVY5ZkZqRlhRNkRPeFE?oc=5",
-          "source": "Viva El Birdos",
-          "pub_date": "2026-04-30T23:04:32+00:00",
-          "timeliness": 0.88,
-          "score": 0.715
+          "title": "Janson Junk outduels Shohei Ohtani as Marlins edge Dodgers - Field Level Media",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+          "source": "Field Level Media",
+          "pub_date": "2026-04-30T23:42:21+00:00",
+          "timeliness": 0.809,
+          "score": 0.687
         },
         {
           "title": "MLB standings reveal a widening gap in both the American and National Leagues - Yahoo Sports",
           "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOWjhHX3paVFk0LThmT1k1UzB2UlhTazRSbXBoNFY2b056U3pYanQ3WVZVb3p3UkxQbF9GY09uUGEtWnhseEFiLTBEZlFBdHNJc05IYzUwY292Z29VaUFxRWhWbXE1RDdlSjNkVlZhSGhkUk5Fd1FkZXFqRmFUdE9zc0dRdmp6WHBEcUE?oc=5",
           "source": "Yahoo Sports",
           "pub_date": "2026-04-30T16:01:35+00:00",
-          "timeliness": 0.733,
-          "score": 0.656
+          "timeliness": 0.649,
+          "score": 0.623
+        },
+        {
+          "title": "【大谷翔平｜漫画を超えた伝説の試合ベスト5】MLBで史上初の記録を数多く達成してきた、日本人選手の“最高傑作” 今回は、後世に語り継がれる歴史的1試合ベスト5を紹介！",
+          "url": "https://www.youtube.com/watch?v=HhVvMgUVLtI",
+          "source": "SPOTVNOW",
+          "pub_date": null,
+          "content_type": "video",
+          "duration": "32:02",
+          "view_count": 5007829,
+          "_discovery": true,
+          "timeliness": 0.1,
+          "score": 0.763
         },
         {
           "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
@@ -216,62 +228,51 @@
           "view_count": 255030,
           "timeliness": 0.1,
           "score": 0.663
-        },
-        {
-          "title": "【“有望株の宝庫”ドジャースNo.2プロスペクトのホープが満塁の場面で結果を残す！】ドジャースvsダイヤモンドバックス MLB2026スプリングトレーニング 2.26",
-          "url": "https://www.youtube.com/watch?v=Hjyl9guC_-o",
-          "source": "SPOTVNOW",
-          "pub_date": null,
-          "content_type": "video",
-          "duration": "2:53",
-          "view_count": 134388,
-          "timeliness": 0.1,
-          "score": 0.663
         }
       ],
       "count": 5,
       "priority": 0.908,
       "tier": "S",
       "emotion_type": "light",
-      "lastChecked": "2026-05-01T04:51:05.317115+00:00"
+      "lastChecked": "2026-05-01T08:51:15.487425+00:00"
     },
     "campingcar": {
       "label": "キャンピングカー",
       "items": [
         {
+          "title": "【5/9-10】トイファクトリーが東京ビッグサイトに登場！キャンピングカーで広がる遊び方「FIELDSTYLE TOKYO 2026」に出展 - PR TIMES",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1RNGhVUVZ3My1uUFJZQVhGbzFhY2RFb3pndlVjTXBncTlaX1RqcUhuSGxJLTh1QUlmYmFjM19oS0RLckotZFMzekN0ekZYLVZXTDRETzFsbzJveHFnc3JxUk96WjhnZU5lOHc?oc=5",
+          "source": "PR TIMES",
+          "pub_date": "2026-05-01T05:42:49+00:00",
+          "timeliness": 0.934,
+          "score": 0.58
+        },
+        {
+          "title": "エブリイバンの内装をワゴン級に上質化！「217万円から狙えるお手軽軽キャンパー」は車中泊も快適 - Motor Fan",
+          "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE5QNWlNNVptM0ZXYmpqMjBwSkJKNWZ1d0NYUkZ4WjFUU0JPWFhSRlNRUnQwYXp2LTUyVUYxS0NkcUw3UkhpcW1Zbjl0WUI0dw?oc=5",
+          "source": "Motor Fan",
+          "pub_date": "2026-05-01T02:30:00+00:00",
+          "timeliness": 0.867,
+          "score": 0.553
+        },
+        {
           "title": "関東キャンピングカー商談会、イオンモール日の出で5月開催…福祉車両商談会も同時開催 - CAR CARE PLUS",
           "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1CbXRKa1pHQnpxM3psQ2htZGJjOUhnLTI1ZUw5UTlLVk1jOGoyQ1h0blZkMjRpQ3hnN2RBMng0dFF2TVg1bUFLMlN2LWtWa01RaHBmUmRPV2FVRnViMEFNSG5R?oc=5",
           "source": "CAR CARE PLUS",
           "pub_date": "2026-05-01T00:00:03+00:00",
-          "timeliness": 0.982,
-          "score": 0.559
+          "timeliness": 0.815,
+          "score": 0.532
         },
         {
-          "title": "【NEWSLETTER VOL. 3】Carstay 新規公開のキャンピングカー＆車中泊ステーションの紹介 - ニコニコニュース",
-          "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE1IN2h0VkNqZGlrRmlNaUExWDJhemg2aV9CcklEUVYzR1VJWGtybE5pMkVIOHlSZVlxbTlGd0dqc3ZHTllxRUItQnJqQzIyUHI2MkQtZWtqSDItX2NacTduYmlSUGFad0hs?oc=5",
-          "source": "ニコニコニュース",
-          "pub_date": "2026-04-30T19:30:30+00:00",
-          "timeliness": 0.888,
-          "score": 0.521
-        },
-        {
-          "title": "老舗レクビィの挑戦！ 270通りのセミオーダーと3Dシミュレーターで理想を形にする新型バンコン「プラス LIV’N」の魅力とは - AUTO MESSE WEB（オートメッセウェブ）",
-          "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9nOVFZR0J1N3BSMXZGYzlIMXZxRkJVMEN3Ylc3bXNUUUE2ZWc3LVBiaTZuaXliT3dfb0lweVJPazZxTFN1dUNJSzBlcU5rVUluejhxeVY1V3poQdIBX0FVX3lxTE1Ub0l4elVRQlRHb2RMMXQ4TkoydERIdUk1X25wWTdYaUd2ak50a19zbHV3M1VnUWk5a0h0X0dYZUJoT3JwVF9hNGVxeW9xR0Fvam56a3ZSbllSOGR2Ymow?oc=5",
-          "source": "AUTO MESSE WEB（オートメッセウェブ）",
-          "pub_date": "2026-04-30T09:11:59+00:00",
-          "timeliness": 0.674,
-          "score": 0.435
-        },
-        {
-          "title": "【スライド式縦型2段ダブルベッドは業界初？のキャンピングカー】カトーモーター ”ブルームーンEX”",
-          "url": "https://www.youtube.com/watch?v=xS6UMzh5TZc",
-          "source": "キャンピングカーTV",
+          "title": "完璧すぎるキャンピングカー「TR550LボレロVマックス」をレビュー！エアコン・シャワー・電子レンジ・FFヒーターを鋼製フレームのシェルに装備！バスコンバージョンやフルコンに匹敵する最強車中泊カー！",
+          "url": "https://www.youtube.com/watch?v=ZZ0mac8Z4lo",
+          "source": "キャンピングカーライフ",
           "pub_date": null,
           "content_type": "video",
-          "duration": "14:49",
-          "view_count": 182025,
+          "duration": "11:12",
+          "view_count": 159072,
           "timeliness": 0.1,
-          "score": 0.466
+          "score": 0.456
         },
         {
           "title": "ゆとりある常設ベッドと大きなフリースペース搭載のハイエースキャンピングカー｜カトーモーターのシェスタ",
@@ -282,14 +283,14 @@
           "duration": "23:52",
           "view_count": 18272,
           "timeliness": 0.1,
-          "score": 0.416
+          "score": 0.456
         }
       ],
       "count": 5,
-      "priority": 0.415,
+      "priority": 0.515,
       "tier": "B",
       "emotion_type": "medium",
-      "lastChecked": "2026-05-01T00:51:50.503529+00:00"
+      "lastChecked": "2026-05-01T08:51:37.973695+00:00"
     },
     "onsen": {
       "label": "温泉",
@@ -355,24 +356,24 @@
           "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQbG5JTWNJTmFhcmgwbk9LNExtTHZqX3VlM25KWTZEb3dsMmlLVi1ZQS1od0I2SFpUb3Zvb1FfelI2VHFuLVFEMnZNZ1RVelY3Qnh1LWRJdHlfWWhPM245WmhtM2U0RW05N0J2SDlORUZyeWFWMWNScmJFdmd2cDEwMjB0ZG1xWTBIX01TT0x6eFA5bTNx?oc=5",
           "source": "WHOOP",
           "pub_date": "2026-04-30T21:56:15+00:00",
-          "timeliness": 0.856,
-          "score": 0.585
-        },
-        {
-          "title": "【画像】優勝プロがスイングを解説！飛ばしのコツは「胸の向き」 5/7 - ライブドアニュース",
-          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE4tTGxkMmpUMDJYUjk4UEVLUUpnS3lLTjFKVW9senNhSkowWVhOZ0dqQ2JaOVpMTnFqUmRpMzFVYzdkQjJuWmpYN2hIcUZpTDh5aU1hcTZDY09pT1R5Y0d3blBtMGROcUFtdHhCV0RuUnF1ZC0yZkg5czQxQlo?oc=5",
-          "source": "ライブドアニュース",
-          "pub_date": "2026-04-30T00:20:27+00:00",
-          "timeliness": 0.406,
-          "score": 0.405
+          "timeliness": 0.772,
+          "score": 0.552
         },
         {
           "title": "優勝プロがスイングを解説！飛ばしのコツは「胸の向き」 (2026年4月30日掲載) - ライブドアニュース",
           "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE4xdGxGTDJ3UFFjakdUbFpEMmM3VDNydnlSdGZfMDA0NXk1dUNaeU5UcEc1VF9udzg3T1MzcExCbC16ak5wYk5Sd0xoZjJLbE9KMDZ1S0kydzhiQW9Wb0E?oc=5",
           "source": "ライブドアニュース",
           "pub_date": "2026-04-29T22:50:34+00:00",
-          "timeliness": 0.375,
-          "score": 0.393
+          "timeliness": 0.291,
+          "score": 0.359
+        },
+        {
+          "title": "Golf survival guide: Master short-sided bunker shots like a pro - MSN",
+          "url": "https://news.google.com/rss/articles/CBMi5gJBVV95cUxOcjF4Ukt5MDV6Z19KM1p0d2xHNFZuQ0V0X1V5S2NmNFU1cHgxMERSWlkzTlhxS21RRFFoUG1XNF9PLUd1ZWJVcG12aW9EY3BpQmw2T1M2T2ZUZGZGWE92Y1k0SVl1Y2kzRUx6MWk1bmljbDd0MGtyWFZ3UFNxTmhheHFpME9mOUlHOVFzQWhiekUtNXJxRElsOXhJcnBRTUptV0h1cDlGVEZJOU55eWNLalNoeG0yaWxvNkhsLTBWczV2Z3JsaERNbF9rNUtSM0RaR1BMaFZTVHk2R3c4QjluY3AwUjBwQUdqOEpzZUxnRm43Uk5ZUTdlM3F6eUg2MndrcjdpbloxOW9zZUx5WUhCZjNBUlh3eTVLZVZzY254Y19rNTdqLTBKVlJVMkg4dGphRWZJbzJhUmpFeFhaQVFUNDFubVNoVXJ1TTFDcklBdHFYbVZ5Y3VRbTh1LUVzWVRmNkU4YU1B?oc=5",
+          "source": "MSN",
+          "pub_date": "2026-04-29T22:41:15+00:00",
+          "timeliness": 0.288,
+          "score": 0.358
         },
         {
           "title": "#5【決着】復活のハマちゃんVSゴルフ系アイドル コージ 大接戦の末の大団円…！？",
@@ -381,7 +382,7 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "20:23",
-          "view_count": 319679,
+          "view_count": 319687,
           "timeliness": 0.1,
           "score": 0.543
         },
@@ -392,7 +393,7 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "19:51",
-          "view_count": 67454,
+          "view_count": 67461,
           "timeliness": 0.1,
           "score": 0.493
         }
@@ -401,7 +402,7 @@
       "priority": 0.607,
       "tier": "A",
       "emotion_type": "light",
-      "lastChecked": "2026-05-01T04:51:18.605059+00:00"
+      "lastChecked": "2026-05-01T08:51:29.225906+00:00"
     },
     "cat_health": {
       "label": "猫の健康",
@@ -455,28 +456,28 @@
       "label": "経営戦略・コンサル",
       "items": [
         {
+          "title": "6月26日(金) AndTech「宇宙ビジネスの最新動向 ～宇宙戦略基金をベースとした企業が押さえるべき最新トレンド～」WEBオンラインZoomセミナーを開催予定 - 時事ドットコム",
+          "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE5LazRVVmxfZUlFLXBmV0VWNUNGNDI4VlNFQjVuWFdGVi1pUERuZUhsc21KUzhzYUk5ZUo1WXdaYThqYS1CSHBMOE01MzNLSGEwODJINU8xZmNPTDB4akpOXzVBMEN6eXlabk1r?oc=5",
+          "source": "時事ドットコム",
+          "pub_date": "2026-05-01T08:15:00+00:00",
+          "timeliness": 0.987,
+          "score": 0.658
+        },
+        {
+          "title": "【デジライズ】法人向けプログラム「Claude Code法人導入支援」を正式提供開始 — 動画60本×ハンズオン×伴走支援で\"現場が自走するAI駆動経営\"を実現、先着10社で受付開始 - PR TIMES",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE0tMGc4QXY5YTdNMDVjZWZQcmlXa2RSc3MxLTU2RTRpNFFDLU9iVWxGWXFyam9naXc4MFhCZUtVWFJkMnpDV2R1TVlnRUFOZEFzcEg0WkRsV2NvanZfLUZpNjltb2pIcGUzcUE?oc=5",
+          "source": "PR TIMES",
+          "pub_date": "2026-05-01T07:53:07+00:00",
+          "timeliness": 0.98,
+          "score": 0.655
+        },
+        {
           "title": "note第39弾公開｜並木将央 - mbp-japan.com",
           "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBCRkN0dnhpOTAyMFRUNmdrdWcxdXlYLTd4Z0ZuWnNwdU82UTFNZHdobnQ0TTdqSUg2eUZhaXFNWWtuMzVXd1ZBeTNZa2JJZFp0alpBUkRhaE9PQVhvTkVPOS1OVnpUWHlE?oc=5",
           "source": "mbp-japan.com",
-          "pub_date": "2026-05-01T02:16:29+00:00",
-          "timeliness": 0.946,
-          "score": 0.642
-        },
-        {
-          "title": "SAPジャパン、体験型施設「SAP Experience Center Tokyo」をリニューアル - クラウド Watch",
-          "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE94bGtlUlZVTzk3bVF2ZEprUTFSMGtHWk43MXJnRmppRTZmRm5pVXJjeGNFMnNfSGM5MUdsa3dMajFWSFFDUGJoNHAwRnEtZ2Z6ZGo4cUZrNmllZ2MyZGdzQUdHVWRoS2c?oc=5",
-          "source": "クラウド Watch",
-          "pub_date": "2026-05-01T02:00:00+00:00",
-          "timeliness": 0.941,
-          "score": 0.639
-        },
-        {
-          "title": "船井総研サプライチェーンコンサルティング、コーポレートミッションをアップデート。「サプライチェーンのすべてに、こたえを。」を掲げ、物流の枠を超えたサプライチェーンの最適化を推進 - PR TIMES",
-          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE56SEhEcnAwVmk1WUJDc0xZdWJEU2NWRFVjX0IzMXM1eHNoQlFMOE5vM1RsR0hvT2R2UXltajBqbGpSNW1ETVlEZExDWjZwQlpkZ2pPX0lEMTRWU0ZPSmJ3RDBqWGpNaUdHU1E?oc=5",
-          "source": "PR TIMES",
-          "pub_date": "2026-05-01T01:47:43+00:00",
-          "timeliness": 0.936,
-          "score": 0.638
+          "pub_date": "2026-05-01T02:16:39+00:00",
+          "timeliness": 0.863,
+          "score": 0.608
         },
         {
           "title": "【AI時代の出世法則】「間違えないエリート」の没落／量産型ホワイトカラーは負け組／野生的なリーダーの時代／スラムダンクと宇宙兄弟／コンサルは下火／JTCの価値上昇／転職の２つのミス／年収を下げる転職を",
@@ -485,7 +486,7 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "47:45",
-          "view_count": 131275,
+          "view_count": 131338,
           "timeliness": 0.1,
           "score": 0.563
         },
@@ -505,7 +506,7 @@
       "priority": 0.658,
       "tier": "A",
       "emotion_type": "heavy",
-      "lastChecked": "2026-05-01T04:50:50.721090+00:00"
+      "lastChecked": "2026-05-01T08:51:01.170563+00:00"
     },
     "local_tokorozawa": {
       "label": "所沢・地域イベント",
@@ -515,82 +516,82 @@
           "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTFBBRkxSVVFxWWtNQ19nNHRKbWsycVMwR0tWVFcyYTZnSE9xMk1uNEVWaE9pdDZ2RGpwZGprNkNjX243V3c1djVJc1dTZmtSVTQ5Vndn?oc=5",
           "source": "ファッションプレス",
           "pub_date": "2026-04-30T07:40:00+00:00",
-          "timeliness": 0.642,
-          "score": 0.418
+          "timeliness": 0.475,
+          "score": 0.372
         },
         {
           "title": "Gapストア さいたま新都心店の今日・明日の天気 週末の天気・紫外線情報【お出かけスポット天気】 - tenki.jp",
           "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTFBfeXFVRHpnRzNuanQ2U1JXR21fNU9taGdTUlBDRFpid1pDQTJQa2FhbUtncDB6QWRxZUpRcG1EeG96R0RiM1RFbGV1ZmVmY19hVUE?oc=5",
           "source": "tenki.jp",
           "pub_date": "2026-04-30T03:46:53+00:00",
-          "timeliness": 0.561,
-          "score": 0.386
+          "timeliness": 0.394,
+          "score": 0.339
         },
         {
           "title": "週末は駅徒歩10分で「しいたけ狩り」へ！常に22度で雨も猛暑も快適な屋内レジャー（ソトラバ） - Yahoo!ニュース",
           "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE4xajlzT2V3eDFsTWRaTjcwenZ3ZDFmZUNwV2kyYklSRVZzN3huQ3drQjZ6VldSc19RSFZiU1FwVkN6cXBPWGJ0M1FDLUtsNzJMN1JOakZDWnpoNnh4c0lCeVQzdjFQSEUyeGV6Zmc1MnBrZDVvN0UwZG51ampWVjA?oc=5",
           "source": "Yahoo!ニュース",
           "pub_date": "2026-04-29T21:50:11+00:00",
-          "timeliness": 0.437,
-          "score": 0.336
+          "timeliness": 0.27,
+          "score": 0.29
         },
         {
-          "title": "[Tokorozawa Aviation Origin Festival 2026] The history of aviation that began in Tokorozawa",
-          "url": "https://www.youtube.com/watch?v=e0ZtT3E-zOE",
-          "source": "朝チャンネル",
+          "title": "なぜポートランドは人を惹きつけるのか？｜所沢市100人カイギvol.7登壇・豊田さんと語る",
+          "url": "https://www.youtube.com/watch?v=DPNqIbMMhG4",
+          "source": "あぐぬく所沢",
           "pub_date": null,
           "content_type": "video",
-          "duration": "3:47",
-          "view_count": 69,
+          "duration": "80:10",
+          "view_count": 242,
           "_discovery": true,
           "timeliness": 0.1,
-          "score": 0.312
+          "score": 0.332
         },
         {
-          "title": "KK線を歩く！Roof Park Fes & Walk 2026（令和8年4月30日 東京デイリーニュース No.837）",
-          "url": "https://www.youtube.com/watch?v=aTJWQYi5vVM",
-          "source": "東京都 Tokyo Metropolitan Government",
+          "title": "市民フェスはこうしてつくられる｜所沢市民フェスティバル 実行委員の舞台裏【3min】",
+          "url": "https://www.youtube.com/watch?v=EuM_GJbIbxo",
+          "source": "所沢市民フェスティバル",
           "pub_date": null,
           "content_type": "video",
-          "duration": "1:20",
-          "view_count": 244,
+          "duration": "2:46",
+          "view_count": 100,
           "_discovery": true,
           "timeliness": 0.1,
-          "score": 0.312
+          "score": 0.332
         }
       ],
       "count": 5,
-      "priority": 0.404,
+      "priority": 0.454,
       "tier": "B",
       "emotion_type": "light",
-      "lastChecked": "2026-05-01T00:52:15.060104+00:00"
+      "lastChecked": "2026-05-01T08:51:42.457845+00:00"
     },
     "dev_tools": {
       "label": "開発ツール・自動化",
       "items": [
         {
-          "title": "Engineering Focus Underscores Anyware Robotics’ Pragmatic Warehouse Automation Strategy - TipRanks",
-          "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNMFdSeFRXbzNtWkdhaEZfWG9fMFZtVV9MdzlEN2drMl9JSjlLcFUwTFIzYXo5S3BfQmk2a3k1bHNVbGR1c1o0UDZTVm5pdlZOWEJzUzYwOEo1SGY4WmdYYmFnb1F6OWR2Qi1KMXl3bFZNZUtKM2dpQ09rNU5GRHE3V1BJV3k5NVVxeHdFQXU4WkVuOGdDUXBwTWFNUURpbUlUVXgwNGFIbkFUaUJZMlduT2ZDNEQ2R1VDbjRMMW5VUGFIN2ttQmlhLVkxVDRFVDA?oc=5",
-          "source": "TipRanks",
-          "pub_date": "2026-05-01T00:27:40+00:00",
-          "timeliness": 0.992,
-          "score": 0.607
+          "title": "\"MCP is just an API,\" and that is precisely the problem with Gemini Enterprise - Techzine Global",
+          "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPeV81MWF4cEVIb0o3M2pLOFNELTJBX1NrOC1STkpBVzd4S1d0VUpXc0FVN0JmY1BVU1NSbUtjRktobkQxcHlOekxYVFhqVWZhVU5jQ3ZhLVVJVnJKbTFaLTdXeUxnT0l4NEhqdW5pVEVyWnZuVG5OX21qSEJEQ0Y0bG1xUkszRUtLd0tjVnF3UFpxeE9aY1VaS2lGWWJiWGxzaDE1dnF0MlFlaTNpTTRoR3RrTDFWNUxtUlpIeXg2UUZMSUZq?oc=5",
+          "source": "Techzine Global",
+          "pub_date": "2026-05-01T08:47:14+00:00",
+          "timeliness": 0.999,
+          "score": 0.57
         },
         {
-          "title": "Anthropic Releases Claude Code Agentic Developer Tool - Let's Data Science",
-          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNLU5ld0I4VEx3S1owcFFxR3Zyd0FjNmRoMTlNQ0ptcXBLRFhMU2UzWmNnSElTenN1bVVCMHN5TUhsZDRVWWk0VEt6bXYzcDM4dE5aSDZLUExjbXBWcXJXRjZjZmNnZDl0ZXpUbXlGNF9ZLXRPdDdEZGEwbk1sbDNOVDVzc1FhMERDQ0d2N3c4bFowMnIwcGlTWjhpTQ?oc=5",
-          "source": "Let's Data Science",
-          "pub_date": "2026-04-30T21:10:35+00:00",
-          "timeliness": 0.924,
-          "score": 0.58
+          "title": "次世代Xbox“Project Helix”のさらなる情報が5月8日午前1時に公開。開発者のための新機能やマーケットプレイスの進化などを解説 - ファミ通",
+          "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE40d3JnNktaTWYtSjM4YTI4QlNweWZqVHFKVzZ5OUVacmNrVUZ3cFF0NzF0a3VjeEZyY3JtZ3F6eW9rUk5wVXJNbHgwX2RmUU5HSnZJbDFXSQ?oc=5",
+          "source": "ファミ通",
+          "pub_date": "2026-05-01T05:46:00+00:00",
+          "timeliness": 0.936,
+          "score": 0.545
         },
         {
-          "title": "Stacks、機関投資家と個人向けのビットコインネイティブ金融を目指す 2026年ロードマップを発表 - Yellow.com",
-          "url": "https://news.google.com/rss/articles/CBMisARBVV95cUxPeG5WUVhXUU14TEhyUTNLOUJkTmlWRGRXZFJ5T3ZmRndNMm9IX3dLTXItZ2ZKcWlHa0ZEang0cnhaVkk3c3hYa2JXZXZCSE1uZUo3OEQ2Vzk2d29DeF90d0pvWUdtUkxJdVctZ1FlZzc2R0ozR3M3ZVZqWElKN1hUN1BOeFA2T1dZVWpkRzVGWndpMW5CdmRUT2xYRGY2Q1A0ekNmTUg2ZmhpcXIzakNFcWpNYnRuTGZOWVJlRXBkUWNZRTZQWEtGYnlpZzhxSHNiTUpudXpBR1ZUa3ZRdHBQb1VUdGo5Vnh3NF9OSEtocmQtUGJ6YTdwaHkzaUtOSmJrX2RDd0ZPajNjaUhBVUNlcWVkUV9iRFM2WEZOQkV1STU5RFpPN3NvZi1TLThZdmFuOG1KdmV0ZFBHNXBETHVzcGpvZ3JXVUt3Y01idVBITGlUM0Itc0RkUm4zSFpSY01oWGFOTXM2ZkVoWWpzWFc5S3hEWm5IUjZST2o5SmRITXB2ZTR2OFRUZGdlRUFHQVB4S0Q4RGJFOC1ReU9HTk9SeF9zbXJ6QVVCVlVsbloyVHppS19UUXhWZjByN1hrUXZPZU1OMG5mdGVXTU1NRmQxSmZPcmdya0R2VzFOdVdCcTl6VEw4X2JWczZhRnA1U2pHekR5aWdmZG4yTUUwN1V3TUYwT0hWazZvVTFFYkU2ZURidjFsdENtOTdJYTVnYlByNE11TnhMOEVsb2k0cFdfTw?oc=5",
-          "source": "Yellow.com",
-          "pub_date": "2026-04-30T18:52:46+00:00",
-          "timeliness": 0.876,
-          "score": 0.561
+          "title": "MCP Servers Are a Supply Chain You Have Not Inventoried Yet - HackerNoon",
+          "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxNVXZvbG1IWjNkUmtnRFg2YWtMZ2puVVR3NWdKaTdXc0JLanZ2YXZBV3pIbHJNVHZWSnJwcWNKQkM1b2lUV1dOcDQ1eWl1WU5Wa2lrb2hvMkRTUGR2RDRsXzVEWW5BMmtranFNcVBWS2xNVEx0Mk9kOVhhSElsZmdnVlM0d1E0RXVxZlE?oc=5",
+          "source": "HackerNoon",
+          "pub_date": "2026-05-01T05:00:45+00:00",
+          "timeliness": 0.92,
+          "score": 0.538
         },
         {
           "title": "[Must-see for beginners] 4 steps to learn how to use AI from scratch",
@@ -599,10 +600,10 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "15:56",
-          "view_count": 207218,
+          "view_count": 207409,
           "_discovery": true,
           "timeliness": 0.1,
-          "score": 0.46
+          "score": 0.42
         },
         {
           "title": "[Free] Google's godlike AI tool \"Antigravity\" will change the world! A thorough explanation of th...",
@@ -611,17 +612,17 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "13:55",
-          "view_count": 610387,
+          "view_count": 610613,
           "_discovery": true,
           "timeliness": 0.1,
-          "score": 0.46
+          "score": 0.42
         }
       ],
       "count": 5,
-      "priority": 0.526,
+      "priority": 0.426,
       "tier": "B",
       "emotion_type": "medium",
-      "lastChecked": "2026-05-01T00:50:53.702029+00:00"
+      "lastChecked": "2026-05-01T08:50:45.965858+00:00"
     },
     "ma_startup": {
       "label": "M&A・スタートアップ",
@@ -843,7 +844,7 @@
       "priority": 0.5,
       "tier": "B",
       "emotion_type": "light",
-      "lastChecked": "2026-05-01T05:50:00.881556+00:00"
+      "lastChecked": "2026-05-01T08:51:45.203706+00:00"
     },
     "movie_theater": {
       "label": "映画・上映中",
@@ -962,12 +963,28 @@
   },
   "topItems": [
     {
-      "title": "Google、エージェント構築を実践的に学習できる無料コースを6月に開催 - CodeZine",
-      "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE12WEE4V3NOREN5WURSQW5oSl96Q0RtSWlsNy1uZnd1VkYzc3FTMVZrYWRfYWtfa1dqMEtZV2J3WmViNlVwYTBSTjdfYTBTZw?oc=5",
+      "title": "【大谷翔平｜漫画を超えた伝説の試合ベスト5】MLBで史上初の記録を数多く達成してきた、日本人選手の“最高傑作” 今回は、後世に語り継がれる歴史的1試合ベスト5を紹介！",
+      "url": "https://www.youtube.com/watch?v=HhVvMgUVLtI",
+      "source": "SPOTVNOW",
+      "pub_date": null,
+      "content_type": "video",
+      "duration": "32:02",
+      "view_count": 5007829,
+      "_discovery": true,
+      "timeliness": 0.1,
+      "score": 0.763,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 0.908,
+      "tier": "S"
+    },
+    {
+      "title": "仕様駆動開発への期待と誤解 ～「仕様」とは、結局何なのか～ - CodeZine",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE1HQmlTY0xkU0VwZXIzbjJsb2NJdVVYREt2enUweEwtQVVkc1JvTkg3WjdEOFVDYzBPckxpbDFidVVHWF84S1g2Y0tPajRNSXo0bGc?oc=5",
       "source": "CodeZine",
-      "pub_date": "2026-05-01T04:17:57+00:00",
-      "timeliness": 0.989,
-      "score": 0.775,
+      "pub_date": "2026-05-01T04:42:19+00:00",
+      "timeliness": 0.914,
+      "score": 0.746,
       "category": "ai_agent",
       "categoryLabel": "AIエージェント",
       "priority": 0.7,
@@ -978,8 +995,8 @@
       "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE52WTlQRS0tTHhfQ0lBcnVHbHJCbVFLWEdCTlBqRW8zbnhEODR5YVRfMjYxMkl3ZUR6Z3JVeE9WOXRPc0F3MExSOHdnQW9vQQ?oc=5",
       "source": "CodeZine",
       "pub_date": "2026-05-01T03:05:40+00:00",
-      "timeliness": 0.964,
-      "score": 0.765,
+      "timeliness": 0.88,
+      "score": 0.732,
       "category": "ai_agent",
       "categoryLabel": "AIエージェント",
       "priority": 0.7,
@@ -990,24 +1007,36 @@
       "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxOVjhPeHgyTHZpYTUzODNBTlJjZ05DZDhyTFJlaWNkVTQ3RHJhUkFRVmlkX1dNUkY4WTRMNGdPZzU1SWZlNU1XWGoxOWpIcmtoMS16WW03bDZzQS1pUWQ3aXJrT1MxWVlwUDRyWWZhTjJrblpKYlJ0eVUzS0NQeGNLQ1paS2swd3N5aFpjT1Z0M1JaUXlLSUpMSW1HYUFQUmRXdnVQY2RRd1N6NWNTeDFnNWhrUk5UWFlQTVA0UEJjOEtfWkRILVllRW9Dd2t1QU1PVzRyaW9kMWplUmVUZktZ?oc=5",
       "source": "Fox Sports 990",
       "pub_date": "2026-05-01T02:27:46+00:00",
-      "timeliness": 0.95,
-      "score": 0.743,
+      "timeliness": 0.867,
+      "score": 0.71,
       "category": "dodgers",
       "categoryLabel": "ドジャース・大谷翔平",
       "priority": 0.908,
       "tier": "S"
     },
     {
-      "title": "The Katie Woo Reunion Tour: Cardinals, Dodgers, Shohei, and Pretzels - Viva El Birdos",
-      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPenFrRWk0QktuSVdGY09td3RId05Ya1NVeDRxMm44WlJsVnh3OG8xVTVBZjJqX0U3LXpkaG9SdjA1elFWcG1QcU9rMVR6cVhWbnpUckgyanJIZ0loTGJPWnJHQTFoeExsbDhKNlVIS20ycWktd0puYmxWUWxmMHB4M0EtY0xYZnZGS1dyaFJTXy1FejdsR2VXVU1KT3BRMWdQbDlUUXozTnNhUk4wT2RIZTJVUUFjLTVwNVY5ZkZqRlhRNkRPeFE?oc=5",
-      "source": "Viva El Birdos",
-      "pub_date": "2026-04-30T23:04:32+00:00",
-      "timeliness": 0.88,
-      "score": 0.715,
+      "title": "Janson Junk outduels Shohei Ohtani as Marlins edge Dodgers - Field Level Media",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "source": "Field Level Media",
+      "pub_date": "2026-04-30T23:42:21+00:00",
+      "timeliness": 0.809,
+      "score": 0.687,
       "category": "dodgers",
       "categoryLabel": "ドジャース・大谷翔平",
       "priority": 0.908,
       "tier": "S"
+    },
+    {
+      "title": "Mark Zuckerberg says most AI agents don't pass the 'mother' test - Business Insider",
+      "url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxOZE9nTkIzQ2h5MlNxRnBaaFp6Tk1BeGk5UkxSdFlxMHctcUpRYU8zUG0wT2VuRXRKam5OU1YxMm8tRXNEaGQ1U3RaeXp3dEo2aXRkOV9SdUE2Q3hjcm5sVWlHc2NTWEpVR1R2cGxlZjhfUXowOGEtZFBVTkFYbnlTVzk0TWxtQjR3TXdVeVhn?oc=5",
+      "source": "Business Insider",
+      "pub_date": "2026-05-01T08:39:11+00:00",
+      "timeliness": 0.996,
+      "score": 0.678,
+      "category": "ai_agent",
+      "categoryLabel": "AIエージェント",
+      "priority": 0.7,
+      "tier": "A"
     },
     {
       "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
@@ -1025,30 +1054,27 @@
       "tier": "S"
     },
     {
-      "title": "【“有望株の宝庫”ドジャースNo.2プロスペクトのホープが満塁の場面で結果を残す！】ドジャースvsダイヤモンドバックス MLB2026スプリングトレーニング 2.26",
-      "url": "https://www.youtube.com/watch?v=Hjyl9guC_-o",
-      "source": "SPOTVNOW",
-      "pub_date": null,
-      "content_type": "video",
-      "duration": "2:53",
-      "view_count": 134388,
-      "timeliness": 0.1,
-      "score": 0.663,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 0.908,
-      "tier": "S"
+      "title": "6月26日(金) AndTech「宇宙ビジネスの最新動向 ～宇宙戦略基金をベースとした企業が押さえるべき最新トレンド～」WEBオンラインZoomセミナーを開催予定 - 時事ドットコム",
+      "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE5LazRVVmxfZUlFLXBmV0VWNUNGNDI4VlNFQjVuWFdGVi1pUERuZUhsc21KUzhzYUk5ZUo1WXdaYThqYS1CSHBMOE01MzNLSGEwODJINU8xZmNPTDB4akpOXzVBMEN6eXlabk1r?oc=5",
+      "source": "時事ドットコム",
+      "pub_date": "2026-05-01T08:15:00+00:00",
+      "timeliness": 0.987,
+      "score": 0.658,
+      "category": "business_strategy",
+      "categoryLabel": "経営戦略・コンサル",
+      "priority": 0.658,
+      "tier": "A"
     },
     {
-      "title": "はじめてのClaude Code講座 ～デザイナーのためのAIツール活用術～ - CREATIVE VILLAGE",
-      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE9CWm8zYnp4T0R5ZTlsdi1aVVVRTU9KWmg5bHZkUVlYeXUzUGRhN29RcVBsRFd6WklYWVBJU0NySWRmWHlaUGNlNHRBcVcwUFNWRTV3T2xFOVFSVm5Gd1NQaEtUd1RPVWlZRFNkcA?oc=5",
-      "source": "CREATIVE VILLAGE",
-      "pub_date": "2026-05-01T02:22:29+00:00",
-      "timeliness": 0.949,
-      "score": 0.659,
-      "category": "ai_agent",
-      "categoryLabel": "AIエージェント",
-      "priority": 0.7,
+      "title": "【デジライズ】法人向けプログラム「Claude Code法人導入支援」を正式提供開始 — 動画60本×ハンズオン×伴走支援で\"現場が自走するAI駆動経営\"を実現、先着10社で受付開始 - PR TIMES",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE0tMGc4QXY5YTdNMDVjZWZQcmlXa2RSc3MxLTU2RTRpNFFDLU9iVWxGWXFyam9naXc4MFhCZUtVWFJkMnpDV2R1TVlnRUFOZEFzcEg0WkRsV2NvanZfLUZpNjltb2pIcGUzcUE?oc=5",
+      "source": "PR TIMES",
+      "pub_date": "2026-05-01T07:53:07+00:00",
+      "timeliness": 0.98,
+      "score": 0.655,
+      "category": "business_strategy",
+      "categoryLabel": "経営戦略・コンサル",
+      "priority": 0.658,
       "tier": "A"
     },
     {
@@ -1056,48 +1082,12 @@
       "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOWjhHX3paVFk0LThmT1k1UzB2UlhTazRSbXBoNFY2b056U3pYanQ3WVZVb3p3UkxQbF9GY09uUGEtWnhseEFiLTBEZlFBdHNJc05IYzUwY292Z29VaUFxRWhWbXE1RDdlSjNkVlZhSGhkUk5Fd1FkZXFqRmFUdE9zc0dRdmp6WHBEcUE?oc=5",
       "source": "Yahoo Sports",
       "pub_date": "2026-04-30T16:01:35+00:00",
-      "timeliness": 0.733,
-      "score": 0.656,
+      "timeliness": 0.649,
+      "score": 0.623,
       "category": "dodgers",
       "categoryLabel": "ドジャース・大谷翔平",
       "priority": 0.908,
       "tier": "S"
-    },
-    {
-      "title": "note第39弾公開｜並木将央 - mbp-japan.com",
-      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBCRkN0dnhpOTAyMFRUNmdrdWcxdXlYLTd4Z0ZuWnNwdU82UTFNZHdobnQ0TTdqSUg2eUZhaXFNWWtuMzVXd1ZBeTNZa2JJZFp0alpBUkRhaE9PQVhvTkVPOS1OVnpUWHlE?oc=5",
-      "source": "mbp-japan.com",
-      "pub_date": "2026-05-01T02:16:29+00:00",
-      "timeliness": 0.946,
-      "score": 0.642,
-      "category": "business_strategy",
-      "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.658,
-      "tier": "A"
-    },
-    {
-      "title": "SAPジャパン、体験型施設「SAP Experience Center Tokyo」をリニューアル - クラウド Watch",
-      "url": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE94bGtlUlZVTzk3bVF2ZEprUTFSMGtHWk43MXJnRmppRTZmRm5pVXJjeGNFMnNfSGM5MUdsa3dMajFWSFFDUGJoNHAwRnEtZ2Z6ZGo4cUZrNmllZ2MyZGdzQUdHVWRoS2c?oc=5",
-      "source": "クラウド Watch",
-      "pub_date": "2026-05-01T02:00:00+00:00",
-      "timeliness": 0.941,
-      "score": 0.639,
-      "category": "business_strategy",
-      "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.658,
-      "tier": "A"
-    },
-    {
-      "title": "船井総研サプライチェーンコンサルティング、コーポレートミッションをアップデート。「サプライチェーンのすべてに、こたえを。」を掲げ、物流の枠を超えたサプライチェーンの最適化を推進 - PR TIMES",
-      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE56SEhEcnAwVmk1WUJDc0xZdWJEU2NWRFVjX0IzMXM1eHNoQlFMOE5vM1RsR0hvT2R2UXltajBqbGpSNW1ETVlEZExDWjZwQlpkZ2pPX0lEMTRWU0ZPSmJ3RDBqWGpNaUdHU1E?oc=5",
-      "source": "PR TIMES",
-      "pub_date": "2026-05-01T01:47:43+00:00",
-      "timeliness": 0.936,
-      "score": 0.638,
-      "category": "business_strategy",
-      "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.658,
-      "tier": "A"
     },
     {
       "title": "Mickelson splits with Butch Harmon, hires new swing coach - GolfWRX",
@@ -1116,43 +1106,52 @@
       "tier": "B"
     },
     {
-      "title": "Engineering Focus Underscores Anyware Robotics’ Pragmatic Warehouse Automation Strategy - TipRanks",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNMFdSeFRXbzNtWkdhaEZfWG9fMFZtVV9MdzlEN2drMl9JSjlLcFUwTFIzYXo5S3BfQmk2a3k1bHNVbGR1c1o0UDZTVm5pdlZOWEJzUzYwOEo1SGY4WmdYYmFnb1F6OWR2Qi1KMXl3bFZNZUtKM2dpQ09rNU5GRHE3V1BJV3k5NVVxeHdFQXU4WkVuOGdDUXBwTWFNUURpbUlUVXgwNGFIbkFUaUJZMlduT2ZDNEQ2R1VDbjRMMW5VUGFIN2ttQmlhLVkxVDRFVDA?oc=5",
-      "source": "TipRanks",
-      "pub_date": "2026-05-01T00:27:40+00:00",
-      "timeliness": 0.992,
-      "score": 0.607,
-      "category": "dev_tools",
-      "categoryLabel": "開発ツール・自動化",
-      "priority": 0.526,
+      "title": "note第39弾公開｜並木将央 - mbp-japan.com",
+      "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBCRkN0dnhpOTAyMFRUNmdrdWcxdXlYLTd4Z0ZuWnNwdU82UTFNZHdobnQ0TTdqSUg2eUZhaXFNWWtuMzVXd1ZBeTNZa2JJZFp0alpBUkRhaE9PQVhvTkVPOS1OVnpUWHlE?oc=5",
+      "source": "mbp-japan.com",
+      "pub_date": "2026-05-01T02:16:39+00:00",
+      "timeliness": 0.863,
+      "score": 0.608,
+      "category": "business_strategy",
+      "categoryLabel": "経営戦略・コンサル",
+      "priority": 0.658,
+      "tier": "A"
+    },
+    {
+      "title": "【5/9-10】トイファクトリーが東京ビッグサイトに登場！キャンピングカーで広がる遊び方「FIELDSTYLE TOKYO 2026」に出展 - PR TIMES",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1RNGhVUVZ3My1uUFJZQVhGbzFhY2RFb3pndlVjTXBncTlaX1RqcUhuSGxJLTh1QUlmYmFjM19oS0RLckotZFMzekN0ekZYLVZXTDRETzFsbzJveHFnc3JxUk96WjhnZU5lOHc?oc=5",
+      "source": "PR TIMES",
+      "pub_date": "2026-05-01T05:42:49+00:00",
+      "timeliness": 0.934,
+      "score": 0.58,
+      "category": "campingcar",
+      "categoryLabel": "キャンピングカー",
+      "priority": 0.515,
       "tier": "B"
     },
     {
-      "title": "Recovery and pro golf performance: what 8 years of WHOOP data reveal - WHOOP",
-      "url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQbG5JTWNJTmFhcmgwbk9LNExtTHZqX3VlM25KWTZEb3dsMmlLVi1ZQS1od0I2SFpUb3Zvb1FfelI2VHFuLVFEMnZNZ1RVelY3Qnh1LWRJdHlfWWhPM245WmhtM2U0RW05N0J2SDlORUZyeWFWMWNScmJFdmd2cDEwMjB0ZG1xWTBIX01TT0x6eFA5bTNx?oc=5",
-      "source": "WHOOP",
-      "pub_date": "2026-04-30T21:56:15+00:00",
-      "timeliness": 0.856,
-      "score": 0.585,
-      "category": "golf",
-      "categoryLabel": "ゴルフ",
-      "priority": 0.607,
-      "tier": "A"
+      "title": "Featherless.ai pulls in $20M to scale serverless hosting for open-source AI models - SiliconANGLE",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOM3lIZWtfSXRDVnJpa1dtZXlsWFNCWWN0bE8wT2c3cTNWMS12QXI3ZHZtaEhtTk50NnFsZlZ6UkFOVFdfYTVRODU5R01mTW1Eb2taZ1BlNlFoS1FDRld2MTZzbUdUcDBPaFdXbHdVTmtuRldmTGRqMzdFc0psN05GV3hQb19jYWlhOWdxTW5DWTN4Ulg0MExPODRzSk9nek9XUnhSMVRCdVZzSkZi?oc=5",
+      "source": "SiliconANGLE",
+      "pub_date": "2026-04-30T23:20:12+00:00",
+      "timeliness": 0.969,
+      "score": 0.573,
+      "category": "llm_local",
+      "categoryLabel": "ローカルLLM・オープンソースAI",
+      "priority": 0.464,
+      "tier": "B"
     },
     {
-      "title": "Claude Code Is Now 100% Free - Here's How",
-      "url": "https://www.youtube.com/watch?v=t0Mesp118l4",
-      "source": "Hasan Aboul Hasan",
-      "pub_date": null,
-      "content_type": "video",
-      "duration": "5:30",
-      "view_count": 286506,
-      "timeliness": 0.1,
-      "score": 0.58,
-      "category": "ai_agent",
-      "categoryLabel": "AIエージェント",
-      "priority": 0.7,
-      "tier": "A"
+      "title": "\"MCP is just an API,\" and that is precisely the problem with Gemini Enterprise - Techzine Global",
+      "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPeV81MWF4cEVIb0o3M2pLOFNELTJBX1NrOC1STkpBVzd4S1d0VUpXc0FVN0JmY1BVU1NSbUtjRktobkQxcHlOekxYVFhqVWZhVU5jQ3ZhLVVJVnJKbTFaLTdXeUxnT0l4NEhqdW5pVEVyWnZuVG5OX21qSEJEQ0Y0bG1xUkszRUtLd0tjVnF3UFpxeE9aY1VaS2lGWWJiWGxzaDE1dnF0MlFlaTNpTTRoR3RrTDFWNUxtUlpIeXg2UUZMSUZq?oc=5",
+      "source": "Techzine Global",
+      "pub_date": "2026-05-01T08:47:14+00:00",
+      "timeliness": 0.999,
+      "score": 0.57,
+      "category": "dev_tools",
+      "categoryLabel": "開発ツール・自動化",
+      "priority": 0.426,
+      "tier": "B"
     }
   ]
 }

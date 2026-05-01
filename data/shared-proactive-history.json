@@ -373,6 +373,39 @@
       ],
       "evaluate_score": 0.75,
       "sentAt": "2026-05-01T05:01:01.232Z"
+    },
+    {
+      "botId": "mei",
+      "botName": "Mei（メイ）",
+      "category": "flashback",
+      "interestCategory": "dodgers",
+      "preview": "ね、Akiraさん。\n\nドジャース、マーリンズに惜しく負けちゃったみたい。Janson Junkに大谷さんが抑えられたって ⚾\n\n今日はカージナルス戦もあるし、GWの夜にのんびり観戦もいいかもね。\nhttps://news.google.com/rss/articles/CBMilgFBVV95cU",
+      "topic": "大谷vsマーリンズ戦結果",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMilgFBVV95cUxQeUNmbEI3VUR6c0tNTWRYLVpGa3ZsQUI1bUw1Q0NoVlpTa0ExSEJCdnZpY1k3TDlzM3kwWlBRYmxWRXRWR1hUZ3RjRFluQnM1VW1PSG11dTE4elF0WlUtWjNKdjgtaXA5a1hLMzJ3N1Q2NG9HZFp0dzY5cjB3SGt0Q05lSU5vTnFDZGNudnVpZmZ2Zk9ZU1E?oc=5",
+      "sourceType": "topic-candidates",
+      "skill": "general",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/ohtani",
+        "sports/mlb/dodgers/ohtani/home-run"
+      ],
+      "themeKey": "sports/mlb/dodgers/ohtani/home-run",
+      "inner_thought": "大谷の試合結果、GWの夜にこそ伝えたい。15時と17時に見送ったドジャース情報、ここで出そう",
+      "plan": [
+        "大谷vsマーリンズの試合結果を共有",
+        "宇宙ビジネスセミナー情報を共有",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.82,
+        0.45,
+        0.3
+      ],
+      "evaluate_score": 0.78,
+      "sentAt": "2026-05-01T09:01:13.816Z"
     }
   ]
 }
