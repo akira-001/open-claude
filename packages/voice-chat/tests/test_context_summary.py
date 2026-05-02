@@ -158,6 +158,34 @@ class TestContextSummaryPromptBlock:
         assert "s4" in block
         assert "s5" not in block
 
+    def test_new_fields_rendered_in_block(self):
+        cs = app.ContextSummary(
+            activity="working",
+            confidence=0.9,
+            updated_at=time.time(),
+            mood="focused",
+            location="office",
+            time_context="morning",
+        )
+        block = cs.to_prompt_block()
+        assert "気分: focused" in block
+        assert "場所: office" in block
+        assert "時間帯: morning" in block
+
+    def test_empty_new_fields_not_rendered(self):
+        cs = app.ContextSummary(
+            activity="working",
+            confidence=0.9,
+            updated_at=time.time(),
+            mood="",
+            location="",
+            time_context="",
+        )
+        block = cs.to_prompt_block()
+        assert "気分:" not in block
+        assert "場所:" not in block
+        assert "時間帯:" not in block
+
 
 # ---- _build_context_summary ----
 
@@ -173,6 +201,9 @@ class TestBuildContextSummary:
         app._context_summary.language_register = ""
         app._context_summary.confidence = 0.0
         app._context_summary.evidence_snippets = []
+        app._context_summary.mood = ""
+        app._context_summary.location = ""
+        app._context_summary.time_context = ""
         app._context_summary.updated_at = 0.0
         yield
 
@@ -188,6 +219,9 @@ class TestBuildContextSummary:
                 "language_register": "casual_solo",
                 "confidence": 0.83,
                 "evidence_snippets": ["PPOってAtariでも安定するのかな"],
+                "mood": "focused",
+                "location": "home",
+                "time_context": "afternoon",
             })
             with mock.patch("app.chat_with_llm", return_value=fake):
                 await app._build_context_summary("dummy transcript")
@@ -199,6 +233,9 @@ class TestBuildContextSummary:
             assert "PPO" in cs.keywords
             assert abs(cs.confidence - 0.83) < 1e-6
             assert cs.updated_at > 0
+            assert cs.mood == "focused"
+            assert cs.location == "home"
+            assert cs.time_context == "afternoon"
         asyncio.run(run())
 
     def test_strips_code_fence(self):
@@ -225,6 +262,17 @@ class TestBuildContextSummary:
             assert len(app._context_summary.keywords) == 10
             assert len(app._context_summary.named_entities) == 8
             assert len(app._context_summary.evidence_snippets) == 3
+        asyncio.run(run())
+
+    def test_new_fields_default_to_empty_when_absent(self):
+        async def run():
+            fake = json.dumps({"activity": "working", "confidence": 0.6})
+            with mock.patch("app.chat_with_llm", return_value=fake):
+                await app._build_context_summary("x")
+            cs = app._context_summary
+            assert cs.mood == ""
+            assert cs.location == ""
+            assert cs.time_context == ""
         asyncio.run(run())
 
     def test_invalid_json_raises(self):

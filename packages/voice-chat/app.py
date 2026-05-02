@@ -1063,6 +1063,9 @@ class ContextSummary:
     confidence: float = 0.0
     evidence_snippets: list = field(default_factory=list)
     updated_at: float = 0.0
+    mood: str = ""           # calm, focused, excited, stressed, neutral
+    location: str = ""       # home, office, cafe, commute, unknown
+    time_context: str = ""   # morning, afternoon, evening, night, unknown
 
     def is_stale(self, max_age: float = CONTEXT_SUMMARY_STALE_SEC) -> bool:
         return self.updated_at == 0.0 or (time.time() - self.updated_at) > max_age
@@ -1086,6 +1089,12 @@ class ContextSummary:
             lines.append(f"- 固有名詞: {', '.join(str(s) for s in self.named_entities[:6])}")
         if self.language_register:
             lines.append(f"- 発話レジスタ: {self.language_register}")
+        if self.mood:
+            lines.append(f"- 気分: {self.mood}")
+        if self.location:
+            lines.append(f"- 場所: {self.location}")
+        if self.time_context:
+            lines.append(f"- 時間帯: {self.time_context}")
         lines.append("※このコンテキストを参考に固有名詞・専門語の認識精度を上げてください")
         return "\n".join(lines)
 
@@ -1322,6 +1331,9 @@ def _context_summary_to_dict() -> dict:
         "confidence": _context_summary.confidence,
         "evidence_snippets": list(_context_summary.evidence_snippets),
         "updated_at": _context_summary.updated_at,
+        "mood": _context_summary.mood,
+        "location": _context_summary.location,
+        "time_context": _context_summary.time_context,
     }
 
 
@@ -1351,14 +1363,20 @@ async def _build_context_summary(transcript: str) -> dict:
             '  "named_entities": ["人名・会社名・作品名・ツール名", "..."],\n'
             '  "language_register": "casual_solo|focused_solo|business_meeting|chat",\n'
             '  "confidence": 0.0から1.0,\n'
-            '  "evidence_snippets": ["transcript からの根拠抜粋 1〜3件"]\n'
+            '  "evidence_snippets": ["transcript からの根拠抜粋 1〜3件"],\n'
+            '  "mood": "calm|focused|excited|stressed|neutral",\n'
+            '  "location": "home|office|cafe|commute|unknown",\n'
+            '  "time_context": "morning|afternoon|evening|night|unknown"\n'
             "}\n"
             "判定ヒント:\n"
             "- 複数話者のターンテイクがあれば is_meeting=true / activity=meeting\n"
             "- 一人語り/相づちのみは casual_solo or focused_solo\n"
             "- BGM・TV・YouTube ナレーション特徴があれば video_watching\n"
             "- transcript に発話がほとんど無ければ activity=idle, confidence<=0.3\n"
-            "- keywords は固有名詞・専門語を優先（抽象カテゴリ語は最後）"
+            "- keywords は固有名詞・専門語を優先（抽象カテゴリ語は最後）\n"
+            "- mood: 発話のトーンや内容から推定（calm/focused/excited/stressed/neutral）\n"
+            "- location: 環境音・発話内容から推定、不明なら unknown\n"
+            "- time_context: transcript のタイムスタンプや発話内容から推定、不明なら unknown"
         )},
         {"role": "user", "content": f"直近30分の transcript:\n{transcript}"},
     ]
@@ -1377,6 +1395,9 @@ async def _build_context_summary(transcript: str) -> dict:
     _context_summary.language_register = str(result.get("language_register") or "")
     _context_summary.confidence = float(result.get("confidence") or 0.0)
     _context_summary.evidence_snippets = [str(x) for x in (result.get("evidence_snippets") or [])][:3]
+    _context_summary.mood = str(result.get("mood") or "")
+    _context_summary.location = str(result.get("location") or "")
+    _context_summary.time_context = str(result.get("time_context") or "")
     _context_summary.updated_at = time.time()
     logger.info(
         f"[context_summary] activity={_context_summary.activity} "

@@ -8,6 +8,8 @@ interface ContextSummaryPanelProps {
   externalSummary?: ContextSummary | null;
 }
 
+type FieldKey = 'activity' | 'topic' | 'is_meeting' | 'keywords' | 'named_entities';
+
 const containerStyle: CSSProperties = {
   padding: '6px 10px',
   background: '#16181f',
@@ -56,6 +58,24 @@ const inputStyle: CSSProperties = {
   fontSize: 11,
 };
 
+const chipStyle: CSSProperties = {
+  ...buttonStyle,
+  background: '#2a2f3a',
+  color: '#888',
+  borderColor: '#3a4050',
+  padding: '1px 7px',
+  fontSize: 10,
+};
+
+const chipActiveStyle: CSSProperties = {
+  ...buttonStyle,
+  background: '#4a2e10',
+  color: '#ffc97d',
+  borderColor: '#8a5a2c',
+  padding: '1px 7px',
+  fontSize: 10,
+};
+
 const STALE_THRESHOLD_SEC = 180;
 
 function ageInfo(updatedAt?: number): { text: string; isStale: boolean } {
@@ -72,17 +92,22 @@ function ageInfo(updatedAt?: number): { text: string; isStale: boolean } {
 export default function ContextSummaryPanel({ open, externalSummary }: ContextSummaryPanelProps) {
   const [summary, setSummary] = useState<ContextSummary | null>(null);
   const [showCorrection, setShowCorrection] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState<{ text: string; error: boolean } | null>(null);
   const [, forceTick] = useState(0);
   const ageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Form state
+  // Form state (full correction form)
   const [fixActivity, setFixActivity] = useState('');
   const [fixTopic, setFixTopic] = useState('');
   const [fixMeeting, setFixMeeting] = useState('');
   const [fixKeywords, setFixKeywords] = useState('');
   const [fixEntities, setFixEntities] = useState('');
   const [fixNote, setFixNote] = useState('');
+
+  // Inline field chip state
+  const [activeChip, setActiveChip] = useState<FieldKey | null>(null);
+  const [chipValue, setChipValue] = useState('');
 
   const refresh = useCallback(async () => {
     try {
@@ -115,6 +140,64 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
     setFeedbackStatus({ text, error });
     setTimeout(() => setFeedbackStatus(null), 4000);
   }, []);
+
+  const openChip = useCallback((field: FieldKey) => {
+    if (activeChip === field) {
+      setActiveChip(null);
+      setChipValue('');
+      return;
+    }
+    setActiveChip(field);
+    if (!summary) { setChipValue(''); return; }
+    if (field === 'activity') setChipValue(summary.activity ?? '');
+    else if (field === 'topic') setChipValue(summary.topic ?? '');
+    else if (field === 'is_meeting') setChipValue(summary.is_meeting === true ? 'true' : summary.is_meeting === false ? 'false' : '');
+    else if (field === 'keywords') setChipValue((summary.keywords ?? []).join(', '));
+    else if (field === 'named_entities') setChipValue((summary.named_entities ?? []).join(', '));
+  }, [activeChip, summary]);
+
+  const closeChip = useCallback(() => {
+    setActiveChip(null);
+    setChipValue('');
+  }, []);
+
+  const submitChipCorrection = useCallback(async (field: FieldKey) => {
+    if (!summary?.updated_at) {
+      flashStatus('まだコンテキストが取得されてないよ', true);
+      return;
+    }
+    const correction: Record<string, unknown> = {};
+    const v = chipValue.trim();
+    if (field === 'is_meeting') {
+      if (v === 'true') correction.is_meeting = true;
+      else if (v === 'false') correction.is_meeting = false;
+    } else if (field === 'keywords' || field === 'named_entities') {
+      correction[field] = v.split(',').map((s) => s.trim()).filter(Boolean);
+    } else {
+      if (!v) { flashStatus('値を入力してね', true); return; }
+      correction[field] = v;
+    }
+    if (Object.keys(correction).length === 0) {
+      flashStatus('値を入力してね', true);
+      return;
+    }
+    try {
+      const r = await fetch(`${API_BASE}/context-summary/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: 'no', correction, summary }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        flashStatus('修正を保存したよ ✓');
+        closeChip();
+      } else {
+        flashStatus(`失敗: ${d.error}`, true);
+      }
+    } catch (err) {
+      flashStatus(`失敗: ${(err as Error).message}`, true);
+    }
+  }, [summary, chipValue, flashStatus, closeChip]);
 
   const openCorrectionForm = useCallback(() => {
     setShowCorrection(true);
@@ -234,21 +317,150 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
         </button>
       </div>
       <div style={{ lineHeight: 1.5 }}>
-        <div>
-          <span style={labelStyle}>活動:</span> <span style={{ color: '#fff' }}>{summary?.activity || '—'}</span>
-          {summary?.is_meeting && <span style={{ color: '#ffb347', marginLeft: 6 }}>【会議】</span>}
+        {/* 活動 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>活動:</span>
+          <span style={{ color: '#fff' }}>{summary?.activity || '—'}</span>
+          {summary?.is_meeting && <span style={{ color: '#ffb347' }}>【会議】</span>}
+          <button
+            type="button"
+            onClick={() => openChip('activity')}
+            style={activeChip === 'activity' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
         </div>
-        <div>
-          <span style={labelStyle}>トピック:</span> <span style={{ color: '#fff' }}>{summary?.topic || '—'}</span>
+        {activeChip === 'activity' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <select
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Escape' && closeChip()}
+              autoFocus
+            >
+              <option value="">(未指定)</option>
+              <option value="working">working</option>
+              <option value="video_watching">video_watching</option>
+              <option value="reading">reading</option>
+              <option value="meeting">meeting</option>
+              <option value="chatting">chatting</option>
+              <option value="idle">idle</option>
+            </select>
+            <button type="button" onClick={() => submitChipCorrection('activity')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* トピック */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>トピック:</span>
+          <span style={{ color: '#fff' }}>{summary?.topic || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('topic')}
+            style={activeChip === 'topic' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
         </div>
-        <div>
-          <span style={labelStyle}>固有名詞:</span>{' '}
-          <span style={{ color: '#9fd8ff' }}>{(summary?.named_entities ?? []).join(', ') || '—'}</span>
+        {activeChip === 'topic' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <input
+              type="text"
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              placeholder="例: ピアノ練習動画"
+              style={{ ...inputStyle, width: 200 }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitChipCorrection('topic'); else if (e.key === 'Escape') closeChip(); }}
+              autoFocus
+            />
+            <button type="button" onClick={() => submitChipCorrection('topic')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* 会議 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>会議:</span>
+          <span style={{ color: '#fff' }}>{summary?.is_meeting === true ? 'はい' : summary?.is_meeting === false ? 'いいえ' : '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('is_meeting')}
+            style={activeChip === 'is_meeting' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
         </div>
-        <div>
-          <span style={labelStyle}>キーワード:</span>{' '}
+        {activeChip === 'is_meeting' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <select
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Escape' && closeChip()}
+              autoFocus
+            >
+              <option value="">(未指定)</option>
+              <option value="true">はい</option>
+              <option value="false">いいえ</option>
+            </select>
+            <button type="button" onClick={() => submitChipCorrection('is_meeting')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* キーワード */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>キーワード:</span>
           <span style={{ color: '#9fd8ff' }}>{(summary?.keywords ?? []).join(', ') || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('keywords')}
+            style={activeChip === 'keywords' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
         </div>
+        {activeChip === 'keywords' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <input
+              type="text"
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              placeholder="カンマ区切り: PPO, Atari"
+              style={{ ...inputStyle, width: 200 }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitChipCorrection('keywords'); else if (e.key === 'Escape') closeChip(); }}
+              autoFocus
+            />
+            <button type="button" onClick={() => submitChipCorrection('keywords')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* 固有名詞 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>固有名詞:</span>
+          <span style={{ color: '#9fd8ff' }}>{(summary?.named_entities ?? []).join(', ') || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('named_entities')}
+            style={activeChip === 'named_entities' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
+        </div>
+        {activeChip === 'named_entities' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <input
+              type="text"
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              placeholder="カンマ区切り: DeepMind"
+              style={{ ...inputStyle, width: 200 }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitChipCorrection('named_entities'); else if (e.key === 'Escape') closeChip(); }}
+              autoFocus
+            />
+            <button type="button" onClick={() => submitChipCorrection('named_entities')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
         <button type="button" onClick={handleYes} style={yesStyle}>
@@ -263,6 +475,33 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
           </span>
         )}
       </div>
+      {summary && (summary.evidence_snippets ?? []).length > 0 && (
+        <div style={{ marginTop: 6 }}>
+          <button
+            type="button"
+            onClick={() => setShowEvidence(!showEvidence)}
+            style={{
+              ...buttonStyle,
+              background: '#2a2f3a',
+              color: '#888',
+              borderColor: '#3a4050',
+              padding: '3px 10px',
+              cursor: 'pointer',
+            }}
+          >
+            根拠を見る {showEvidence ? '▲' : '▼'}
+          </button>
+          {showEvidence && summary.evidence_snippets && (
+            <div style={{ marginTop: 4, marginLeft: 6 }}>
+              {summary.evidence_snippets.map((snippet, idx) => (
+                <div key={idx} style={{ color: '#888', fontSize: 10, lineHeight: 1.4, marginBottom: 2 }}>
+                  {snippet}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       {showCorrection && (
         <div
           style={{
