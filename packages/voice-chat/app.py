@@ -7445,6 +7445,7 @@ async def websocket_endpoint(ws: WebSocket):
 
 
 _PROACTIVE_FOCUSED_THROTTLE_SEC = 1200  # 20 min
+_PROACTIVE_STRESSED_THROTTLE_SEC = 1200  # 20 min — symmetric with focused to prevent loop
 _PROACTIVE_STRESSED_REST_MSG = "少し休んだらどうかな？疲れが溜まっているみたいだよ。"
 
 
@@ -7495,6 +7496,10 @@ async def _proactive_polling_loop():
         # H4: stressed — inject rest suggestion as a synthetic proactive message
         stressed_msg = _h4_get_stressed_rest_message()
         if stressed_msg:
+            elapsed_since_last = time.time() - _proactive_last_at
+            if elapsed_since_last < _PROACTIVE_STRESSED_THROTTLE_SEC:
+                logger.debug(f"[H4] proactive throttled: mood=stressed, last={elapsed_since_last:.0f}s ago")
+                continue
             logger.info("[H4] proactive: mood=stressed, injecting rest suggestion")
             rest_payload = json.dumps({
                 "type": "proactive_message",

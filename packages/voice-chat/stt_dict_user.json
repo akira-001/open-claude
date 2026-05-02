@@ -814,5 +814,71 @@
     "added_at": "2026-05-02T23:30:28",
     "confidence": 0.75,
     "reason": "複数の箇所で繰り返し出現し、特定の固有名詞や専門用語を指していると思われるが、正確な修正語が不明。"
+  },
+  {
+    "id": "614f35715e93",
+    "replacement": "Chrome",
+    "patterns": [
+      "chromey"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:49:01",
+    "confidence": 0.9,
+    "reason": "文脈からChromeブラウザや関連する技術用語の誤認識と判断される。"
+  },
+  {
+    "id": "eb216f6ef0e9",
+    "replacement": "オリンピック",
+    "patterns": [
+      "オリンティング"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:49:01",
+    "confidence": 0.85,
+    "reason": "繰り返し出現する音から、スポーツのイベント名（オリンピック）の誤認識と思われる。"
+  },
+  {
+    "id": "44180850e0b6",
+    "replacement": "Western Medicine",
+    "patterns": [
+      "Westernедic"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:49:01",
+    "confidence": 0.8,
+    "reason": "ラテン文字とキリル文字が混在しており、特定の医学的系統名（Western Medicineなど）の誤認識が疑われる。"
+  },
+  {
+    "id": "5f5b89a68ab8",
+    "replacement": "マヨネーズ",
+    "patterns": [
+      "マヨネークトクホ"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:49:01",
+    "confidence": 0.75,
+    "reason": "単語の音韻的な崩れが著しく、食べ物名（マヨネーズ）の誤認識パターンと推測される。"
+  },
+  {
+    "id": "f051b123d266",
+    "replacement": "Floral",
+    "patterns": [
+      "Floraladaki"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:49:01",
+    "confidence": 0.75,
+    "reason": "「花の」を意味する言葉（Floral）に接尾語などが過剰に付加された誤認識と考えられる。"
+  },
+  {
+    "id": "6bf64263f78f",
+    "replacement": "クライアント",
+    "patterns": [
+      "クリーンアータン"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T23:52:46",
+    "confidence": 0.85,
+    "reason": "文脈的に、特定の主体名やステータスを示す「クライアント」の誤認識と推測されます。"
   }
 ]
