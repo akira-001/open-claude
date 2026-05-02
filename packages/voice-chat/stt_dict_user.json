@@ -52,5 +52,93 @@
     "added_at": "2026-05-02T16:53:04",
     "confidence": 0.75,
     "reason": "英語の単語（Containingなど）を音韻的に誤認識した可能性が高いため。"
+  },
+  {
+    "id": "270daa3cb74c",
+    "replacement": "Matcha",
+    "patterns": [
+      "Mathcha"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:27:07",
+    "confidence": 0.9,
+    "reason": "日本語の文脈（お茶）から、英語の「Matcha」の誤認識と判断。"
+  },
+  {
+    "id": "d6b8cc679c9c",
+    "replacement": "mobilizes",
+    "patterns": [
+      "beobilizes"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:27:07",
+    "confidence": 0.85,
+    "reason": "文脈（release）から、動詞「mobilizes」の誤認識と判断。"
+  },
+  {
+    "id": "964a7ca06cb4",
+    "replacement": "battery swap",
+    "patterns": [
+      "battery swapake"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:27:07",
+    "confidence": 0.9,
+    "reason": "「バッテリー交換」という一般的な技術用語の誤認識と判断。"
+  },
+  {
+    "id": "ddb8ca66937d",
+    "replacement": "Initial Data Page Tip listed on a note page",
+    "patterns": [
+      "Ind 궂十分GPG Tip listed on a note page"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:57:31",
+    "confidence": 0.9,
+    "reason": "文頭の技術的な羅列部分で、開始を示す記述やタグが誤認識された可能性が高い。"
+  },
+  {
+    "id": "cbbe52add623",
+    "replacement": "Cosmic Ole D2SF22",
+    "patterns": [
+      "Cosmic Óle D2SF22"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:57:31",
+    "confidence": 0.85,
+    "reason": "製品コードや型番のような文字列が、特殊な文字や誤ったアクセント記号を伴って認識された。"
+  },
+  {
+    "id": "8de5959f82ac",
+    "replacement": "Anodic dolly",
+    "patterns": [
+      "Anopic dolly"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:57:31",
+    "confidence": 0.8,
+    "reason": "電気や化学分野の専門用語（アノードなど）が音韻的に類似した形で誤認識された可能性がある。"
+  },
+  {
+    "id": "71380d6c4d9f",
+    "replacement": "Avatar認証",
+    "patterns": [
+      "Avatar認証"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:57:31",
+    "confidence": 0.9,
+    "reason": "文字の連続性が不明確な箇所で、一般的な専門用語（ここでは「アバター認証」など）の読み誤りが疑われる。"
+  },
+  {
+    "id": "a774604e0042",
+    "replacement": "Status Update",
+    "patterns": [
+      "ステータスアップデート"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T17:57:31",
+    "confidence": 0.75,
+    "reason": "英語の一般名詞句がカタカナ化される際に、表記揺れや誤認識が起こりやすいパターン。"
   }
 ]

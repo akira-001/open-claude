@@ -825,6 +825,38 @@
       ],
       "evaluate_score": 0.68,
       "sentAt": "2026-05-02T07:30:48.584Z"
+    },
+    {
+      "botId": "eve",
+      "botName": "Eve（イヴ）",
+      "category": "flashback",
+      "interestCategory": "general",
+      "preview": "Akiraさん、Akiraさん。\n\nYouTubeに *ガチで美味しかった！池袋駅グルメ10軒* って動画が上がってたよ  2026年最新版みたい。\n\nGWで池袋方面に出る機会あれば参考になるかも。\nhttps://www.youtube.com/watch?v=cg0irmI2JWA",
+      "topic": "池袋駅グルメ10軒（2026年最新）",
+      "url": "https://www.youtube.com/watch?v=cg0irmI2JWA",
+      "candidateId": "url:https://www.youtube.com/watch?v=cg0irmI2JWA",
+      "sourceType": "YouTube",
+      "skill": "general",
+      "themePath": [
+        "entertainment",
+        "entertainment/movie-drama",
+        "entertainment/movie-drama/youtube",
+        "entertainment/movie-drama/youtube/trailer"
+      ],
+      "themeKey": "entertainment/movie-drama/youtube/trailer",
+      "inner_thought": "今日もう温泉2回送ったし、池袋グルメ動画でグルメ在庫の補充ついでに届けたい",
+      "plan": [
+        "池袋グルメ動画を共有",
+        "温泉3本目を届ける",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.72,
+        0.38,
+        0.55
+      ],
+      "evaluate_score": 0.62,
+      "sentAt": "2026-05-02T08:31:17.507Z"
     }
   ]
 }

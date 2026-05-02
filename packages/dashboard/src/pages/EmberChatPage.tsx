@@ -283,24 +283,26 @@ export default function EmberChatPage() {
             </div>
           )}
 
-          <ChatControls
-            recording={chat.recording}
-            processing={chat.processing}
-            ttsEnabled={chat.settings.ttsEnabled}
-            proactiveEnabled={chat.settings.proactiveEnabled}
-            replyMode={chat.replyBot !== null}
-            replyBot={chat.replyBot}
-            lastBotId={chat.lastBotId}
-            debugOpen={chat.settings.debugMode}
-            onStopAudio={() => chat.stopAudio()}
-            onToggleProactive={handleToggleProactive}
-            onToggleReply={handleToggleReply}
-            onPreview={chat.previewVoice}
-            onToggleTalk={handleToggleTalk}
-            onToggleTts={handleToggleTts}
-            onToggleDebug={() => chat.updateSetting('debugMode', !chat.settings.debugMode)}
-            onOpenRecording={() => navigate('/voice-enroll')}
-          />
+          {!settingsCollapsed && (
+            <ChatControls
+              recording={chat.recording}
+              processing={chat.processing}
+              ttsEnabled={chat.settings.ttsEnabled}
+              proactiveEnabled={chat.settings.proactiveEnabled}
+              replyMode={chat.replyBot !== null}
+              replyBot={chat.replyBot}
+              lastBotId={chat.lastBotId}
+              debugOpen={chat.settings.debugMode}
+              onStopAudio={() => chat.stopAudio()}
+              onToggleProactive={handleToggleProactive}
+              onToggleReply={handleToggleReply}
+              onPreview={chat.previewVoice}
+              onToggleTalk={handleToggleTalk}
+              onToggleTts={handleToggleTts}
+              onToggleDebug={() => chat.updateSetting('debugMode', !chat.settings.debugMode)}
+              onOpenRecording={() => navigate('/voice-enroll')}
+            />
+          )}
 
           <ImproveLoopPanel open={chat.settings.debugMode} />
           <ContextSummaryPanel open={chat.settings.debugMode} externalSummary={chat.contextSummary} />

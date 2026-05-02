@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import type { ContextSummary } from './types';
 
 const API_BASE = '/whisper/api';
+const COLLAPSED_KEY = 'ember-chat:context-summary-collapsed';
 
 interface ContextSummaryPanelProps {
   open: boolean;
@@ -11,7 +12,8 @@ interface ContextSummaryPanelProps {
 type FieldKey = 'activity' | 'topic' | 'is_meeting' | 'keywords' | 'named_entities' | 'mood' | 'location' | 'time_context';
 
 const containerStyle: CSSProperties = {
-  padding: '6px 10px',
+  position: 'relative',
+  padding: '6px 42px 6px 10px',
   background: '#16181f',
   borderTop: '1px solid #2a2f3a',
   color: '#cfd6e4',
@@ -22,6 +24,7 @@ const headerRowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 8,
+  flexWrap: 'wrap',
   marginBottom: 4,
 };
 
@@ -118,6 +121,13 @@ function ageInfo(updatedAt?: number): { text: string; isStale: boolean } {
 
 export default function ContextSummaryPanel({ open, externalSummary }: ContextSummaryPanelProps) {
   const [summary, setSummary] = useState<ContextSummary | null>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COLLAPSED_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
   const [showCorrection, setShowCorrection] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -191,6 +201,18 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
   const flashStatus = useCallback((text: string, error = false) => {
     setFeedbackStatus({ text, error });
     setTimeout(() => setFeedbackStatus(null), 4000);
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+      } catch {
+        // ignore
+      }
+      return next;
+    });
   }, []);
 
   const openChip = useCallback((field: FieldKey) => {
@@ -337,8 +359,63 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
   const confColor = conf >= 0.7 ? '#7dffaa' : conf >= 0.4 ? '#ffd17d' : '#888';
   const { text: ageLabel, isStale } = ageInfo(summary?.updated_at);
 
+  if (collapsed) {
+    return (
+      <div style={containerStyle} id="ember-context-summary">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={toggleCollapsed}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleCollapsed();
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+          aria-expanded={false}
+          aria-controls="ember-context-summary"
+          title="推測コンテキストを開く"
+        >
+          <span style={{ color: '#7da6ff', fontWeight: 600 }}>推測コンテキスト</span>
+          <span style={{ color: '#666', fontSize: 12, lineHeight: 1 }}>▾</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={containerStyle}>
+    <div style={containerStyle} id="ember-context-summary">
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        style={{
+          position: 'absolute',
+          top: 4,
+          right: 4,
+          background: '#2a2f3a',
+          color: '#888',
+          border: '1px solid #3a4050',
+          borderRadius: 4,
+          padding: '2px 5px',
+          cursor: 'pointer',
+          fontSize: 9,
+          lineHeight: 1.1,
+          zIndex: 1,
+        }}
+        aria-expanded={true}
+        aria-controls="ember-context-summary"
+        title="推測コンテキストを閉じる"
+      >
+        ▴
+      </button>
       <div style={headerRowStyle}>
         <span style={{ color: '#7da6ff', fontWeight: 600 }}>推測コンテキスト</span>
         <span style={{ color: confColor }}>

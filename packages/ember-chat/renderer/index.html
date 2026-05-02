@@ -926,10 +926,11 @@
   <span id="reactivityStatus" style="color:#666; font-size:11px;"></span>
 </div>
 <div id="contextSummaryPanel" style="display:none; padding:6px 10px; background:#16181f; border-top:1px solid #2a2f3a; color:#cfd6e4; font-size:11px;">
-  <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
     <span style="color:#7da6ff; font-weight:600;">推測コンテキスト</span>
     <span id="ctxConfBadge" style="color:#888;">—</span>
     <span id="ctxAge" style="color:#666; margin-left:auto;"></span>
+    <button id="ctxCollapseBtn" onclick="toggleContextPanel()" style="background:#2a2f3a; color:#888; border:1px solid #3a4050; border-radius:4px; padding:2px 6px; cursor:pointer; font-size:9px; line-height:1.1;">▴</button>
   </div>
   <div id="ctxBody" style="line-height:1.5;">
     <div><span style="color:#888;">活動:</span> <span id="ctxActivity" style="color:#fff;">—</span> <span id="ctxMeeting" style="color:#ffb347; margin-left:6px;"></span></div>
@@ -937,7 +938,7 @@
     <div><span style="color:#888;">固有名詞:</span> <span id="ctxEntities" style="color:#9fd8ff;">—</span></div>
     <div><span style="color:#888;">キーワード:</span> <span id="ctxKeywords" style="color:#9fd8ff;">—</span></div>
   </div>
-  <div style="display:flex; align-items:center; gap:6px; margin-top:6px;">
+  <div id="ctxActions" style="display:flex; align-items:center; gap:6px; margin-top:6px;">
     <button id="ctxYesBtn" onclick="submitContextFeedback('yes')" style="background:#1f5d3a; color:#dff5e3; border:1px solid #2c8a55; border-radius:4px; padding:3px 10px; cursor:pointer; font-size:11px;">Yes ✓ 正しい</button>
     <button id="ctxNoBtn" onclick="toggleContextCorrection()" style="background:#5d1f1f; color:#f5dada; border:1px solid #8a2c2c; border-radius:4px; padding:3px 10px; cursor:pointer; font-size:11px;">No ✗ 違う</button>
     <span id="ctxFeedbackStatus" style="color:#666; font-size:10px;"></span>
@@ -1550,6 +1551,13 @@ function toggleDebug() {
 // --- Context summary panel ---
 let _ctxLastSummary = null;
 let _ctxAgeTimer = null;
+let _ctxCollapsed = (() => {
+  try {
+    return localStorage.getItem('ember-chat:context-summary-collapsed') === '1';
+  } catch {
+    return false;
+  }
+})();
 
 function _ctxAgeText(updatedAt) {
   if (!updatedAt) return '';
@@ -1564,6 +1572,11 @@ function renderContextSummary(summary) {
   _ctxLastSummary = summary;
   const conf = Number(summary.confidence || 0);
   const confBadge = document.getElementById('ctxConfBadge');
+  const panel = document.getElementById('contextSummaryPanel');
+  const body = document.getElementById('ctxBody');
+  const actions = document.getElementById('ctxActions');
+  const form = document.getElementById('ctxCorrectionForm');
+  const collapseBtn = document.getElementById('ctxCollapseBtn');
   confBadge.textContent = summary.updated_at ? `信頼度 ${conf.toFixed(2)}` : '未取得';
   confBadge.style.color = conf >= 0.7 ? '#7dffaa' : conf >= 0.4 ? '#ffd17d' : '#888';
   document.getElementById('ctxAge').textContent = _ctxAgeText(summary.updated_at);
@@ -1572,11 +1585,30 @@ function renderContextSummary(summary) {
   document.getElementById('ctxTopic').textContent = summary.topic || '—';
   document.getElementById('ctxEntities').textContent = (summary.named_entities || []).join(', ') || '—';
   document.getElementById('ctxKeywords').textContent = (summary.keywords || []).join(', ') || '—';
+  if (body) body.style.display = _ctxCollapsed ? 'none' : 'block';
+  if (actions) actions.style.display = _ctxCollapsed ? 'none' : 'flex';
+  if (form) form.style.display = _ctxCollapsed ? 'none' : form.style.display;
+  if (collapseBtn) {
+    collapseBtn.textContent = _ctxCollapsed ? '▾' : '▴';
+    collapseBtn.title = _ctxCollapsed ? '推測コンテキストを開く' : '推測コンテキストを閉じる';
+    collapseBtn.setAttribute('aria-expanded', String(!_ctxCollapsed));
+  }
+  if (panel) panel.style.paddingBottom = _ctxCollapsed ? '4px' : '6px';
   if (!_ctxAgeTimer) {
     _ctxAgeTimer = setInterval(() => {
       if (_ctxLastSummary) document.getElementById('ctxAge').textContent = _ctxAgeText(_ctxLastSummary.updated_at);
     }, 30000);
   }
+}
+
+function toggleContextPanel() {
+  _ctxCollapsed = !_ctxCollapsed;
+  try {
+    localStorage.setItem('ember-chat:context-summary-collapsed', _ctxCollapsed ? '1' : '0');
+  } catch {
+    // ignore
+  }
+  if (_ctxLastSummary) renderContextSummary(_ctxLastSummary);
 }
 
 async function refreshContextSummary() {
@@ -1591,6 +1623,7 @@ async function refreshContextSummary() {
 
 function toggleContextCorrection() {
   const form = document.getElementById('ctxCorrectionForm');
+  if (_ctxCollapsed) toggleContextPanel();
   const open = form.style.display === 'none';
   form.style.display = open ? 'block' : 'none';
   if (open && _ctxLastSummary) {

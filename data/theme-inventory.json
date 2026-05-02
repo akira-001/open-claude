@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-02T08:00:07.053Z",
+  "updatedAt": "2026-05-02T09:00:06.845Z",
   "records": [
     {
       "themeKey": "business/consulting/finance/kpi",
@@ -10,7 +10,7 @@
         "kpi"
       ],
       "rootKey": "business/consulting",
-      "availableCount": 19,
+      "availableCount": 21,
       "sentFreshCount": 0,
       "sent30dCount": 0,
       "positive30dCount": 0,
@@ -18,32 +18,9 @@
       "positiveRate30d": 0.5,
       "uniqueSources30d": 0,
       "targetCount": 4,
-      "supplyGap": -15,
+      "supplyGap": -17,
       "rotationGap": 4,
       "freshnessDays": 10,
-      "freshnessScore": 1,
-      "lastSentAt": null
-    },
-    {
-      "themeKey": "sports/mlb/dodgers/opening-day",
-      "themePath": [
-        "sports",
-        "mlb",
-        "dodgers",
-        "opening-day"
-      ],
-      "rootKey": "sports/mlb",
-      "availableCount": 4,
-      "sentFreshCount": 0,
-      "sent30dCount": 0,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0.5,
-      "uniqueSources30d": 0,
-      "targetCount": 4,
-      "supplyGap": 0,
-      "rotationGap": 4,
-      "freshnessDays": 7,
       "freshnessScore": 1,
       "lastSentAt": null
     },
@@ -66,6 +43,52 @@
       "supplyGap": 1,
       "rotationGap": 4,
       "freshnessDays": 10,
+      "freshnessScore": 1,
+      "lastSentAt": null
+    },
+    {
+      "themeKey": "sports/golf/round/course",
+      "themePath": [
+        "sports",
+        "sports/golf",
+        "sports/golf/round",
+        "sports/golf/round/course"
+      ],
+      "rootKey": "sports/sports/golf",
+      "availableCount": 2,
+      "sentFreshCount": 0,
+      "sent30dCount": 2,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 4,
+      "targetCount": 4,
+      "supplyGap": 2,
+      "rotationGap": 4,
+      "freshnessDays": 7,
+      "freshnessScore": 0,
+      "lastSentAt": "2026-04-23T07:01:09.384Z"
+    },
+    {
+      "themeKey": "sports/mlb/dodgers/opening-day",
+      "themePath": [
+        "sports",
+        "mlb",
+        "dodgers",
+        "opening-day"
+      ],
+      "rootKey": "sports/mlb",
+      "availableCount": 2,
+      "sentFreshCount": 0,
+      "sent30dCount": 0,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0.5,
+      "uniqueSources30d": 0,
+      "targetCount": 4,
+      "supplyGap": 2,
+      "rotationGap": 4,
+      "freshnessDays": 7,
       "freshnessScore": 1,
       "lastSentAt": null
     },
@@ -161,29 +184,6 @@
       "lastSentAt": "2026-04-21T02:00:46.061Z"
     },
     {
-      "themeKey": "sports/golf/round/course",
-      "themePath": [
-        "sports",
-        "sports/golf",
-        "sports/golf/round",
-        "sports/golf/round/course"
-      ],
-      "rootKey": "sports/sports/golf",
-      "availableCount": 0,
-      "sentFreshCount": 0,
-      "sent30dCount": 2,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 4,
-      "targetCount": 4,
-      "supplyGap": 4,
-      "rotationGap": 4,
-      "freshnessDays": 7,
-      "freshnessScore": 0,
-      "lastSentAt": "2026-04-23T07:01:09.384Z"
-    },
-    {
       "themeKey": "personal/travel-tech/dev/ai-tools",
       "themePath": [
         "personal",
@@ -192,7 +192,7 @@
         "personal/travel-tech/dev/ai-tools"
       ],
       "rootKey": "personal/personal/travel-tech",
-      "availableCount": 17,
+      "availableCount": 14,
       "sentFreshCount": 1,
       "sent30dCount": 2,
       "positive30dCount": 0,
@@ -200,35 +200,11 @@
       "positiveRate30d": 0,
       "uniqueSources30d": 4,
       "targetCount": 4,
-      "supplyGap": -13,
+      "supplyGap": -10,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.6786837417328042,
+      "freshnessScore": 0.6727317046957673,
       "lastSentAt": "2026-04-30T02:01:14.980Z"
-    },
-    {
-      "themeKey": "sports/mlb/dodgers/ohtani/stats",
-      "themePath": [
-        "sports",
-        "sports/mlb",
-        "sports/mlb/dodgers",
-        "sports/mlb/dodgers/ohtani",
-        "sports/mlb/dodgers/ohtani/stats"
-      ],
-      "rootKey": "sports/sports/mlb",
-      "availableCount": 4,
-      "sentFreshCount": 0,
-      "sent30dCount": 1,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 2,
-      "targetCount": 3,
-      "supplyGap": -1,
-      "rotationGap": 3,
-      "freshnessDays": 7,
-      "freshnessScore": 0,
-      "lastSentAt": "2026-04-22T23:01:33.362Z"
     },
     {
       "themeKey": "personal/travel-tech/pet/cat-health",
@@ -254,6 +230,53 @@
       "lastSentAt": null
     },
     {
+      "themeKey": "ai/enterprise/anthropic/security",
+      "themePath": [
+        "ai",
+        "ai/enterprise",
+        "ai/enterprise/anthropic",
+        "ai/enterprise/anthropic/security"
+      ],
+      "rootKey": "ai/ai/enterprise",
+      "availableCount": 2,
+      "sentFreshCount": 1,
+      "sent30dCount": 2,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 4,
+      "targetCount": 4,
+      "supplyGap": 2,
+      "rotationGap": 3,
+      "freshnessDays": 7,
+      "freshnessScore": 0.3869965972222221,
+      "lastSentAt": "2026-04-28T02:01:02.387Z"
+    },
+    {
+      "themeKey": "sports/mlb/dodgers/ohtani/stats",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/ohtani",
+        "sports/mlb/dodgers/ohtani/stats"
+      ],
+      "rootKey": "sports/sports/mlb",
+      "availableCount": 2,
+      "sentFreshCount": 0,
+      "sent30dCount": 1,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 2,
+      "targetCount": 3,
+      "supplyGap": 1,
+      "rotationGap": 3,
+      "freshnessDays": 7,
+      "freshnessScore": 0,
+      "lastSentAt": "2026-04-22T23:01:33.362Z"
+    },
+    {
       "themeKey": "local/saitama/other/road-trip",
       "themePath": [
         "local",
@@ -273,7 +296,7 @@
       "supplyGap": 2,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.11319631283068787,
+      "freshnessScore": 0.10724427579365081,
       "lastSentAt": "2026-04-26T03:01:08.183Z"
     },
     {
@@ -295,31 +318,8 @@
       "supplyGap": 2,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.997092478505291,
+      "freshnessScore": 0.991140441468254,
       "lastSentAt": "2026-05-02T07:30:48.584Z"
-    },
-    {
-      "themeKey": "ai/enterprise/anthropic/security",
-      "themePath": [
-        "ai",
-        "ai/enterprise",
-        "ai/enterprise/anthropic",
-        "ai/enterprise/anthropic/security"
-      ],
-      "rootKey": "ai/ai/enterprise",
-      "availableCount": 1,
-      "sentFreshCount": 1,
-      "sent30dCount": 2,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 4,
-      "targetCount": 4,
-      "supplyGap": 3,
-      "rotationGap": 3,
-      "freshnessDays": 7,
-      "freshnessScore": 0.3929486342592592,
-      "lastSentAt": "2026-04-28T02:01:02.387Z"
     },
     {
       "themeKey": "entertainment/movie-drama/spring-drama",
@@ -342,6 +342,28 @@
       "freshnessDays": 7,
       "freshnessScore": 0,
       "lastSentAt": "2026-04-24T03:01:02.857Z"
+    },
+    {
+      "themeKey": "personal/travel-tech/campingcar",
+      "themePath": [
+        "personal",
+        "personal/travel-tech",
+        "personal/travel-tech/campingcar"
+      ],
+      "rootKey": "personal/personal/travel-tech",
+      "availableCount": 1,
+      "sentFreshCount": 0,
+      "sent30dCount": 1,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 2,
+      "targetCount": 3,
+      "supplyGap": 2,
+      "rotationGap": 3,
+      "freshnessDays": 7,
+      "freshnessScore": 0,
+      "lastSentAt": "2026-04-22T03:00:54.667Z"
     },
     {
       "themeKey": "ai/local-llm/deploy/server",
@@ -414,29 +436,6 @@
       "lastSentAt": "2026-04-24T02:00:53.817Z"
     },
     {
-      "themeKey": "business/benchmark/bcg/strategy",
-      "themePath": [
-        "business",
-        "benchmark",
-        "bcg",
-        "strategy"
-      ],
-      "rootKey": "business/benchmark",
-      "availableCount": 1,
-      "sentFreshCount": 0,
-      "sent30dCount": 0,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0.5,
-      "uniqueSources30d": 0,
-      "targetCount": 3,
-      "supplyGap": 2,
-      "rotationGap": 3,
-      "freshnessDays": 14,
-      "freshnessScore": 1,
-      "lastSentAt": null
-    },
-    {
       "themeKey": "personal/travel-tech/travel",
       "themePath": [
         "personal",
@@ -457,28 +456,6 @@
       "freshnessDays": 7,
       "freshnessScore": 1,
       "lastSentAt": null
-    },
-    {
-      "themeKey": "personal/travel-tech/campingcar",
-      "themePath": [
-        "personal",
-        "personal/travel-tech",
-        "personal/travel-tech/campingcar"
-      ],
-      "rootKey": "personal/personal/travel-tech",
-      "availableCount": 0,
-      "sentFreshCount": 0,
-      "sent30dCount": 1,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 2,
-      "targetCount": 3,
-      "supplyGap": 3,
-      "rotationGap": 3,
-      "freshnessDays": 7,
-      "freshnessScore": 0,
-      "lastSentAt": "2026-04-22T03:00:54.667Z"
     },
     {
       "themeKey": "ai/enterprise/agent/orchestration",
@@ -523,31 +500,8 @@
       "supplyGap": 4,
       "rotationGap": 3,
       "freshnessDays": 7,
-      "freshnessScore": 0.09464932870370368,
+      "freshnessScore": 0.08869729166666662,
       "lastSentAt": "2026-04-25T23:54:10.967Z"
-    },
-    {
-      "themeKey": "sports/golf/youtube/tips",
-      "themePath": [
-        "sports",
-        "sports/golf",
-        "sports/golf/youtube",
-        "sports/golf/youtube/tips"
-      ],
-      "rootKey": "sports/sports/golf",
-      "availableCount": 3,
-      "sentFreshCount": 2,
-      "sent30dCount": 2,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 3,
-      "targetCount": 4,
-      "supplyGap": 1,
-      "rotationGap": 2,
-      "freshnessDays": 7,
-      "freshnessScore": 0.6905924537037037,
-      "lastSentAt": "2026-04-30T04:01:17.369Z"
     },
     {
       "themeKey": "lifestyle/food-wellness/gourmet",
@@ -568,8 +522,31 @@
       "supplyGap": 1,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.27984407076719575,
+      "freshnessScore": 0.2738920337301588,
       "lastSentAt": "2026-04-27T07:00:56.747Z"
+    },
+    {
+      "themeKey": "sports/golf/youtube/tips",
+      "themePath": [
+        "sports",
+        "sports/golf",
+        "sports/golf/youtube",
+        "sports/golf/youtube/tips"
+      ],
+      "rootKey": "sports/sports/golf",
+      "availableCount": 2,
+      "sentFreshCount": 2,
+      "sent30dCount": 2,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 3,
+      "targetCount": 4,
+      "supplyGap": 2,
+      "rotationGap": 2,
+      "freshnessDays": 7,
+      "freshnessScore": 0.6846404166666666,
+      "lastSentAt": "2026-04-30T04:01:17.369Z"
     },
     {
       "themeKey": "entertainment/movie-drama/blue-giant",
@@ -590,7 +567,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.7025073396164021,
+      "freshnessScore": 0.6965553025793652,
       "lastSentAt": "2026-04-30T06:01:23.492Z"
     },
     {
@@ -613,7 +590,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.7084359623015873,
+      "freshnessScore": 0.7024839252645503,
       "lastSentAt": "2026-04-30T07:01:09.123Z"
     },
     {
@@ -637,7 +614,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8661627843915344,
+      "freshnessScore": 0.8602107473544973,
       "lastSentAt": "2026-05-01T09:31:02.305Z"
     },
     {
@@ -660,7 +637,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9881888392857143,
+      "freshnessScore": 0.9822368022486773,
       "lastSentAt": "2026-05-02T06:01:03.663Z"
     },
     {
@@ -683,7 +660,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.410821583994709,
+      "freshnessScore": 0.40486954695767197,
       "lastSentAt": "2026-04-28T05:01:11.947Z"
     },
     {
@@ -706,7 +683,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9822323263888889,
+      "freshnessScore": 0.9762802893518518,
       "lastSentAt": "2026-05-02T05:01:01.164Z"
     },
     {
@@ -730,7 +707,7 @@
       "supplyGap": 2,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8303691071428572,
+      "freshnessScore": 0.8244170701058201,
       "lastSentAt": "2026-05-01T03:30:14.289Z"
     },
     {
@@ -754,7 +731,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.0953708283730158,
+      "freshnessScore": 0.08941879133597885,
       "lastSentAt": "2026-04-26T00:01:27.330Z"
     },
     {
@@ -777,7 +754,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.10723668816137566,
+      "freshnessScore": 0.10128465112433871,
       "lastSentAt": "2026-04-26T02:01:03.802Z"
     },
     {
@@ -800,7 +777,7 @@
       "supplyGap": 4,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8185554877645502,
+      "freshnessScore": 0.8126034507275133,
       "lastSentAt": "2026-05-01T01:31:09.412Z"
     },
     {
@@ -822,7 +799,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.16676802744708996,
+      "freshnessScore": 0.1608159904100529,
       "lastSentAt": "2026-04-26T12:01:08.356Z"
     },
     {
@@ -845,7 +822,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.23825593088624342,
+      "freshnessScore": 0.23230389384920636,
       "lastSentAt": "2026-04-27T00:01:44.240Z"
     },
     {
@@ -867,7 +844,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.24415194444444455,
+      "freshnessScore": 0.23819990740740749,
       "lastSentAt": "2026-04-27T01:01:10.149Z"
     },
     {
@@ -890,7 +867,7 @@
       "supplyGap": 4,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.9792367146164022,
+      "freshnessScore": 0.9732846775793651,
       "lastSentAt": "2026-05-02T04:30:49.418Z"
     },
     {
@@ -914,7 +891,7 @@
       "supplyGap": 4,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5715118766534392,
+      "freshnessScore": 0.5655598396164021,
       "lastSentAt": "2026-04-29T08:00:57.436Z"
     },
     {
@@ -936,7 +913,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5536654546957672,
+      "freshnessScore": 0.5477134176587302,
       "lastSentAt": "2026-04-29T05:01:03.920Z"
     },
     {
@@ -958,7 +935,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.5894024090608465,
+      "freshnessScore": 0.5834503720238096,
       "lastSentAt": "2026-04-29T11:01:17.630Z"
     },
     {
@@ -980,7 +957,7 @@
       "supplyGap": 4,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8780605357142857,
+      "freshnessScore": 0.8721084986772487,
       "lastSentAt": "2026-05-01T11:30:58.065Z"
     },
     {
@@ -1003,7 +980,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.6667748082010583,
+      "freshnessScore": 0.6608227711640211,
       "lastSentAt": "2026-04-30T00:01:12.457Z"
     },
     {
@@ -1026,7 +1003,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.7382421395502645,
+      "freshnessScore": 0.7322901025132276,
       "lastSentAt": "2026-04-30T12:01:35.899Z"
     },
     {
@@ -1048,7 +1025,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8333428207671958,
+      "freshnessScore": 0.8273907837301587,
       "lastSentAt": "2026-05-01T04:00:12.791Z"
     },
     {
@@ -1072,7 +1049,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8393752943121693,
+      "freshnessScore": 0.8334232572751323,
       "lastSentAt": "2026-05-01T05:01:01.231Z"
     },
     {
@@ -1095,7 +1072,7 @@
       "supplyGap": 3,
       "rotationGap": 2,
       "freshnessDays": 7,
-      "freshnessScore": 0.8125609259259259,
+      "freshnessScore": 0.8066088888888889,
       "lastSentAt": "2026-05-01T00:30:43.901Z"
     },
     {
@@ -1117,8 +1094,32 @@
       "supplyGap": -1,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.82448478505291,
+      "freshnessScore": 0.8185327480158731,
       "lastSentAt": "2026-05-01T02:30:55.451Z"
+    },
+    {
+      "themeKey": "sports/mlb/dodgers/ohtani/home-run",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/ohtani",
+        "sports/mlb/dodgers/ohtani/home-run"
+      ],
+      "rootKey": "sports/sports/mlb",
+      "availableCount": 5,
+      "sentFreshCount": 4,
+      "sent30dCount": 6,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 5,
+      "targetCount": 5,
+      "supplyGap": 0,
+      "rotationGap": 1,
+      "freshnessDays": 7,
+      "freshnessScore": 0.8572535896164021,
+      "lastSentAt": "2026-05-01T09:01:13.816Z"
     },
     {
       "themeKey": "personal/travel-tech/campingcar/route",
@@ -1129,7 +1130,7 @@
         "personal/travel-tech/campingcar/route"
       ],
       "rootKey": "personal/personal/travel-tech",
-      "availableCount": 5,
+      "availableCount": 4,
       "sentFreshCount": 3,
       "sent30dCount": 4,
       "positive30dCount": 1,
@@ -1137,10 +1138,10 @@
       "positiveRate30d": 0.25,
       "uniqueSources30d": 5,
       "targetCount": 4,
-      "supplyGap": -1,
+      "supplyGap": 0,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.9495400082671958,
+      "freshnessScore": 0.9435879712301587,
       "lastSentAt": "2026-05-01T23:31:28.850Z"
     },
     {
@@ -1163,7 +1164,7 @@
       "supplyGap": 0,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.4346194477513228,
+      "freshnessScore": 0.4286674107142857,
       "lastSentAt": "2026-04-28T09:01:04.895Z"
     },
     {
@@ -1186,32 +1187,8 @@
       "supplyGap": -1,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.6846583845899471,
+      "freshnessScore": 0.67870634755291,
       "lastSentAt": "2026-04-30T03:01:28.444Z"
-    },
-    {
-      "themeKey": "sports/mlb/dodgers/ohtani/home-run",
-      "themePath": [
-        "sports",
-        "sports/mlb",
-        "sports/mlb/dodgers",
-        "sports/mlb/dodgers/ohtani",
-        "sports/mlb/dodgers/ohtani/home-run"
-      ],
-      "rootKey": "sports/sports/mlb",
-      "availableCount": 2,
-      "sentFreshCount": 4,
-      "sent30dCount": 6,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 5,
-      "targetCount": 5,
-      "supplyGap": 3,
-      "rotationGap": 1,
-      "freshnessDays": 7,
-      "freshnessScore": 0.8632056266534391,
-      "lastSentAt": "2026-05-01T09:01:13.816Z"
     },
     {
       "themeKey": "entertainment/movie-drama/vivant",
@@ -1232,7 +1209,7 @@
       "supplyGap": 3,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.7144040575396826,
+      "freshnessScore": 0.7084520205026454,
       "lastSentAt": "2026-04-30T08:01:18.627Z"
     },
     {
@@ -1256,7 +1233,7 @@
       "supplyGap": 3,
       "rotationGap": 1,
       "freshnessDays": 7,
-      "freshnessScore": 0.9941585681216931,
+      "freshnessScore": 0.9882065310846561,
       "lastSentAt": "2026-05-02T07:01:14.155Z"
     },
     {
@@ -1279,7 +1256,7 @@
       "supplyGap": 3,
       "rotationGap": 0,
       "freshnessDays": 7,
-      "freshnessScore": 0.9643941881613757,
+      "freshnessScore": 0.9584421511243386,
       "lastSentAt": "2026-05-02T02:01:12.658Z"
     },
     {
@@ -1303,7 +1280,7 @@
       "supplyGap": 4,
       "rotationGap": 0,
       "freshnessDays": 7,
-      "freshnessScore": 0.955447058531746,
+      "freshnessScore": 0.949495021494709,
       "lastSentAt": "2026-05-02T00:31:01.434Z"
     },
     {
@@ -1327,7 +1304,7 @@
       "supplyGap": 5,
       "rotationGap": -1,
       "freshnessDays": 4,
-      "freshnessScore": 0.9845337528935185,
+      "freshnessScore": 0.9741176880787037,
       "lastSentAt": "2026-05-02T06:31:01.918Z"
     },
     {
@@ -1349,31 +1326,8 @@
       "supplyGap": 4,
       "rotationGap": -1,
       "freshnessDays": 7,
-      "freshnessScore": 0.8117836458333334,
+      "freshnessScore": 0.8058316087962962,
       "lastSentAt": "2026-05-01T00:22:53.802Z"
-    },
-    {
-      "themeKey": "entertainment/movie-drama/youtube/trailer",
-      "themePath": [
-        "entertainment",
-        "entertainment/movie-drama",
-        "entertainment/movie-drama/youtube",
-        "entertainment/movie-drama/youtube/trailer"
-      ],
-      "rootKey": "entertainment/entertainment/movie-drama",
-      "availableCount": 1,
-      "sentFreshCount": 7,
-      "sent30dCount": 8,
-      "positive30dCount": 0,
-      "negative30dCount": 0,
-      "positiveRate30d": 0,
-      "uniqueSources30d": 9,
-      "targetCount": 5,
-      "supplyGap": 4,
-      "rotationGap": -2,
-      "freshnessDays": 7,
-      "freshnessScore": 0.8363762417328042,
-      "lastSentAt": "2026-05-01T04:30:47.404Z"
     },
     {
       "themeKey": "sports/golf/score/review",
@@ -1395,8 +1349,31 @@
       "supplyGap": 4,
       "rotationGap": -2,
       "freshnessDays": 5,
-      "freshnessScore": 0.7364970972222222,
+      "freshnessScore": 0.7281642453703704,
       "lastSentAt": "2026-05-01T00:22:53.799Z"
+    },
+    {
+      "themeKey": "entertainment/movie-drama/youtube/trailer",
+      "themePath": [
+        "entertainment",
+        "entertainment/movie-drama",
+        "entertainment/movie-drama/youtube",
+        "entertainment/movie-drama/youtube/trailer"
+      ],
+      "rootKey": "entertainment/entertainment/movie-drama",
+      "availableCount": 1,
+      "sentFreshCount": 8,
+      "sent30dCount": 9,
+      "positive30dCount": 0,
+      "negative30dCount": 0,
+      "positiveRate30d": 0,
+      "uniqueSources30d": 9,
+      "targetCount": 5,
+      "supplyGap": 4,
+      "rotationGap": -3,
+      "freshnessDays": 7,
+      "freshnessScore": 0.9971406448412699,
+      "lastSentAt": "2026-05-02T08:31:17.507Z"
     }
   ]
 }
