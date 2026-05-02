@@ -1388,14 +1388,30 @@ async def _periodic_media_inference_loop():
                 last_processed_ts_end = new_chunks[-1]["ts_end"]
                 if not _media_ctx.media_buffer:
                     continue
-                # 推定を実行（confidence>=0.6 で content_type 確定、低 conf は据え置き）
+                # 推定を実行
                 inferred = await _infer_media_content()
                 new_content_type = inferred.get("content_type", "unknown")
                 new_conf = float(inferred.get("confidence") or 0.0)
+                # meeting 型は co_view path 側のフル hysteresis に任せる（誤判定リスク回避）
+                if new_content_type == "meeting":
+                    logger.debug(
+                        f"[periodic_media_infer] meeting detected (conf={new_conf:.2f}),"
+                        f" deferring to co_view hysteresis"
+                    )
+                    continue
                 if new_conf < 0.5:
                     logger.debug(
                         f"[periodic_media_infer] low conf {new_conf:.2f} "
                         f"({new_content_type}), keeping {_media_ctx.inferred_type}"
+                    )
+                    continue
+                # 異種別への切り替えは conf>=0.7 必須（同種別更新は緩和）
+                if (_media_ctx.inferred_type not in ("unknown", "")
+                        and _media_ctx.inferred_type != new_content_type
+                        and new_conf < 0.7):
+                    logger.debug(
+                        f"[periodic_media_infer] type-switch conf insufficient"
+                        f" ({_media_ctx.inferred_type}→{new_content_type} conf={new_conf:.2f})"
                     )
                     continue
                 prev_type = _media_ctx.inferred_type
