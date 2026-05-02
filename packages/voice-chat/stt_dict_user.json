@@ -239,5 +239,38 @@
     "added_at": "2026-05-02T19:07:59",
     "confidence": 0.75,
     "reason": "語尾や母音の重複が目立ち、専門用語か外国語の誤変換である可能性が高い。"
+  },
+  {
+    "id": "d5c7c408bce6",
+    "replacement": "マニエラ",
+    "patterns": [
+      "maneiraağı"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T19:33:35",
+    "confidence": 0.8,
+    "reason": "ポルトガル語圏の名前や技術用語の音韻的な誤認識と判断される。"
+  },
+  {
+    "id": "12d8e7399fce",
+    "replacement": "verification",
+    "patterns": [
+      "voitication"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T19:33:35",
+    "confidence": 0.9,
+    "reason": "直前の文脈（system）から、認証や確認の意味を持つ専門用語の誤認識と考えられる。"
+  },
+  {
+    "id": "73d6c4bdca95",
+    "replacement": "client divider number",
+    "patterns": [
+      "client div number"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-02T19:33:35",
+    "confidence": 0.85,
+    "reason": "連続する技術用語の中で、区切り記号や分類を指す誤認識の可能性がある。"
   }
 ]
