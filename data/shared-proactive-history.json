@@ -600,6 +600,38 @@
       ],
       "evaluate_score": 0.82,
       "sentAt": "2026-05-02T01:30:46.141Z"
+    },
+    {
+      "botId": "mei",
+      "botName": "Mei（メイ）",
+      "category": "hobby_leisure",
+      "interestCategory": "golf",
+      "preview": "Akiraさん、いい天気だね。\n\nゴルフダイジェストに *ペットボトル（500ml〜1L）を1本用意する* って練習法の記事が出てたよ ⛳\n\nGW中、家でもできる練習ネタとしてどうかな。\nhttps://news.google.com/rss/articles/CBMifEFVX3lxTFBlbmU",
+      "topic": "ペットボトル練習法",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBlbmUxNW5uYklKR3NucTduZEQ5VTFiVUFaY2NLN29naUw4SkZfNmRqbzR2N3BjVlVtTnVWUkVQb2RzcTJtZ2c0c04taGVJd0k0bW5TdkZidFJieG5rSmV1cDF2RWxkWjdTdjJYcDdBazBjd3dBSjBOUWtkRHU?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMifEFVX3lxTFBlbmUxNW5uYklKR3NucTduZEQ5VTFiVUFaY2NLN29naUw4SkZfNmRqbzR2N3BjVlVtTnVWUkVQb2RzcTJtZ2c0c04taGVJd0k0bW5TdkZidFJieG5rSmV1cDF2RWxkWjdTdjJYcDdBazBjd3dBSjBOUWtkRHU?oc=5",
+      "sourceType": "topic-table",
+      "skill": "general",
+      "themePath": [
+        "sports",
+        "sports/golf",
+        "sports/golf/lesson",
+        "sports/golf/lesson/coach"
+      ],
+      "themeKey": "sports/golf/lesson/coach",
+      "inner_thought": "昨日もゴルフ記事送ったけど、ペットボトル練習法は自宅でできる実用ネタ。GW中に試せるのがいい",
+      "plan": [
+        "ゴルフのペットボトル練習法を共有",
+        "温泉バルコニー施設を共有",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.82,
+        0.75,
+        0.3
+      ],
+      "evaluate_score": 0.72,
+      "sentAt": "2026-05-02T02:01:12.659Z"
     }
   ]
 }
