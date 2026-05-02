@@ -4520,7 +4520,7 @@ async def get_chunk_transcripts():
 @app.post("/api/context-summary/feedback")
 async def post_context_summary_feedback(body: dict | None = None):
     """Yes/No フィードバックを夜間学習用に記録。
-    body: {label: "yes"|"no", correction?: {activity?, topic?, is_meeting?, keywords?, named_entities?, language_register?, note?}}
+    body: {label: "yes"|"no", correction?: {activity?, topic?, is_meeting?, keywords?, named_entities?, language_register?, note?}, summary?: {...}}
     """
     if not body:
         return {"ok": False, "error": "missing body"}
@@ -4531,7 +4531,11 @@ async def post_context_summary_feedback(body: dict | None = None):
     if label == "no" and not correction:
         return {"ok": False, "error": "correction required when label is 'no'"}
 
-    summary = _context_summary_to_dict()
+    # body に summary が含まれていれば使用、なければサーバーの現在値を使用
+    summary = body.get("summary")
+    if summary is None:
+        summary = _context_summary_to_dict()
+
     if summary["updated_at"] == 0.0:
         return {"ok": False, "error": "no context summary available yet"}
 

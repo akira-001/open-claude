@@ -141,7 +141,7 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
       const r = await fetch(`${API_BASE}/context-summary/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: 'yes' }),
+        body: JSON.stringify({ label: 'yes', summary }),
       });
       const d = await r.json();
       if (d.ok) flashStatus('保存したよ ✓');
@@ -177,7 +177,7 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
       const r = await fetch(`${API_BASE}/context-summary/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ label: 'no', correction }),
+        body: JSON.stringify({ label: 'no', correction, summary }),
       });
       const d = await r.json();
       if (d.ok) {

@@ -374,6 +374,46 @@ class TestFeedbackEndpoint:
             assert json.loads(lines[1])["label"] == "no"
         asyncio.run(run())
 
+    def test_yes_with_snapshot_summary(self):
+        async def run():
+            snapshot = {
+                "activity": "snapshot_activity",
+                "topic": "スナップショットトピック",
+                "confidence": 0.85,
+                "updated_at": time.time(),
+            }
+            r = await app.post_context_summary_feedback({
+                "label": "yes",
+                "summary": snapshot,
+            })
+            assert r["ok"] is True
+            entry = json.loads(self.feedback_file.read_text(encoding="utf-8").strip())
+            assert entry["label"] == "yes"
+            assert entry["summary"]["activity"] == "snapshot_activity"
+            assert entry["summary"]["topic"] == "スナップショットトピック"
+            assert entry["summary"]["confidence"] == 0.85
+        asyncio.run(run())
+
+    def test_no_with_snapshot_summary(self):
+        async def run():
+            snapshot = {
+                "activity": "snapshot_activity",
+                "topic": "スナップショットトピック",
+                "confidence": 0.85,
+                "updated_at": time.time(),
+            }
+            r = await app.post_context_summary_feedback({
+                "label": "no",
+                "correction": {"activity": "corrected_activity"},
+                "summary": snapshot,
+            })
+            assert r["ok"] is True
+            entry = json.loads(self.feedback_file.read_text(encoding="utf-8").strip())
+            assert entry["label"] == "no"
+            assert entry["correction"]["activity"] == "corrected_activity"
+            assert entry["summary"]["activity"] == "snapshot_activity"
+        asyncio.run(run())
+
 
 class TestGetContextSummary:
     def test_returns_current_summary(self):
