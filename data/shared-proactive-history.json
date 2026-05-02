@@ -1034,6 +1034,38 @@
       ],
       "evaluate_score": 0.8,
       "sentAt": "2026-05-02T23:00:58.484Z"
+    },
+    {
+      "botId": "eve",
+      "botName": "Eve（イヴ）",
+      "category": "flashback",
+      "interestCategory": "campingcar",
+      "preview": "ねえ、ちょっと聞いて。\n\nmotomegane.comに *関東ツーリングで立ち寄りたい道の駅10選* が出てたよ  絶景・グルメ・温泉もまとまってるみたい。\n\nキャンピングカー候補と組み合わせてルート考えるの、楽しそうじゃない？\nhttps://news.google.com/rss/articl",
+      "topic": "関東ツーリング道の駅10選（絶景・グルメ・温泉）",
+      "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNbERhTDFnN2FzSUhJUTZVU0hMWGJaYUdjYWhWemRWRkJOem5SMkVmZHYtSGFSc2NZenN1eGp0MndMS0d6a2h1XzZJV2FJalgyQUoyVVJvY0VXTFhaelhxTzN1Z28tODVwQXFEbktMU2N1d2h2THUxOGN1SFdCLVhsY1dVRDA5ZHdubDlQM1VBQXQ",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMikAFBVV95cUxNbERhTDFnN2FzSUhJUTZVU0hMWGJaYUdjYWhWemRWRkJOem5SMkVmZHYtSGFSc2NZenN1eGp0MndMS0d6a2h1XzZJV2FJalgyQUoyVVJvY0VXTFhaelhxTzN1Z28tODVwQXFEbktMU2N1d2h2THUxOGN1SFdCLVhsY1dVRDA5ZHdubDlQM1VBQXQ",
+      "sourceType": "motomegane.com",
+      "skill": "general",
+      "themePath": [
+        "personal",
+        "personal/travel-tech",
+        "personal/travel-tech/campingcar",
+        "personal/travel-tech/campingcar/route"
+      ],
+      "themeKey": "personal/travel-tech/campingcar/route",
+      "inner_thought": "道の駅ツーリング記事、キャンピングカー好きで温泉好きのAkiraさんにドンピシャじゃん",
+      "plan": [
+        "関東ツーリング道の駅10選を共有（キャンピングカー×温泉軸で）",
+        "沈黙（ドジャース観戦中）",
+        "ゴルフ動画を共有"
+      ],
+      "generate_score": [
+        0.78,
+        0.55,
+        0.62
+      ],
+      "evaluate_score": 0.74,
+      "sentAt": "2026-05-02T23:30:54.923Z"
     }
   ]
 }

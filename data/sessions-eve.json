@@ -2,12 +2,17 @@
   "U3SFGQXNH-D0AHR0SATNE-direct": {
     "userId": "U3SFGQXNH",
     "channelId": "D0AHR0SATNE",
-    "lastActivity": "2026-05-02T12:31:08.988Z",
+    "lastActivity": "2026-05-02T23:30:55.396Z",
     "chatHistory": [
       {
         "role": "assistant",
         "content": "あのね、Akiraさん。\n\nTBS公式に *『VIVANT』続編の映像が初公開* されてた 🎬 総勢 *26名* のキャスト発表もあったみたい。\n\nhttps://www.youtube.com/watch?v=9124Rl0IEJU",
         "timestamp": "2026-05-02T12:31:08.988Z"
+      },
+      {
+        "role": "assistant",
+        "content": "ねえ、ちょっと聞いて。\n\nmotomegane.comに *関東ツーリングで立ち寄りたい道の駅10選* が出てたよ  絶景・グルメ・温泉もまとまってるみたい。\n\nキャンピングカー候補と組み合わせてルート考えるの、楽しそうじゃない？\nhttps://news.google.com/rss/articles/CBMikAFBVV95cUxNbERhTDFnN2FzSUhJUTZVU0hMWGJaYUdjYWhWemRWRkJOem5SMkVmZHYtSGFSc2NZenN1eGp0MndMS0d6a2h1XzZJV2FJalgyQUoyVVJvY0VXTFhaelhxTzN1Z28tODVwQXFEbktMU2N1d2h2THUxOGN1SFdCLVhsY1dVRDA5ZHdubDlQM1VBQXQ",
+        "timestamp": "2026-05-02T23:30:55.396Z"
       }
     ]
   }
