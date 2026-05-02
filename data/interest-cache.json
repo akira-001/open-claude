@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-02T03:50:01.027781+00:00",
+  "lastUpdated": "2026-05-02T05:50:01.601543+00:00",
   "priorities": {
     "ai_agent": 0.7,
     "llm_local": 0.364,
@@ -22,50 +22,50 @@
       "label": "AIエージェント",
       "items": [
         {
-          "title": "Google、エージェント構築を実践的に学習できる無料コースを6月に開催 - CodeZine",
-          "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE12WEE4V3NOREN5WURSQW5oSl96Q0RtSWlsNy1uZnd1VkYzc3FTMVZrYWRfYWtfa1dqMEtZV2J3WmViNlVwYTBSTjdfYTBTZw?oc=5",
+          "title": "仕様駆動開発への期待と誤解 ～「仕様」とは、結局何なのか～ - CodeZine",
+          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE1HQmlTY0xkU0VwZXIzbjJsb2NJdVVYREt2enUweEwtQVVkc1JvTkg3WjdEOFVDYzBPckxpbDFidVVHWF84S1g2Y0tPajRNSXo0bGc?oc=5",
           "source": "CodeZine",
-          "pub_date": "2026-05-01T22:31:28+00:00",
-          "timeliness": 0.952,
-          "score": 0.801
+          "pub_date": "2026-05-01T16:41:57+00:00",
+          "timeliness": 0.747,
+          "score": 0.679
         },
         {
           "title": "Oracle AI Agent Memory: A Governed, Unified Memory Core for Enterprise AI Agents - Oracle Blogs",
           "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPYnRIbmRfR2RkRGZKMjY5ZFgyaXpqdnRPU3llaVJUMFkyNnVLZVBOSVJ4bkJiZmRGSUJSaGJyRWlGRnpPTjdEUDJ1Y1R3Znl5NnFsbUFiYkF6SWVXdHJqSDBQVnQzazRoOS1TdTNMbmIzaEpaV2VQcFpONVphUGNEdFFyanFaTXZOeGVKSTdRN3BSMTZWSk81Rlo3c0VjV3FuNHc4elVMajJQdnFsSkRCQl96WWs?oc=5",
           "source": "Oracle Blogs",
           "pub_date": "2026-05-02T00:11:15+00:00",
-          "timeliness": 0.986,
-          "score": 0.715
+          "timeliness": 0.903,
+          "score": 0.641
         },
         {
-          "title": "It’s 10PM. Do You Know Where Your AI Agents Are? - Forbes",
-          "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQVWVaeXkwYUtJMlVBZ3BsclRwc1pZd3hOZGlZc3FMYm9STk5aN1NuLXc3TUhHR2FQRG9vSDZTZklLRnMxZGhvZFR4OXY3RDZiNEkxUEhEdzF0SW1Fc25ZZnRrcDlzUW9pUllIdWpELVVTRENHRzIzZnNuWVJfQl9DZnFPQmpGZXoxNGVQd1IwSzNUS1ltMUtieTRlanROMEVybEE?oc=5",
-          "source": "Forbes",
-          "pub_date": "2026-05-01T20:30:06+00:00",
-          "timeliness": 0.91,
-          "score": 0.684
+          "title": "Meta Introduces Autodata: An Agentic Framework That Turns AI Models into Autonomous Data Scientists for High-Quality Training Data Creation - MarkTechPost",
+          "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxNMnZic2hhLWpOQjlrQWM3YTJOTGVYc1BxMVBpUlVDSlVnWUtpSlFDcEZFblhqLXB3VHc0ZV9EWWhiZ3haT183ektZRkdUNjVZVzVmemVCdEZEU3FFX1Vnemt6TGZyOGFidjBPOFdQai1STDFfSVY2ZzF5MHJZQmVmZlgxQ3VSYnA3M2F4RDJ2NHhBYUMwSVNrSF9uTUhOc3RCSVZFd2NkRjNhb0dhT2NDanhjb0ZhaWVuUnBEQTItZlhYeFpVLTVqb0hOa0dqOVlvYzBleWVtTjAtbGhyVW0wMXphQXdxcU5obmtXMXc4Nnp4bWdoM2k3dnJBbFZYdFAyN3c1OTE0ZndOUWvSAZACQVVfeXFMUGhPNHNBb3JyYTFGbldKRno4alVfc19wbUcyQ3ZObU5OanBOSjVGMEpwVEVtVXB6T1FfWTZzNkFTQ2N3TlNib1I4ZklHUlBMOU5MRzJ6Xy11aXQ1M2FMOXpKNXF3VzNKSlMySFlrcDJCdWJBN2k2QUNScUJubjYxSldaQXVlMUV4YzE5S1VJMTZXSW9CZUtWVlFadU9GRDdxb3ZDZll6Vkx6cVBFQmxzMlNYNkE1NTdIZHFUYXJkOTlVdUNTRlBJR0dscWVkeEhERk92Mk11Q01SSWVUN2N6YWI5bTVlbS1RZG1hTko2ek5JbHdMVkpLX2tTUVliTHUtR3MtMm9VZHVHV2lYcW1GTXI?oc=5",
+          "source": "MarkTechPost",
+          "pub_date": "2026-05-01T22:24:02+00:00",
+          "timeliness": 0.866,
+          "score": 0.626
         },
         {
-          "title": "流行りの「Claude Code」を現場で使いまくる社長が解説。一気に中級レベルまでぶっ飛べる基礎解説するで",
-          "url": "https://www.youtube.com/watch?v=d5LdEr_sKkw",
-          "source": "AI仙人 【AI歴10年・ガチADHD男】",
+          "title": "CLAUDE CODE FULL COURSE 4 HOURS: Build & Sell (2026)",
+          "url": "https://www.youtube.com/watch?v=QoQBzR1NIqI",
+          "source": "Nick Saraev",
           "pub_date": null,
           "content_type": "video",
-          "duration": "44:59",
-          "view_count": 35616,
+          "duration": "250:43",
+          "view_count": 1521252,
           "timeliness": 0.1,
-          "score": 0.57
+          "score": 0.63
         },
         {
-          "title": "Build & Sell Claude Code Operating Systems (2+ Hour Course)",
-          "url": "https://www.youtube.com/watch?v=bCljOfCH8Ms",
-          "source": "Nate Herk | AI Automation",
+          "title": "Introducing Claude Code",
+          "url": "https://www.youtube.com/watch?v=AJpK3YTTKZ4",
+          "source": "Anthropic",
           "pub_date": null,
           "content_type": "video",
-          "duration": "153:21",
-          "view_count": 30426,
+          "duration": "3:55",
+          "view_count": 943029,
           "timeliness": 0.1,
-          "score": 0.57
+          "score": 0.58
         },
         {
           "title": "Compositional Meta-Learning for Mitigating Task Heterogeneity in Physics-Informed Neural Networks",
@@ -77,7 +77,7 @@
             "Beomchul Park, Minsu Koh, Heejo Kong, Seong-Whan Lee"
           ],
           "timeliness": 0.1,
-          "score": 0.42
+          "score": 0.38
         },
         {
           "title": "Binary Spiking Neural Networks as Causal Models",
@@ -89,14 +89,14 @@
             "Aditya Kar (CNRS, IRIT), Emiliano Lorini (CNRS, IRIT), Timoth\\'ee Masquelier (CNRS, CERCO UMR5549)"
           ],
           "timeliness": 0.1,
-          "score": 0.42
+          "score": 0.38
         }
       ],
       "count": 7,
-      "priority": 0.8,
-      "tier": "S",
+      "priority": 0.7,
+      "tier": "A",
       "emotion_type": "heavy",
-      "lastChecked": "2026-05-02T00:50:37.858506+00:00"
+      "lastChecked": "2026-05-02T04:50:37.376441+00:00"
     },
     "llm_local": {
       "label": "ローカルLLM・オープンソースAI",
@@ -183,95 +183,85 @@
       "label": "ドジャース・大谷翔平",
       "items": [
         {
-          "title": "大谷翔平、第３打席は中飛に倒れここまで快音響かず　チームも劣勢で後半戦へ - ｄメニューニュース",
-          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOX0dMMzI1RVFQQlNUcldRVXFseGMtUGZtdHVBbjRSVFNjNWtFQUlOVFl6NG5wY1pmYTdHd1ducnNBSFJnN0ZrVF9QdXU1ZjZfU2tmT3JqLTBZVjEwT3NQcXFpRXl1V2ItTUdJT3Qwb3FoLTFDbjRSdHd2a0JSMHVFUnIta0prR0ZIdjVxcmJMd1U0NWhiUUHSAZsBQVVfeXFMUFZPM1FYQmJ6OGlHdllLU3RvQjQzVU5HNXJzMGh4d1hmZVRHMnZwNEcxTUFKMzlXSmotS2ZUb3FUY3UwZkxiZ2k4aDVtcVlfX3JRek96UDhha0ZsSVVOdjhPN0tSUnBXNXBpWnhxcTZwUEx3QnpaNTB0R3VEYU9CZ1FBSHM1MGZNR1dsMUxZYVBVbHBrX0loejBmdTA?oc=5",
+          "title": "2026年5月2日（土） MLB カージナルス vs ドジャース 試合結果 - au Webポータル",
+          "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE95Vzh3WTkyUGY1d2MwbXNkU1E3R0xCWk5OUGljR1ZnYmU4SV9DeE5WTnAwU1Nyb1ZnYWVrYTJCLV9ZZDZ5NzNNSkE3TXNMbmYxN2NFZkZVQWhmRU03emdPOTJ0eHNkZ3hxcXVFLXV0a3ExaUV6RV9NZ3lYZ3Zudw?oc=5",
+          "source": "au Webポータル",
+          "pub_date": "2026-05-02T03:21:10+00:00",
+          "timeliness": 0.969,
+          "score": 0.788
+        },
+        {
+          "title": "Dodgers walked all over in 7-2 loss to Cardinals Friday night. - True Blue LA",
+          "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNZXNyaDFBVVNCNzBMQzJPQjMteC1VbUJLcmlMWFZyUTJ0VXhPVVVLMWRKN2NEMVNWbENPYVFycU1oa0FaZ25iOEJBdnpObklwdTc4OXlHcVhzZl9UVlJXWktKRVd1c01LSk93N0JseC1QVkZYQVNYUVBPeG9xLWczV1FpN2x6RVBqNjJLVERNUXJsQ2U3TFBpZTE1Sm9fazFQUjRrVGhPenZqVzg?oc=5",
+          "source": "True Blue LA",
+          "pub_date": "2026-05-02T03:24:00+00:00",
+          "timeliness": 0.97,
+          "score": 0.788
+        },
+        {
+          "title": "2026年5月2日（土） MLB カージナルス vs ドジャース 試合結果 - ｄメニューニュース",
+          "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOcl9QNlE2QndTb0RyYXdyOElNZnVyX3Y4X1BoQUdYSTZydDFFRjhNcmMwR1hMYmtOY09QQkJKMXA3NzFqU1RLWmVrc1NxbWRKY0w2YU1hZ0F5cHVyRk0zWlBWQi1ERDhKRlg3LWFrVlBGRTVKVTJGS01SYWxEVDMwV21TNlhyVnExSWfSAYoBQVVfeXFMTnJfUDZRNkJ3U29EcmF3cjhJTWZ1cl92OF9QaEFHWEk2cnQxRUY4TXJjMEdYTGJrTmNPUEJCSjFwNzcxalNUS1pla3NTcW1kSmNMNmFNYWdBeXB1ckZNM1pQVkItREQ4SkZYNy1ha1ZQRkU1SlUyRktNUmFsRFQzMFdtUzZYclZxMUln?oc=5",
           "source": "ｄメニューニュース",
-          "pub_date": "2026-05-02T02:03:00+00:00",
-          "timeliness": 0.984,
-          "score": 0.793
+          "pub_date": "2026-05-02T03:12:00+00:00",
+          "timeliness": 0.966,
+          "score": 0.786
         },
         {
-          "title": "【MLB】「大谷翔平／今日の打席結果速報」5月初試合、昨季一発の若手左腕から7号アーチなるか【5月2日カージナルス戦】 - spread-sports.jp",
-          "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE93NHQ0UF9rNGdnRm9XbnZWeUFaUlZyTXc4TXBCZ3lOM0JCdng1SGZRRl80T2djNmxtdkpLNG9OdWR0cWRCMmROSjJHVHFHNkN3d3c?oc=5",
-          "source": "spread-sports.jp",
-          "pub_date": "2026-05-02T00:16:54+00:00",
-          "timeliness": 0.947,
-          "score": 0.779
-        },
-        {
-          "title": "Dodgers vs. Cardinals (May 1, 2026) Box Score - ESPN",
-          "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE92LUMtazNIbWY0U0dJSXI0VXhXSWF4ZjFLQ2p5REI5TG1WNmNMRGUzNHNoVFBfWHlDWTA1cVRmR2tmZWN5YlcyLWpYU2RCV0tfYlAxRlBaUzJkWUdpamhPU2t3?oc=5",
-          "source": "ESPN",
-          "pub_date": "2026-05-02T00:16:08+00:00",
-          "timeliness": 0.946,
-          "score": 0.779
-        },
-        {
-          "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
-          "url": "https://www.youtube.com/watch?v=dZK7SIJjCSQ",
+          "title": "【大谷翔平｜漫画を超えた伝説の試合ベスト5】MLBで史上初の記録を数多く達成してきた、日本人選手の“最高傑作” 今回は、後世に語り継がれる歴史的1試合ベスト5を紹介！",
+          "url": "https://www.youtube.com/watch?v=HhVvMgUVLtI",
           "source": "SPOTVNOW",
           "pub_date": null,
           "content_type": "video",
-          "duration": "5:45",
-          "view_count": 255030,
+          "duration": "32:02",
+          "view_count": 5018279,
+          "_discovery": true,
           "timeliness": 0.1,
-          "score": 0.7
+          "score": 0.8
         },
         {
-          "title": "【“有望株の宝庫”ドジャースNo.2プロスペクトのホープが満塁の場面で結果を残す！】ドジャースvsダイヤモンドバックス MLB2026スプリングトレーニング 2.26",
-          "url": "https://www.youtube.com/watch?v=Hjyl9guC_-o",
+          "title": "【ドジャース・大谷翔平 2試合連続の44号！】今季5度目の先頭打者アーチ！そしてベッツ、フリーマンも続きMVPトリオ驚愕の3者連続HR！",
+          "url": "https://www.youtube.com/watch?v=t8HApbHBf84",
           "source": "SPOTVNOW",
           "pub_date": null,
           "content_type": "video",
-          "duration": "2:53",
-          "view_count": 134412,
+          "duration": "5:23",
+          "view_count": 4684344,
           "timeliness": 0.1,
-          "score": 0.7
+          "score": 0.75
         }
       ],
       "count": 5,
       "priority": 1.0,
       "tier": "S",
       "emotion_type": "light",
-      "lastChecked": "2026-05-02T02:50:12.948962+00:00"
+      "lastChecked": "2026-05-02T04:51:06.151147+00:00"
     },
     "campingcar": {
       "label": "キャンピングカー",
       "items": [
         {
+          "title": "【5/30-31】キャンピングカー選びの疑問をオーナー様に直接相談！リアルな声が聞ける特別イベント開催決定！ - PR TIMES",
+          "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE12TG16a2hoaDM1MzdCWDdYMkdpLU9HLVJWLWw3OV9NajRsd21LZVpaTnFRMEhfN2xuN3hvZ1M0TUpVa3lhc0pqMHRwYkVnOF81WGZ6S2ZKYVdQTWJHdDlNUGNLU0JXbEMtOUE?oc=5",
+          "source": "PR TIMES",
+          "pub_date": "2026-05-02T04:10:01+00:00",
+          "timeliness": 0.986,
+          "score": 0.64
+        },
+        {
           "title": "トイファクトリー、最新キャンピングカー出展へ…FIELDSTYLE TOKYO 2026 - レスポンス（Response.jp）",
           "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE1RRjRJTlRuY2ZmWk1OTmV2Y05rTFV5b3BNeGdoUU9oOHdPdVdqT1JidGpqYnFPRGU2UDdhbDhkQnNZUnhHajc4QXBmWWt2THlWcEhvM2xvM1RicHlRanpZ?oc=5",
           "source": "レスポンス（Response.jp）",
           "pub_date": "2026-05-01T09:00:04+00:00",
-          "timeliness": 0.67,
-          "score": 0.514
-        },
-        {
-          "title": "トイファクトリー、最新キャンピングカー出展へ…FIELDSTYLE TOKYO 2026 1枚目の写真・画像 - レスポンス（Response.jp）",
-          "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOdkZNZ216WE5ZaUdZUUpNZVFlM0VJMkNCTTZsNTV0RERCVWhpMU5lY09iLXA2MjlZTlI5Y1ZOVU1oTmVZYUlRa1hjYkw2RVEwdEFtOWl6RjVSNzN1Nkl1R21MQmZtekdqS2Q0TUZiX1VBOVJnYy1pM3lSalVmREtSV18zZnZHLXBJVzY3ZEROaw?oc=5",
-          "source": "レスポンス（Response.jp）",
-          "pub_date": "2026-05-01T09:00:04+00:00",
-          "timeliness": 0.67,
-          "score": 0.514
+          "timeliness": 0.586,
+          "score": 0.481
         },
         {
           "title": "【5/9-10】トイファクトリーが東京ビッグサイトに登場！キャンピングカーで広がる遊び方「FIELDSTYLE TOKYO 2026」に出展 - PR TIMES",
           "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE1RNGhVUVZ3My1uUFJZQVhGbzFhY2RFb3pndlVjTXBncTlaX1RqcUhuSGxJLTh1QUlmYmFjM19oS0RLckotZFMzekN0ekZYLVZXTDRETzFsbzJveHFnc3JxUk96WjhnZU5lOHc?oc=5",
           "source": "PR TIMES",
           "pub_date": "2026-05-01T05:42:49+00:00",
-          "timeliness": 0.601,
-          "score": 0.486
-        },
-        {
-          "title": "完璧すぎるキャンピングカー「TR550LボレロVマックス」をレビュー！エアコン・シャワー・電子レンジ・FFヒーターを鋼製フレームのシェルに装備！バスコンバージョンやフルコンに匹敵する最強車中泊カー！",
-          "url": "https://www.youtube.com/watch?v=ZZ0mac8Z4lo",
-          "source": "キャンピングカーライフ",
-          "pub_date": null,
-          "content_type": "video",
-          "duration": "11:12",
-          "view_count": 159110,
-          "timeliness": 0.1,
-          "score": 0.496
+          "timeliness": 0.518,
+          "score": 0.453
         },
         {
           "title": "ゆとりある常設ベッドと大きなフリースペース搭載のハイエースキャンピングカー｜カトーモーターのシェスタ",
@@ -280,7 +270,18 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "23:52",
-          "view_count": 18277,
+          "view_count": 18279,
+          "timeliness": 0.1,
+          "score": 0.496
+        },
+        {
+          "title": "キャラバン救急車モデルのキャンピングカー YAZU ヤアズ 装備紹介　常設2段ベッドの特徴【CAMPER ASSIST】",
+          "url": "https://www.youtube.com/watch?v=FpSClWWMTqA",
+          "source": "CAMPER ASSIST キャンパーアシスト",
+          "pub_date": null,
+          "content_type": "video",
+          "duration": "1:27",
+          "view_count": 19315,
           "timeliness": 0.1,
           "score": 0.496
         }
@@ -289,7 +290,7 @@
       "priority": 0.615,
       "tier": "A",
       "emotion_type": "medium",
-      "lastChecked": "2026-05-02T00:51:53.771929+00:00"
+      "lastChecked": "2026-05-02T04:51:27.759188+00:00"
     },
     "onsen": {
       "label": "温泉",
@@ -355,24 +356,24 @@
           "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNOEMwNk5pQ2haZ0JPMWlnQzVBU0cyYjYzT0EwUDhjeWk1SnFQbjZqaWNoRkUta3loRnpoWU1oeUlBVUk2V1Z6bE1xT1RCYTIwSTBRZ2VNckY3c21LeXVhbTJNZ0d2bWJBUWNZVzhwV0EyMUtBbXNEdENuOWt1cmNyNENkS01XZw?oc=5",
           "source": "GOLF.com",
           "pub_date": "2026-05-01T21:06:05+00:00",
-          "timeliness": 0.922,
-          "score": 0.631
+          "timeliness": 0.838,
+          "score": 0.618
         },
         {
           "title": "Scratch by 50: State of the Game Update - MyGolfSpy",
           "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9uckpSVHZjVm5IRUpPX1NlTWQxUXpqYUdJSUhwOHY4blhMcjNnTjgwV2x3ZWtxdDh2emVCYWtXRS1JSVV6bDVZMXlXWHZhMEVmc1dQNk1vdXhCMGdzTk1mTGxoUWlESHNhUUNkRVFGUlV4OUZ0cTVGeUJ0MXNPcm8?oc=5",
           "source": "MyGolfSpy",
           "pub_date": "2026-05-01T15:09:27+00:00",
-          "timeliness": 0.798,
-          "score": 0.582
+          "timeliness": 0.715,
+          "score": 0.569
         },
         {
-          "title": "Why Volvik 2026 Golf Ball Range Could Be The Most Well Rounded On The Market - Golf Monthly",
-          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOWU1uLXlpbVRiWXRFY1luTUk0d29NQnB3M29ONjRTQlRkQkdrVXZMZF9YUWZadF9ycWowZ1VvTTBUZFBNOW1RX3QzRGwtZWhFXzBobmF6b0luY2QwMW9yZEN6dGg3aUlaamR3OE5WSUVaUWV5d2FMZm82Q0JVZDZTQ1RQZGlrWTR4bnFGaWRJVFcxTkk1SWJaOHNLMzIxVUdFQXhHdU1EaHlrSUl2Zlg4cHRwdw?oc=5",
+          "title": "I Used A TaylorMade Qi4D Driver For 10 Rounds - Here’s How It Helped My Scoring - Golf Monthly",
+          "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQQWVtTENXcXdJOGUyOHFPZC03Z1BfbER3R2NOU280dzR3cncxdUlITk9CYzNDcTFXMnR6RVZMd0x0MGs2MmxpX1pxd2d5bFBRT2drU21RTi1jcklPU1JfWnZkT1pncTBFLXBvOFdkLUhEcklmWkJaMEhMRjBJMG95Skt4dTZZblJiSW5ZUlUtd2NHU3kyT3lLaVlUUF9HVE52djQwcVNPM3hGcnpfWmpKc3RsSQ?oc=5",
           "source": "Golf Monthly",
-          "pub_date": "2026-05-01T13:24:15+00:00",
-          "timeliness": 0.761,
-          "score": 0.567
+          "pub_date": "2026-04-30T14:55:39+00:00",
+          "timeliness": 0.21,
+          "score": 0.367
         },
         {
           "title": "#5【決着】復活のハマちゃんVSゴルフ系アイドル コージ 大接戦の末の大団円…！？",
@@ -381,27 +382,27 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "20:23",
-          "view_count": 319722,
+          "view_count": 319730,
           "timeliness": 0.1,
-          "score": 0.563
+          "score": 0.583
         },
         {
-          "title": "普段ゴルフ系のYouTubeを観ない女性がハマってしまったクリエイターとは？嬉しさのあまり〇〇な行動に！？",
-          "url": "https://www.youtube.com/watch?v=hTCjL_psV4k",
-          "source": "BONGOLF",
+          "title": "#58【てらゆー降臨👑】憧れのゴルフYouTuberと夢の共演✨",
+          "url": "https://www.youtube.com/watch?v=ncoQBvumSvQ",
+          "source": "ハマちゃんとコージのお上手です",
           "pub_date": null,
           "content_type": "video",
-          "duration": "19:51",
-          "view_count": 67491,
+          "duration": "16:19",
+          "view_count": 234740,
           "timeliness": 0.1,
-          "score": 0.513
+          "score": 0.583
         }
       ],
       "count": 5,
-      "priority": 0.657,
+      "priority": 0.707,
       "tier": "A",
       "emotion_type": "light",
-      "lastChecked": "2026-05-02T00:51:45.266684+00:00"
+      "lastChecked": "2026-05-02T04:51:19.454672+00:00"
     },
     "cat_health": {
       "label": "猫の健康",
@@ -455,28 +456,40 @@
       "label": "経営戦略・コンサル",
       "items": [
         {
+          "title": "Christian van der Henst: AI agents raise legal questions for business ownership, dynamic pricing can lead to excessive costs, and KYC regulations must adapt for digital agents | TWIST - Crypto Briefing",
+          "url": "https://news.google.com/rss/articles/CBMirwJBVV95cUxNdkhFMVFQZlVpLTVyUDV6WXozTXJsaXZYdWlhZjBFU1FTR1dJLVRfOGdSVHc5ZWkzRm5uN1N3dGhpRDhTWm5jNkRla3pIV0RYbjNHcW1DRWJ2R2syelBPeGdNZ1FCQ1p6Tklac2t1NDNHWXZLWmxETFNrQXpVcWg3VEZiSHg2eWVpMGU4amRxUDdfNXhmY0JzWHdHdWpvUnF4V1lwZF9EbFlWNlNtamZDUmptYllZNnY3VkpHeE9wNzR1V1o2Mkt2MU9FVDh6U3YtZGRyU0hBMmZiekYyY1lsUUd6dTZBSG9XOEM4TFJIZjRrZHQ5OEowNk5SU1Y0d1p5ay03OVJhNVFCVUk2RlhqZFd0dUdfTmdjN1Rpa1R0LVZwRlFrcW01Nkl0SDd4YVE?oc=5",
+          "source": "Crypto Briefing",
+          "pub_date": "2026-05-02T00:25:02+00:00",
+          "timeliness": 0.908,
+          "score": 0.626
+        },
+        {
           "title": "取締役会にAIが座る時代…キリンHDらが先行するAI経営と日本企業のガバナンス - ビジネスジャーナル",
           "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE1RUVlaa2FfSEZmUGxQa1RzRDRVZEtJZjdwX3hQUW9aZE83SHhncHdGODd1ck9sQ2JINmptdWFiNHNERGJvb0FkeFNOdDA2ZFJqWGtIOExpMG9Lb1k?oc=5",
           "source": "ビジネスジャーナル",
           "pub_date": "2026-05-01T20:55:01+00:00",
-          "timeliness": 0.918,
-          "score": 0.67
+          "timeliness": 0.835,
+          "score": 0.597
         },
         {
           "title": "FTI Consulting (NYSE: FCN) grows Q1 revenue and keeps 2026 outlook - Stock Titan",
           "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOM1E4dlZCVkpkUGdQTnNoMTBKNVlHYXRPWGRkZ1lJNGNlcDFiSHVzcnJ6bTFpa3ZQYWVOTzlLeUdCLXZBbG56YzBrRnBUNXRxbGxWMHRZaFZPanNYdE9haEpic3FEbGtQS2dVZThaR19IdFdSLW1UbU1CeFZOZXV1UW9ldVVoMFF6UTFGU2tlcnpKSWF2Snd1WVpobVYyUHFYd1FsTGRMYlFsQQ?oc=5",
           "source": "Stock Titan",
           "pub_date": "2026-05-01T20:32:52+00:00",
-          "timeliness": 0.91,
-          "score": 0.667
+          "timeliness": 0.827,
+          "score": 0.594
         },
         {
-          "title": "黒字リストラ「既存事業の延命」は成長ならず 事業見直しと人材配置セットに - 日経ビジネス電子版",
-          "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1CWlpUN3J2ajktaTJfMG5iRk5YTDJWTlkxamxfdGNUUHQ4S21ZRkdPZmFfdzQ4b0FHVEFpNzFpemxkZjF4aFpqTEVmVF9JS1hPZlhkYTFXRk8tVDkyZE1rS0N0U1NiaTJjUGhKUjhrUjBJSjdnRGEtRjB6MUg?oc=5",
-          "source": "日経ビジネス電子版",
-          "pub_date": "2026-05-01T08:00:00+00:00",
-          "timeliness": 0.649,
-          "score": 0.663
+          "title": "【伝説のビジネス名著から学べ】会議の質が爆上がりするコンサル虎の巻フレーズ／元BCG高松智史がコンサル思考の真髄を熱弁／問いから始まる「論点思考」／大前研一も提唱する「戦略思考」【ビジネス虎の巻】",
+          "url": "https://www.youtube.com/watch?v=IfOQY6ghOsY",
+          "source": "PIVOT 公式チャンネル",
+          "pub_date": null,
+          "content_type": "video",
+          "duration": "39:27",
+          "view_count": 114424,
+          "_discovery": true,
+          "timeliness": 0.1,
+          "score": 0.613
         },
         {
           "title": "【AI時代の出世法則】「間違えないエリート」の没落／量産型ホワイトカラーは負け組／野生的なリーダーの時代／スラムダンクと宇宙兄弟／コンサルは下火／JTCの価値上昇／転職の２つのミス／年収を下げる転職を",
@@ -485,27 +498,16 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "47:45",
-          "view_count": 131494,
+          "view_count": 131538,
           "timeliness": 0.1,
-          "score": 0.603
-        },
-        {
-          "title": "【人の心を動かす“心的資本経営”】従業員の内発的動機がカギ／変化する店長の役割／新たな役職は年収2000万円にも",
-          "url": "https://www.youtube.com/watch?v=J3Nume6sGFM",
-          "source": "PIVOT 公式チャンネル",
-          "pub_date": null,
-          "content_type": "video",
-          "duration": "39:09",
-          "view_count": 155321,
-          "timeliness": 0.1,
-          "score": 0.603
+          "score": 0.563
         }
       ],
       "count": 5,
-      "priority": 0.758,
+      "priority": 0.658,
       "tier": "A",
       "emotion_type": "heavy",
-      "lastChecked": "2026-05-02T00:51:10.912426+00:00"
+      "lastChecked": "2026-05-02T04:50:52.019056+00:00"
     },
     "local_tokorozawa": {
       "label": "所沢・地域イベント",
@@ -843,7 +845,7 @@
       "priority": 0.5,
       "tier": "B",
       "emotion_type": "light",
-      "lastChecked": "2026-05-02T03:50:01.027669+00:00"
+      "lastChecked": "2026-05-02T05:50:01.601477+00:00"
     },
     "movie_theater": {
       "label": "映画・上映中",
@@ -962,141 +964,145 @@
   },
   "topItems": [
     {
-      "title": "Google、エージェント構築を実践的に学習できる無料コースを6月に開催 - CodeZine",
-      "url": "https://news.google.com/rss/articles/CBMiTkFVX3lxTE12WEE4V3NOREN5WURSQW5oSl96Q0RtSWlsNy1uZnd1VkYzc3FTMVZrYWRfYWtfa1dqMEtZV2J3WmViNlVwYTBSTjdfYTBTZw?oc=5",
+      "title": "【大谷翔平｜漫画を超えた伝説の試合ベスト5】MLBで史上初の記録を数多く達成してきた、日本人選手の“最高傑作” 今回は、後世に語り継がれる歴史的1試合ベスト5を紹介！",
+      "url": "https://www.youtube.com/watch?v=HhVvMgUVLtI",
+      "source": "SPOTVNOW",
+      "pub_date": null,
+      "content_type": "video",
+      "duration": "32:02",
+      "view_count": 5018279,
+      "_discovery": true,
+      "timeliness": 0.1,
+      "score": 0.8,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
+      "title": "2026年5月2日（土） MLB カージナルス vs ドジャース 試合結果 - au Webポータル",
+      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE95Vzh3WTkyUGY1d2MwbXNkU1E3R0xCWk5OUGljR1ZnYmU4SV9DeE5WTnAwU1Nyb1ZnYWVrYTJCLV9ZZDZ5NzNNSkE3TXNMbmYxN2NFZkZVQWhmRU03emdPOTJ0eHNkZ3hxcXVFLXV0a3ExaUV6RV9NZ3lYZ3Zudw?oc=5",
+      "source": "au Webポータル",
+      "pub_date": "2026-05-02T03:21:10+00:00",
+      "timeliness": 0.969,
+      "score": 0.788,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
+      "title": "Dodgers walked all over in 7-2 loss to Cardinals Friday night. - True Blue LA",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNZXNyaDFBVVNCNzBMQzJPQjMteC1VbUJLcmlMWFZyUTJ0VXhPVVVLMWRKN2NEMVNWbENPYVFycU1oa0FaZ25iOEJBdnpObklwdTc4OXlHcVhzZl9UVlJXWktKRVd1c01LSk93N0JseC1QVkZYQVNYUVBPeG9xLWczV1FpN2x6RVBqNjJLVERNUXJsQ2U3TFBpZTE1Sm9fazFQUjRrVGhPenZqVzg?oc=5",
+      "source": "True Blue LA",
+      "pub_date": "2026-05-02T03:24:00+00:00",
+      "timeliness": 0.97,
+      "score": 0.788,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
+      "title": "2026年5月2日（土） MLB カージナルス vs ドジャース 試合結果 - ｄメニューニュース",
+      "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxOcl9QNlE2QndTb0RyYXdyOElNZnVyX3Y4X1BoQUdYSTZydDFFRjhNcmMwR1hMYmtOY09QQkJKMXA3NzFqU1RLWmVrc1NxbWRKY0w2YU1hZ0F5cHVyRk0zWlBWQi1ERDhKRlg3LWFrVlBGRTVKVTJGS01SYWxEVDMwV21TNlhyVnExSWfSAYoBQVVfeXFMTnJfUDZRNkJ3U29EcmF3cjhJTWZ1cl92OF9QaEFHWEk2cnQxRUY4TXJjMEdYTGJrTmNPUEJCSjFwNzcxalNUS1pla3NTcW1kSmNMNmFNYWdBeXB1ckZNM1pQVkItREQ4SkZYNy1ha1ZQRkU1SlUyRktNUmFsRFQzMFdtUzZYclZxMUln?oc=5",
+      "source": "ｄメニューニュース",
+      "pub_date": "2026-05-02T03:12:00+00:00",
+      "timeliness": 0.966,
+      "score": 0.786,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
+      "title": "【ドジャース・大谷翔平 2試合連続の44号！】今季5度目の先頭打者アーチ！そしてベッツ、フリーマンも続きMVPトリオ驚愕の3者連続HR！",
+      "url": "https://www.youtube.com/watch?v=t8HApbHBf84",
+      "source": "SPOTVNOW",
+      "pub_date": null,
+      "content_type": "video",
+      "duration": "5:23",
+      "view_count": 4684344,
+      "timeliness": 0.1,
+      "score": 0.75,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
+      "title": "仕様駆動開発への期待と誤解 ～「仕様」とは、結局何なのか～ - CodeZine",
+      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE1HQmlTY0xkU0VwZXIzbjJsb2NJdVVYREt2enUweEwtQVVkc1JvTkg3WjdEOFVDYzBPckxpbDFidVVHWF84S1g2Y0tPajRNSXo0bGc?oc=5",
       "source": "CodeZine",
-      "pub_date": "2026-05-01T22:31:28+00:00",
-      "timeliness": 0.952,
-      "score": 0.801,
+      "pub_date": "2026-05-01T16:41:57+00:00",
+      "timeliness": 0.747,
+      "score": 0.679,
       "category": "ai_agent",
       "categoryLabel": "AIエージェント",
-      "priority": 0.8,
-      "tier": "S"
-    },
-    {
-      "title": "大谷翔平、第３打席は中飛に倒れここまで快音響かず　チームも劣勢で後半戦へ - ｄメニューニュース",
-      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOX0dMMzI1RVFQQlNUcldRVXFseGMtUGZtdHVBbjRSVFNjNWtFQUlOVFl6NG5wY1pmYTdHd1ducnNBSFJnN0ZrVF9QdXU1ZjZfU2tmT3JqLTBZVjEwT3NQcXFpRXl1V2ItTUdJT3Qwb3FoLTFDbjRSdHd2a0JSMHVFUnIta0prR0ZIdjVxcmJMd1U0NWhiUUHSAZsBQVVfeXFMUFZPM1FYQmJ6OGlHdllLU3RvQjQzVU5HNXJzMGh4d1hmZVRHMnZwNEcxTUFKMzlXSmotS2ZUb3FUY3UwZkxiZ2k4aDVtcVlfX3JRek96UDhha0ZsSVVOdjhPN0tSUnBXNXBpWnhxcTZwUEx3QnpaNTB0R3VEYU9CZ1FBSHM1MGZNR1dsMUxZYVBVbHBrX0loejBmdTA?oc=5",
-      "source": "ｄメニューニュース",
-      "pub_date": "2026-05-02T02:03:00+00:00",
-      "timeliness": 0.984,
-      "score": 0.793,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
-    },
-    {
-      "title": "【MLB】「大谷翔平／今日の打席結果速報」5月初試合、昨季一発の若手左腕から7号アーチなるか【5月2日カージナルス戦】 - spread-sports.jp",
-      "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE93NHQ0UF9rNGdnRm9XbnZWeUFaUlZyTXc4TXBCZ3lOM0JCdng1SGZRRl80T2djNmxtdkpLNG9OdWR0cWRCMmROSjJHVHFHNkN3d3c?oc=5",
-      "source": "spread-sports.jp",
-      "pub_date": "2026-05-02T00:16:54+00:00",
-      "timeliness": 0.947,
-      "score": 0.779,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
-    },
-    {
-      "title": "Dodgers vs. Cardinals (May 1, 2026) Box Score - ESPN",
-      "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE92LUMtazNIbWY0U0dJSXI0VXhXSWF4ZjFLQ2p5REI5TG1WNmNMRGUzNHNoVFBfWHlDWTA1cVRmR2tmZWN5YlcyLWpYU2RCV0tfYlAxRlBaUzJkWUdpamhPU2t3?oc=5",
-      "source": "ESPN",
-      "pub_date": "2026-05-02T00:16:08+00:00",
-      "timeliness": 0.946,
-      "score": 0.779,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
+      "priority": 0.7,
+      "tier": "A"
     },
     {
       "title": "Oracle AI Agent Memory: A Governed, Unified Memory Core for Enterprise AI Agents - Oracle Blogs",
       "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPYnRIbmRfR2RkRGZKMjY5ZFgyaXpqdnRPU3llaVJUMFkyNnVLZVBOSVJ4bkJiZmRGSUJSaGJyRWlGRnpPTjdEUDJ1Y1R3Znl5NnFsbUFiYkF6SWVXdHJqSDBQVnQzazRoOS1TdTNMbmIzaEpaV2VQcFpONVphUGNEdFFyanFaTXZOeGVKSTdRN3BSMTZWSk81Rlo3c0VjV3FuNHc4elVMajJQdnFsSkRCQl96WWs?oc=5",
       "source": "Oracle Blogs",
       "pub_date": "2026-05-02T00:11:15+00:00",
+      "timeliness": 0.903,
+      "score": 0.641,
+      "category": "ai_agent",
+      "categoryLabel": "AIエージェント",
+      "priority": 0.7,
+      "tier": "A"
+    },
+    {
+      "title": "【5/30-31】キャンピングカー選びの疑問をオーナー様に直接相談！リアルな声が聞ける特別イベント開催決定！ - PR TIMES",
+      "url": "https://news.google.com/rss/articles/CBMiakFVX3lxTE12TG16a2hoaDM1MzdCWDdYMkdpLU9HLVJWLWw3OV9NajRsd21LZVpaTnFRMEhfN2xuN3hvZ1M0TUpVa3lhc0pqMHRwYkVnOF81WGZ6S2ZKYVdQTWJHdDlNUGNLU0JXbEMtOUE?oc=5",
+      "source": "PR TIMES",
+      "pub_date": "2026-05-02T04:10:01+00:00",
       "timeliness": 0.986,
-      "score": 0.715,
-      "category": "ai_agent",
-      "categoryLabel": "AIエージェント",
-      "priority": 0.8,
-      "tier": "S"
-    },
-    {
-      "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
-      "url": "https://www.youtube.com/watch?v=dZK7SIJjCSQ",
-      "source": "SPOTVNOW",
-      "pub_date": null,
-      "content_type": "video",
-      "duration": "5:45",
-      "view_count": 255030,
-      "timeliness": 0.1,
-      "score": 0.7,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
-    },
-    {
-      "title": "【“有望株の宝庫”ドジャースNo.2プロスペクトのホープが満塁の場面で結果を残す！】ドジャースvsダイヤモンドバックス MLB2026スプリングトレーニング 2.26",
-      "url": "https://www.youtube.com/watch?v=Hjyl9guC_-o",
-      "source": "SPOTVNOW",
-      "pub_date": null,
-      "content_type": "video",
-      "duration": "2:53",
-      "view_count": 134412,
-      "timeliness": 0.1,
-      "score": 0.7,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
-    },
-    {
-      "title": "It’s 10PM. Do You Know Where Your AI Agents Are? - Forbes",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQVWVaeXkwYUtJMlVBZ3BsclRwc1pZd3hOZGlZc3FMYm9STk5aN1NuLXc3TUhHR2FQRG9vSDZTZklLRnMxZGhvZFR4OXY3RDZiNEkxUEhEdzF0SW1Fc25ZZnRrcDlzUW9pUllIdWpELVVTRENHRzIzZnNuWVJfQl9DZnFPQmpGZXoxNGVQd1IwSzNUS1ltMUtieTRlanROMEVybEE?oc=5",
-      "source": "Forbes",
-      "pub_date": "2026-05-01T20:30:06+00:00",
-      "timeliness": 0.91,
-      "score": 0.684,
-      "category": "ai_agent",
-      "categoryLabel": "AIエージェント",
-      "priority": 0.8,
-      "tier": "S"
-    },
-    {
-      "title": "取締役会にAIが座る時代…キリンHDらが先行するAI経営と日本企業のガバナンス - ビジネスジャーナル",
-      "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE1RUVlaa2FfSEZmUGxQa1RzRDRVZEtJZjdwX3hQUW9aZE83SHhncHdGODd1ck9sQ2JINmptdWFiNHNERGJvb0FkeFNOdDA2ZFJqWGtIOExpMG9Lb1k?oc=5",
-      "source": "ビジネスジャーナル",
-      "pub_date": "2026-05-01T20:55:01+00:00",
-      "timeliness": 0.918,
-      "score": 0.67,
-      "category": "business_strategy",
-      "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.758,
+      "score": 0.64,
+      "category": "campingcar",
+      "categoryLabel": "キャンピングカー",
+      "priority": 0.615,
       "tier": "A"
     },
     {
-      "title": "FTI Consulting (NYSE: FCN) grows Q1 revenue and keeps 2026 outlook - Stock Titan",
-      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOM1E4dlZCVkpkUGdQTnNoMTBKNVlHYXRPWGRkZ1lJNGNlcDFiSHVzcnJ6bTFpa3ZQYWVOTzlLeUdCLXZBbG56YzBrRnBUNXRxbGxWMHRZaFZPanNYdE9haEpic3FEbGtQS2dVZThaR19IdFdSLW1UbU1CeFZOZXV1UW9ldVVoMFF6UTFGU2tlcnpKSWF2Snd1WVpobVYyUHFYd1FsTGRMYlFsQQ?oc=5",
-      "source": "Stock Titan",
-      "pub_date": "2026-05-01T20:32:52+00:00",
-      "timeliness": 0.91,
-      "score": 0.667,
-      "category": "business_strategy",
-      "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.758,
+      "title": "CLAUDE CODE FULL COURSE 4 HOURS: Build & Sell (2026)",
+      "url": "https://www.youtube.com/watch?v=QoQBzR1NIqI",
+      "source": "Nick Saraev",
+      "pub_date": null,
+      "content_type": "video",
+      "duration": "250:43",
+      "view_count": 1521252,
+      "timeliness": 0.1,
+      "score": 0.63,
+      "category": "ai_agent",
+      "categoryLabel": "AIエージェント",
+      "priority": 0.7,
       "tier": "A"
     },
     {
-      "title": "黒字リストラ「既存事業の延命」は成長ならず 事業見直しと人材配置セットに - 日経ビジネス電子版",
-      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTE1CWlpUN3J2ajktaTJfMG5iRk5YTDJWTlkxamxfdGNUUHQ4S21ZRkdPZmFfdzQ4b0FHVEFpNzFpemxkZjF4aFpqTEVmVF9JS1hPZlhkYTFXRk8tVDkyZE1rS0N0U1NiaTJjUGhKUjhrUjBJSjdnRGEtRjB6MUg?oc=5",
-      "source": "日経ビジネス電子版",
-      "pub_date": "2026-05-01T08:00:00+00:00",
-      "timeliness": 0.649,
-      "score": 0.663,
+      "title": "Meta Introduces Autodata: An Agentic Framework That Turns AI Models into Autonomous Data Scientists for High-Quality Training Data Creation - MarkTechPost",
+      "url": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxNMnZic2hhLWpOQjlrQWM3YTJOTGVYc1BxMVBpUlVDSlVnWUtpSlFDcEZFblhqLXB3VHc0ZV9EWWhiZ3haT183ektZRkdUNjVZVzVmemVCdEZEU3FFX1Vnemt6TGZyOGFidjBPOFdQai1STDFfSVY2ZzF5MHJZQmVmZlgxQ3VSYnA3M2F4RDJ2NHhBYUMwSVNrSF9uTUhOc3RCSVZFd2NkRjNhb0dhT2NDanhjb0ZhaWVuUnBEQTItZlhYeFpVLTVqb0hOa0dqOVlvYzBleWVtTjAtbGhyVW0wMXphQXdxcU5obmtXMXc4Nnp4bWdoM2k3dnJBbFZYdFAyN3c1OTE0ZndOUWvSAZACQVVfeXFMUGhPNHNBb3JyYTFGbldKRno4alVfc19wbUcyQ3ZObU5OanBOSjVGMEpwVEVtVXB6T1FfWTZzNkFTQ2N3TlNib1I4ZklHUlBMOU5MRzJ6Xy11aXQ1M2FMOXpKNXF3VzNKSlMySFlrcDJCdWJBN2k2QUNScUJubjYxSldaQXVlMUV4YzE5S1VJMTZXSW9CZUtWVlFadU9GRDdxb3ZDZll6Vkx6cVBFQmxzMlNYNkE1NTdIZHFUYXJkOTlVdUNTRlBJR0dscWVkeEhERk92Mk11Q01SSWVUN2N6YWI5bTVlbS1RZG1hTko2ek5JbHdMVkpLX2tTUVliTHUtR3MtMm9VZHVHV2lYcW1GTXI?oc=5",
+      "source": "MarkTechPost",
+      "pub_date": "2026-05-01T22:24:02+00:00",
+      "timeliness": 0.866,
+      "score": 0.626,
+      "category": "ai_agent",
+      "categoryLabel": "AIエージェント",
+      "priority": 0.7,
+      "tier": "A"
+    },
+    {
+      "title": "Christian van der Henst: AI agents raise legal questions for business ownership, dynamic pricing can lead to excessive costs, and KYC regulations must adapt for digital agents | TWIST - Crypto Briefing",
+      "url": "https://news.google.com/rss/articles/CBMirwJBVV95cUxNdkhFMVFQZlVpLTVyUDV6WXozTXJsaXZYdWlhZjBFU1FTR1dJLVRfOGdSVHc5ZWkzRm5uN1N3dGhpRDhTWm5jNkRla3pIV0RYbjNHcW1DRWJ2R2syelBPeGdNZ1FCQ1p6Tklac2t1NDNHWXZLWmxETFNrQXpVcWg3VEZiSHg2eWVpMGU4amRxUDdfNXhmY0JzWHdHdWpvUnF4V1lwZF9EbFlWNlNtamZDUmptYllZNnY3VkpHeE9wNzR1V1o2Mkt2MU9FVDh6U3YtZGRyU0hBMmZiekYyY1lsUUd6dTZBSG9XOEM4TFJIZjRrZHQ5OEowNk5SU1Y0d1p5ay03OVJhNVFCVUk2RlhqZFd0dUdfTmdjN1Rpa1R0LVZwRlFrcW01Nkl0SDd4YVE?oc=5",
+      "source": "Crypto Briefing",
+      "pub_date": "2026-05-02T00:25:02+00:00",
+      "timeliness": 0.908,
+      "score": 0.626,
       "category": "business_strategy",
       "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.758,
+      "priority": 0.658,
       "tier": "A"
     },
     {
@@ -1104,53 +1110,51 @@
       "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNOEMwNk5pQ2haZ0JPMWlnQzVBU0cyYjYzT0EwUDhjeWk1SnFQbjZqaWNoRkUta3loRnpoWU1oeUlBVUk2V1Z6bE1xT1RCYTIwSTBRZ2VNckY3c21LeXVhbTJNZ0d2bWJBUWNZVzhwV0EyMUtBbXNEdENuOWt1cmNyNENkS01XZw?oc=5",
       "source": "GOLF.com",
       "pub_date": "2026-05-01T21:06:05+00:00",
-      "timeliness": 0.922,
-      "score": 0.631,
+      "timeliness": 0.838,
+      "score": 0.618,
       "category": "golf",
       "categoryLabel": "ゴルフ",
-      "priority": 0.657,
+      "priority": 0.707,
       "tier": "A"
     },
     {
-      "title": "【AI時代の出世法則】「間違えないエリート」の没落／量産型ホワイトカラーは負け組／野生的なリーダーの時代／スラムダンクと宇宙兄弟／コンサルは下火／JTCの価値上昇／転職の２つのミス／年収を下げる転職を",
-      "url": "https://www.youtube.com/watch?v=LF4yyYA4G-A",
+      "title": "【伝説のビジネス名著から学べ】会議の質が爆上がりするコンサル虎の巻フレーズ／元BCG高松智史がコンサル思考の真髄を熱弁／問いから始まる「論点思考」／大前研一も提唱する「戦略思考」【ビジネス虎の巻】",
+      "url": "https://www.youtube.com/watch?v=IfOQY6ghOsY",
       "source": "PIVOT 公式チャンネル",
       "pub_date": null,
       "content_type": "video",
-      "duration": "47:45",
-      "view_count": 131494,
+      "duration": "39:27",
+      "view_count": 114424,
+      "_discovery": true,
       "timeliness": 0.1,
-      "score": 0.603,
+      "score": 0.613,
       "category": "business_strategy",
       "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.758,
+      "priority": 0.658,
       "tier": "A"
     },
     {
-      "title": "【人の心を動かす“心的資本経営”】従業員の内発的動機がカギ／変化する店長の役割／新たな役職は年収2000万円にも",
-      "url": "https://www.youtube.com/watch?v=J3Nume6sGFM",
-      "source": "PIVOT 公式チャンネル",
-      "pub_date": null,
-      "content_type": "video",
-      "duration": "39:09",
-      "view_count": 155321,
-      "timeliness": 0.1,
-      "score": 0.603,
+      "title": "取締役会にAIが座る時代…キリンHDらが先行するAI経営と日本企業のガバナンス - ビジネスジャーナル",
+      "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE1RUVlaa2FfSEZmUGxQa1RzRDRVZEtJZjdwX3hQUW9aZE83SHhncHdGODd1ck9sQ2JINmptdWFiNHNERGJvb0FkeFNOdDA2ZFJqWGtIOExpMG9Lb1k?oc=5",
+      "source": "ビジネスジャーナル",
+      "pub_date": "2026-05-01T20:55:01+00:00",
+      "timeliness": 0.835,
+      "score": 0.597,
       "category": "business_strategy",
       "categoryLabel": "経営戦略・コンサル",
-      "priority": 0.758,
+      "priority": 0.658,
       "tier": "A"
     },
     {
-      "title": "Scratch by 50: State of the Game Update - MyGolfSpy",
-      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE9uckpSVHZjVm5IRUpPX1NlTWQxUXpqYUdJSUhwOHY4blhMcjNnTjgwV2x3ZWtxdDh2emVCYWtXRS1JSVV6bDVZMXlXWHZhMEVmc1dQNk1vdXhCMGdzTk1mTGxoUWlESHNhUUNkRVFGUlV4OUZ0cTVGeUJ0MXNPcm8?oc=5",
-      "source": "MyGolfSpy",
-      "pub_date": "2026-05-01T15:09:27+00:00",
-      "timeliness": 0.798,
-      "score": 0.582,
-      "category": "golf",
-      "categoryLabel": "ゴルフ",
-      "priority": 0.657,
+      "title": "FTI Consulting (NYSE: FCN) grows Q1 revenue and keeps 2026 outlook - Stock Titan",
+      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOM1E4dlZCVkpkUGdQTnNoMTBKNVlHYXRPWGRkZ1lJNGNlcDFiSHVzcnJ6bTFpa3ZQYWVOTzlLeUdCLXZBbG56YzBrRnBUNXRxbGxWMHRZaFZPanNYdE9haEpic3FEbGtQS2dVZThaR19IdFdSLW1UbU1CeFZOZXV1UW9ldVVoMFF6UTFGU2tlcnpKSWF2Snd1WVpobVYyUHFYd1FsTGRMYlFsQQ?oc=5",
+      "source": "Stock Titan",
+      "pub_date": "2026-05-01T20:32:52+00:00",
+      "timeliness": 0.827,
+      "score": 0.594,
+      "category": "business_strategy",
+      "categoryLabel": "経営戦略・コンサル",
+      "priority": 0.658,
       "tier": "A"
     }
   ]

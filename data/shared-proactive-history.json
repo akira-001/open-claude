@@ -664,6 +664,38 @@
       ],
       "evaluate_score": 0.79,
       "sentAt": "2026-05-02T04:30:49.418Z"
+    },
+    {
+      "botId": "mei",
+      "botName": "Mei（メイ）",
+      "category": "hobby_leisure",
+      "interestCategory": "general",
+      "preview": "そういえばさ、Akiraさん。\n\nファッションプレスに映画 *SAKAMOTO DAYS* の記事が出てたよ 🎬 目黒蓮が家族を守るため戦う伝説の殺し屋・坂本太郎を演じるみたい。\n\nGW、映画見に行くならチェックしてもいいかもね。\nhttps://news.google.com/rss/artic",
+      "topic": "SAKAMOTO DAYS映画",
+      "url": "https://news.google.com/rss/articles/CBMiU0FVX3lxTE1LcUpBbjBudXJpQ3B3Snl3T2s1MDkyMnctRVJYLXJ6V2VMUFh6Vi1ybUVsd3pfem5yQk9Rby10amtFVmxmOFd0clRZdlpHRUptOW00?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMiU0FVX3lxTE1LcUpBbjBudXJpQ3B3Snl3T2s1MDkyMnctRVJYLXJ6V2VMUFh6Vi1ybUVsd3pfem5yQk9Rby10amtFVmxmOFd0clRZdlpHRUptOW00?oc=5",
+      "sourceType": "topic-table",
+      "skill": "general",
+      "themePath": [
+        "entertainment",
+        "entertainment/movie-drama",
+        "entertainment/movie-drama/film",
+        "entertainment/movie-drama/film/theater"
+      ],
+      "themeKey": "entertainment/movie-drama/film/theater",
+      "inner_thought": "映画在庫が足りない。SAKAMOTO DAYSの実写映画、GW中の選択肢として伝えたい",
+      "plan": [
+        "SAKAMOTO DAYS映画情報を共有",
+        "ツツジ見頃の埼玉情報を共有",
+        "沈黙して様子見"
+      ],
+      "generate_score": [
+        0.82,
+        0.65,
+        0.3
+      ],
+      "evaluate_score": 0.78,
+      "sentAt": "2026-05-02T05:01:01.165Z"
     }
   ]
 }

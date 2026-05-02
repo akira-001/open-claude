@@ -86,7 +86,7 @@ export default function ImproveLoopPanel({ open }: ImproveLoopPanelProps) {
   const [spanMin, setSpanMin] = useState(60);
   const [autoApprove, setAutoApprove] = useState(false);
   const [loopStatus, setLoopStatus] = useState('');
-  const [reactivity, setReactivity] = useState(4);
+  const [reactivity, setReactivity] = useState<number | null>(null);
 
   const loopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loopEnabledRef = useRef(loopEnabled);
@@ -185,7 +185,9 @@ export default function ImproveLoopPanel({ open }: ImproveLoopPanelProps) {
   }, [autoApprove, loopEnabled]);
 
   const handleReactivityChange = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = parseInt(e.target.value, 10);
+    const val = e.target.value;
+    if (!val) return;
+    const next = parseInt(val, 10);
     setReactivity(next);
     try {
       await fetch(`${API_BASE}/ambient/reactivity`, {
@@ -226,12 +228,13 @@ export default function ImproveLoopPanel({ open }: ImproveLoopPanelProps) {
       <span style={labelStyle} title="1=最小, 5=おしゃべりモード(media_likelyでもco_view)">
         Reactivity
       </span>
-      <select value={reactivity} onChange={handleReactivityChange} style={selectStyle}>
+      <select value={reactivity ?? ''} onChange={handleReactivityChange} style={selectStyle}>
+        {reactivity === null && <option value="">読込中...</option>}
         {REACTIVITY_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-      <span style={statusStyle}>{reactivityNote(reactivity)}</span>
+      {reactivity !== null && <span style={statusStyle}>{reactivityNote(reactivity)}</span>}
     </div>
   );
 }

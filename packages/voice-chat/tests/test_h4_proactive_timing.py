@@ -43,11 +43,8 @@ def _make_cs(
 
 class TestH4TtsSuppressed:
     def _call(self, cs, last_at=0.0):
-        import importlib, sys
-        # Import the helpers directly by re-implementing the pure logic
-        # (avoids heavy app.py startup) mirroring the actual implementation.
         def h4_get_tts_suppressed(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             return context_summary.time_context == "night"
         return h4_get_tts_suppressed(cs)
@@ -56,8 +53,12 @@ class TestH4TtsSuppressed:
         cs = _make_cs(time_context="night", confidence=0.8)
         assert self._call(cs) is True
 
-    def test_night_low_confidence_passes_through(self):
+    def test_night_at_threshold_suppresses(self):
         cs = _make_cs(time_context="night", confidence=0.5)
+        assert self._call(cs) is True
+
+    def test_night_below_threshold_passes_through(self):
+        cs = _make_cs(time_context="night", confidence=0.49)
         assert self._call(cs) is False
 
     def test_night_stale_context_passes_through(self):
@@ -80,7 +81,7 @@ FOCUSED_THROTTLE_SEC = 1200  # 20 min
 class TestH4FocusedThrottle:
     def _call(self, cs, last_at: float):
         def h4_get_focused_throttled(context_summary, proactive_last_at):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             if context_summary.mood != "focused":
                 return False
@@ -103,8 +104,13 @@ class TestH4FocusedThrottle:
             last_at = time.time() - 60  # 1 min ago — would throttle if focused
             assert self._call(cs, last_at) is False, f"Expected False for mood={mood!r}"
 
-    def test_focused_low_confidence_not_throttled(self):
+    def test_focused_at_threshold_throttled(self):
         cs = _make_cs(mood="focused", confidence=0.5)
+        last_at = time.time() - 60
+        assert self._call(cs, last_at) is True
+
+    def test_focused_below_threshold_not_throttled(self):
+        cs = _make_cs(mood="focused", confidence=0.49)
         last_at = time.time() - 60
         assert self._call(cs, last_at) is False
 
@@ -129,7 +135,7 @@ REST_MSG = "少し休んだらどうかな？疲れが溜まっているみた�
 class TestH4StressedRest:
     def _call(self, cs):
         def h4_get_stressed_rest_message(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return None
             if context_summary.mood == "stressed":
                 return REST_MSG
@@ -141,8 +147,12 @@ class TestH4StressedRest:
         result = self._call(cs)
         assert result == REST_MSG
 
-    def test_stressed_low_confidence_returns_none(self):
+    def test_stressed_at_threshold_returns_rest_msg(self):
         cs = _make_cs(mood="stressed", confidence=0.5)
+        assert self._call(cs) == REST_MSG
+
+    def test_stressed_below_threshold_returns_none(self):
+        cs = _make_cs(mood="stressed", confidence=0.49)
         assert self._call(cs) is None
 
     def test_stressed_stale_returns_none(self):
@@ -167,19 +177,19 @@ class TestH4GateCombinations:
         cs = _make_cs(mood="calm", time_context="afternoon", confidence=0.9)
 
         def tts_suppressed(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             return context_summary.time_context == "night"
 
         def focused_throttled(context_summary, last_at):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             if context_summary.mood != "focused":
                 return False
             return (time.time() - last_at) < FOCUSED_THROTTLE_SEC
 
         def stressed_rest(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return None
             if context_summary.mood == "stressed":
                 return REST_MSG
@@ -190,23 +200,23 @@ class TestH4GateCombinations:
         assert stressed_rest(cs) is None
 
     def test_confidence_below_threshold_disables_all_gates(self):
-        """confidence=0.59 → all three gates disabled."""
-        cs = _make_cs(mood="stressed", time_context="night", confidence=0.59)
+        """confidence=0.49 → all three gates disabled."""
+        cs = _make_cs(mood="stressed", time_context="night", confidence=0.49)
 
         def tts_suppressed(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             return context_summary.time_context == "night"
 
         def focused_throttled(context_summary, last_at):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return False
             if context_summary.mood != "focused":
                 return False
             return (time.time() - last_at) < FOCUSED_THROTTLE_SEC
 
         def stressed_rest(context_summary):
-            if context_summary.is_stale() or context_summary.confidence < 0.6:
+            if context_summary.is_stale() or context_summary.confidence < 0.5:
                 return None
             if context_summary.mood == "stressed":
                 return REST_MSG

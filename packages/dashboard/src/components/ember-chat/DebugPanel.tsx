@@ -41,7 +41,7 @@ export default function DebugPanel({ open, onToggle }: DebugPanelProps) {
   const [loopStatus, setLoopStatus] = useState('');
 
   // --- Reactivity state ---
-  const [reactivity, setReactivity] = useState(4);
+  const [reactivity, setReactivity] = useState<number | null>(null);
 
   // --- Refs for loop timer ---
   const loopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -158,7 +158,9 @@ export default function DebugPanel({ open, onToggle }: DebugPanelProps) {
   }, [autoApprove, loopEnabled]);
 
   const handleReactivityChange = useCallback(async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = parseInt(e.target.value, 10);
+    const val = e.target.value;
+    if (!val) return;
+    const next = parseInt(val, 10);
     setReactivity(next);
     try {
       await fetch(`${API_BASE}/ambient/reactivity`, {
@@ -241,19 +243,22 @@ export default function DebugPanel({ open, onToggle }: DebugPanelProps) {
             Reactivity
           </span>
           <select
-            value={reactivity}
+            value={reactivity ?? ''}
             onChange={handleReactivityChange}
             className="px-1.5 py-0.5 rounded text-[11px] border border-[var(--border)] bg-[var(--surface)] text-[var(--text-dim)] focus:outline-none focus:border-[var(--accent)]"
           >
+            {reactivity === null && <option value="">読込中...</option>}
             {REACTIVITY_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
 
           {/* Reactivity note */}
-          <span className="text-[10px] text-[var(--text-dim)] opacity-70">
-            {reactivityNote(reactivity)}
-          </span>
+          {reactivity !== null && (
+            <span className="text-[10px] text-[var(--text-dim)] opacity-70">
+              {reactivityNote(reactivity)}
+            </span>
+          )}
         </div>
       )}
     </div>

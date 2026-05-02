@@ -41,6 +41,11 @@ interface InternalRefs {
   silenceTimer: ReturnType<typeof setTimeout> | null;
   lastAudioSendTs: number;
   watchdog: ReturnType<typeof setInterval> | null;
+  // raw chunk recorder
+  rawChunkInterval: ReturnType<typeof setInterval> | null;
+  currentChunkRecorder: MediaRecorder | null;
+  chunkStream: MediaStream | null;
+  chunkStreamMode: 'dedicated_no_ec_ns' | 'shared_fallback';
 }
 
 export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
@@ -70,6 +75,10 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
     silenceTimer: null,
     lastAudioSendTs: 0,
     watchdog: null,
+    rawChunkInterval: null,
+    currentChunkRecorder: null,
+    chunkStream: null,
+    chunkStreamMode: 'shared_fallback',
   });
 
   const sendAudio = useCallback(async (buf: ArrayBuffer, speechTs: number) => {
@@ -93,8 +102,22 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
     }
   }, [wsRef]);
 
+  const stopRawChunkRecorder = useCallback(() => {
+    const r = refs.current;
+    if (r.rawChunkInterval) { clearInterval(r.rawChunkInterval); r.rawChunkInterval = null; }
+    if (r.currentChunkRecorder) {
+      try { r.currentChunkRecorder.stop(); } catch {}
+      r.currentChunkRecorder = null;
+    }
+    if (r.chunkStream && r.chunkStream !== r.micStream) {
+      try { r.chunkStream.getTracks().forEach((t) => t.stop()); } catch {}
+    }
+    r.chunkStream = null;
+  }, []);
+
   const stop = useCallback(() => {
     const r = refs.current;
+    stopRawChunkRecorder();
     if (r.checkInterval) { clearInterval(r.checkInterval); r.checkInterval = null; }
     if (r.silenceTimer) { clearTimeout(r.silenceTimer); r.silenceTimer = null; }
     if (r.watchdog) { clearInterval(r.watchdog); r.watchdog = null; }
@@ -111,7 +134,71 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
     }
     setProcessing(false);
     setStale(false);
-  }, []);
+  }, [stopRawChunkRecorder]);
+
+  const initRawChunkRecorder = useCallback(async () => {
+    const r = refs.current;
+    if (!r.micStream || r.rawChunkInterval) return;
+    const RAW_MIME = 'audio/webm;codecs=opus';
+    if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported(RAW_MIME)) {
+      console.warn('[AlwaysOn] raw chunk recorder unsupported in this env');
+      return;
+    }
+    const CHUNK_MS = 30000;
+
+    let chunkStream: MediaStream;
+    let streamMode: 'dedicated_no_ec_ns' | 'shared_fallback' = 'shared_fallback';
+    try {
+      chunkStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
+      r.chunkStream = chunkStream;
+      streamMode = 'dedicated_no_ec_ns';
+      console.log('[AlwaysOn] raw chunk: dedicated stream (EC/NS/AGC OFF) acquired');
+    } catch (err) {
+      console.warn('[AlwaysOn] dedicated chunk stream failed, fallback to shared micStream', err);
+      chunkStream = r.micStream!;
+      r.chunkStream = chunkStream;
+    }
+    r.chunkStreamMode = streamMode;
+
+    const startNewSession = () => {
+      try {
+        const rec = new MediaRecorder(chunkStream, { mimeType: RAW_MIME, audioBitsPerSecond: 32000 });
+        const chunks: Blob[] = [];
+        rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+        rec.onstop = () => {
+          if (chunks.length === 0) return;
+          const blob = new Blob(chunks, { type: RAW_MIME });
+          const ws = wsRef.current;
+          if (!ws || ws.readyState !== WebSocket.OPEN) return;
+          blob.arrayBuffer().then((buf) => {
+            try {
+              ws.send(JSON.stringify({ type: 'raw_audio_chunk', ts: Date.now(), stream_mode: refs.current.chunkStreamMode }));
+              ws.send(buf);
+            } catch (sendErr) {
+              console.warn('[AlwaysOn] raw chunk send failed', sendErr);
+            }
+          }).catch(() => {});
+        };
+        rec.onerror = (e) => console.warn('[AlwaysOn] raw chunk recorder error', e);
+        rec.start();
+        r.currentChunkRecorder = rec;
+      } catch (err) {
+        console.warn('[AlwaysOn] raw chunk recorder start failed', err);
+      }
+    };
+
+    startNewSession();
+    r.rawChunkInterval = setInterval(() => {
+      const cur = refs.current.currentChunkRecorder;
+      if (cur && cur.state === 'recording') {
+        try { cur.stop(); } catch {}
+      }
+      startNewSession();
+    }, CHUNK_MS);
+    console.log('[AlwaysOn] raw chunk recorder started (30s rotate)');
+  }, [wsRef]);
 
   const start = useCallback(async () => {
     console.log('[AlwaysOn] start() — requesting mic');
@@ -133,6 +220,8 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
     }
     refs.current.micStream = micStream;
     refs.current.lastAudioSendTs = Date.now();
+
+    void initRawChunkRecorder();
 
     // Continuous chunked recording (5s rotate). Each session generates a
     // standalone webm with EBML header so server-side ffmpeg/whisper can decode.
@@ -180,7 +269,7 @@ export function useAlwaysOn({ wsRef }: UseAlwaysOnOptions): UseAlwaysOnReturn {
         setStale(true);
       }
     }, 30 * 1000);
-  }, [sendAudio, stop]);
+  }, [sendAudio, stop, initRawChunkRecorder]);
 
   // Effect: enable / disable lifecycle (always triggered by user gesture
   // since cold-start enabled=false, so no autoplay-policy issues)

@@ -17,8 +17,8 @@ REACTIVITY_CONFIG = {
 
 # H3: Ambient 静粛ルール — confidence 閾値
 # G3 のキャリブレーション後に confidence が正確になってから適切に機能する
-AMBIENT_MEETING_SUPPRESS_CONF = 0.6  # is_meeting=True かつこの値以上で ambient 抑制
-AMBIENT_IDLE_SUPPRESS_CONF = 0.6     # activity=idle かつこの値以上で ambient 抑制
+AMBIENT_MEETING_SUPPRESS_CONF = 0.5  # is_meeting=True かつこの値以上で ambient 抑制
+AMBIENT_IDLE_SUPPRESS_CONF = 0.5     # activity=idle かつこの値以上で ambient 抑制
 
 _BASE_KEYWORD_COOLDOWN = 60  # seconds
 _BASE_LLM_COOLDOWN = 30     # seconds (90sでは長すぎて返答なしが頻発)
@@ -297,10 +297,13 @@ class AmbientListener:
 
         # H3: context_summary による ambient 静粛ルール（早期リターン）
         if context_summary is not None and not context_summary.is_stale():
-            # 会議中: reply は backchannel に降格（完全にサイレントにはしない）
+            # 会議中: reactivity=5 は meeting_assist に昇格、それ以外は backchannel に降格
             if (context_summary.is_meeting
                     and context_summary.confidence >= AMBIENT_MEETING_SUPPRESS_CONF):
-                return "backchannel"
+                if self.effective_reactivity >= 5:
+                    pass  # suppress しない（後続判定に fallthrough → meeting_assist に昇格）
+                else:
+                    return "backchannel"
             # idle 中: 完全スキップ
             if (context_summary.activity == "idle"
                     and context_summary.confidence >= AMBIENT_IDLE_SUPPRESS_CONF):
@@ -335,6 +338,15 @@ class AmbientListener:
                 and getattr(context_summary, "mood", "") == "stressed"
                 and context_summary.confidence >= AMBIENT_MEETING_SUPPRESS_CONF):
             result = "backchannel"
+
+        # K3: reactivity=5 + is_meeting → meeting_assist に昇格
+        if (result == "reply"
+                and context_summary is not None
+                and not context_summary.is_stale()
+                and context_summary.is_meeting
+                and context_summary.confidence >= AMBIENT_MEETING_SUPPRESS_CONF
+                and self.effective_reactivity >= 5):
+            return "meeting_assist"
 
         return result
 
@@ -408,7 +420,7 @@ class AmbientListener:
 
     # --- LLM Prompt ---
 
-    def build_llm_prompt(self, source_hint: str = "unknown") -> str:
+    def build_llm_prompt(self, source_hint: str = "unknown", mode: str = "normal") -> str:
         level = self.effective_reactivity
         cfg = REACTIVITY_CONFIG[level]
         texts = "\n".join(f"- {e['text']}" for e in self.text_buffer)
@@ -450,6 +462,15 @@ class AmbientListener:
             "unknown": "→ 判別不明。返答より相槌を優先し、確信がなければSKIP。",
         }.get(source_hint, "→ 内容から判断して適切に返す。")
 
+        meeting_assist_block = ""
+        if mode == "meeting_assist":
+            meeting_assist_block = (
+                "\n\n【会議補助モード】\n"
+                "Akiraさんは現在、会議または打ち合わせ中です。イヤフォン経由で聞いています。\n"
+                "会話の文脈に基づく有益な情報・アドバイス・情報補完を簡潔に提供してください。3秒以内で読める長さ。\n"
+                "確信が低ければ BACKCHANNEL にとどめる。"
+            )
+
         return f"""あなたはMEI。同居人として部屋にいる。
 現在のリアクティビティレベル: {level} ({cfg['label']})
 {mei_context}
@@ -485,7 +506,7 @@ class AmbientListener:
 - MEIが回答すべきなのは、「メイ」と名前を呼ばれた時、または明らかにMEIに向けた日常会話だけ
 - ウェブサイトの検索、ファイル操作、コード実行などは絶対にしない
 - 必ず声に出す言葉だけを返す。（動作描写）や（心情描写）などのト書き・括弧付きの説明文は絶対に返さない
-- 例: ✕「（首をかしげて）」 ✕「（微笑みながら）」 ○「うん、聞こえてるよ」 ○「なに？」"""
+- 例: ✕「（首をかしげて）」 ✕「（微笑みながら）」 ○「うん、聞こえてるよ」 ○「なに？」{meeting_assist_block}"""
 
     # --- Rules CRUD ---
 

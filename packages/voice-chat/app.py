@@ -145,7 +145,22 @@ TTS_SPEED_MIN, TTS_SPEED_MAX = 0.5, 2.0
 TTS_INTONATION_MIN, TTS_INTONATION_MAX = 0.5, 1.5
 TTS_PITCH_MIN, TTS_PITCH_MAX = -0.15, 0.15
 # context_summary の confidence がこれ未満の場合はデフォルトパラメータを使用
-TTS_CONTEXT_MIN_CONF = 0.6
+TTS_CONTEXT_MIN_CONF = 0.5
+
+
+def _h1_apply_factor(conf: float) -> float:
+    """Phase H1: confidence → parameter application factor (linear interpolation).
+
+    conf >= 0.7: full apply (1.0)
+    conf 0.5..0.7: linear interp
+    conf < 0.5: no apply (0.0)
+    """
+    if conf >= 0.7:
+        return 1.0
+    if conf < 0.5:
+        return 0.0
+    return (conf - 0.5) / 0.2
+
 
 # Irodori-TTS voice presets (caption-based voice design)
 IRODORI_VOICES = [
@@ -1426,7 +1441,15 @@ async def _build_context_summary(transcript: str) -> dict:
             "  * transcript が 1 文以下または全体 100 文字未満 → confidence <= 0.3\n"
             "  * 複数の根拠（keywords/topics/is_meeting）が揃っている → 0.7〜0.9\n"
             "  * 曖昧・一般的な発話のみ → confidence <= 0.5\n"
-            "  * evidence_snippets を 1 件も抽出できない → confidence <= 0.3"
+            "  * evidence_snippets を 1 件も抽出できない → confidence <= 0.3\n"
+            "【フィールドの意味を混同しないこと】\n"
+            "- activity = ユーザーが今『何をしているか』（動詞的概念）: working / video_watching / reading / meeting / chatting / idle\n"
+            "- language_register = 発話の『様式・スタイル』（形容詞的概念）: casual_solo / focused_solo / business_meeting / chat\n"
+            "  ※ focused_solo は language_register のみの値。activity には絶対に使わないこと\n"
+            "  ※ activity=video_watching の時でも language_register=casual_solo は正しい（別概念）\n"
+            "【co_view シグナルがある場合の activity 推定】\n"
+            "- co_view のメディア種別シグナルが付いている場合、transcript の発話量が少なくても activity を video_watching / reading 等にバイアスすること\n"
+            "- コンテンツ種別が anime/vtuber/youtube_talk/news/drama/music なら activity=video_watching を強く推奨"
             f"{media_hint}"
         )},
         {"role": "user", "content": f"直近30分の transcript:\n{transcript}"},
@@ -1437,13 +1460,24 @@ async def _build_context_summary(transcript: str) -> dict:
         raw = re.sub(r'^```\w*\n?', '', raw)
         raw = re.sub(r'\n?```$', '', raw)
     result = json.loads(raw)
-    _context_summary.activity = str(result.get("activity") or "")
+    # Phase J1: whitelist validation
+    _VALID_ACTIVITIES = {"working", "video_watching", "reading", "meeting", "chatting", "idle"}
+    _VALID_LANGUAGE_REGISTERS = {"casual_solo", "focused_solo", "business_meeting", "chat"}
+    _raw_activity = str(result.get("activity") or "")
+    if _raw_activity not in _VALID_ACTIVITIES:
+        logger.warning(f"[context_summary] invalid activity='{_raw_activity}', fallback to 'idle'")
+        _raw_activity = "idle"
+    _raw_language_register = str(result.get("language_register") or "")
+    if _raw_language_register and _raw_language_register not in _VALID_LANGUAGE_REGISTERS:
+        logger.warning(f"[context_summary] invalid language_register='{_raw_language_register}', fallback to 'casual_solo'")
+        _raw_language_register = "casual_solo"
+    _context_summary.activity = _raw_activity
     _context_summary.topic = str(result.get("topic") or "")
     _context_summary.subtopics = [str(x) for x in (result.get("subtopics") or [])][:5]
     _context_summary.is_meeting = bool(result.get("is_meeting"))
     _context_summary.keywords = [str(x) for x in (result.get("keywords") or [])][:10]
     _context_summary.named_entities = [str(x) for x in (result.get("named_entities") or [])][:8]
-    _context_summary.language_register = str(result.get("language_register") or "")
+    _context_summary.language_register = _raw_language_register
     _raw_confidence = float(result.get("confidence") or 0.0)
     _evidence_snippets_raw = [str(x) for x in (result.get("evidence_snippets") or [])][:3]
     # Phase G3: post-processing discount based on evidence quantity
@@ -1465,6 +1499,67 @@ async def _build_context_summary(transcript: str) -> dict:
     _context_summary.mood = str(result.get("mood") or "")
     _context_summary.location = str(result.get("location") or "")
     _context_summary.time_context = str(result.get("time_context") or "")
+
+    # Phase K2: 3層防御 — is_meeting 誤判定対策
+    # L1: media_ctx が youtube 系なら is_meeting=True を打ち消す（即効性高）
+    _K2_YOUTUBE_TYPES = {
+        "youtube_talk", "youtube_etc", "youtube_music", "youtube_radio",
+        "youtube_news", "youtube_anime", "youtube_baseball", "youtube_sports",
+    }
+    _k2_llm_is_meeting = _context_summary.is_meeting
+    _k2_media = _media_ctx
+    _k2_media_youtube = (
+        _k2_media.inferred_type in _K2_YOUTUBE_TYPES
+        and _k2_media.confidence >= 0.5
+        and _k2_media.last_inferred_at > 0
+        and time.time() - _k2_media.last_inferred_at < 600
+    )
+    if _k2_llm_is_meeting and _k2_media_youtube:
+        logger.warning(
+            f"[K2.L1] is_meeting=True overridden to False"
+            f" (media_ctx.type={_k2_media.inferred_type} conf={_k2_media.confidence:.2f})"
+        )
+        _context_summary.is_meeting = False
+
+    # L2: Google Calendar に進行中イベントがあれば is_meeting=True を確定 (L1 を上書き)
+    # 既存の _gcal_meeting_cache を使う（_fetch_current_gcal_meeting は非同期のため呼べない）
+    _k2_now = time.time()
+    _k2_cal_start = _gcal_meeting_cache.get("start_ts", 0.0) or 0.0
+    _k2_cal_end = _gcal_meeting_cache.get("end_ts", 0.0) or 0.0
+    _k2_cal_title = _gcal_meeting_cache.get("title", "") or ""
+    _k2_cal_active = bool(
+        _k2_cal_title and _k2_cal_start and _k2_cal_end
+        and _k2_cal_start <= _k2_now < _k2_cal_end
+    )
+    if _k2_cal_active and not _context_summary.is_meeting:
+        logger.info(
+            f"[K2.L2] is_meeting forced True by active calendar event: '{_k2_cal_title}'"
+        )
+        _context_summary.is_meeting = True
+    elif _k2_cal_active and _k2_llm_is_meeting:
+        logger.debug(f"[K2.L2] calendar confirms is_meeting=True: '{_k2_cal_title}'")
+
+    # L3: 発話比率バリデーション — Akira の発話が極端に少なく media_ctx ありなら is_meeting=False
+    if _context_summary.is_meeting and _ambient_listener is not None:
+        _k2_recent_spk = [
+            s for s in _ambient_listener._recent_speakers
+            if _k2_now - s["ts"] < 300  # 直近 5 分
+        ]
+        if _k2_recent_spk:
+            _k2_akira_count = sum(
+                1 for s in _k2_recent_spk
+                if (s.get("speaker") or "").lower() in ("akira", "ユーザー", "user")
+            )
+            _k2_ratio = _k2_akira_count / len(_k2_recent_spk)
+            if _k2_ratio < 0.10 and _k2_media_youtube:
+                logger.warning(
+                    f"[K2.L3] is_meeting=True overridden to False"
+                    f" (akira_ratio={_k2_ratio:.2f} < 0.10, media={_k2_media.inferred_type})"
+                )
+                _context_summary.is_meeting = False
+            elif _k2_ratio >= 0.30:
+                logger.debug(f"[K2.L3] akira_ratio={_k2_ratio:.2f} >= 0.30, is_meeting retained")
+
     _context_summary.updated_at = time.time()
     _confidence_history.append({"ts": _context_summary.updated_at, "confidence": _context_summary.confidence})
     logger.info(
@@ -3955,7 +4050,8 @@ async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0
         elif tts_engine == "gptsovits":
             audio = await synthesize_speech_gptsovits(text, str(speaker_id))
         else:
-            audio = await synthesize_speech_voicevox(text, int(speaker_id), speed, mood=_tts_mood, time_context=_tts_time_context)
+            _tts_conf = _cs.confidence if (not _cs.is_stale() and _cs.confidence >= TTS_CONTEXT_MIN_CONF) else 0.0
+            audio = await synthesize_speech_voicevox(text, int(speaker_id), speed, mood=_tts_mood, time_context=_tts_time_context, conf=_tts_conf)
 
         adjusted_audio, gain_db = _apply_wav_peak_guard(audio)
         if gain_db is not None:
@@ -3987,7 +4083,7 @@ async def synthesize_speech(text: str, speaker_id: int | str, speed: float = 1.0
 
 async def synthesize_speech_voicevox(
     text: str, speaker_id: int, speed: float = 1.0,
-    mood: str = "", time_context: str = "",
+    mood: str = "", time_context: str = "", conf: float = 1.0,
 ) -> bytes:
     """VOICEVOX でテキストを音声に変換"""
     async with httpx.AsyncClient(timeout=60) as client:
@@ -3998,7 +4094,8 @@ async def synthesize_speech_voicevox(
         resp.raise_for_status()
         query = resp.json()
 
-        # Phase H1: mood/time_context に基づいてパラメータを動的調整
+        # Phase H1: mood/time_context に基づいてパラメータを段階発火（linear interpolation）
+        factor = _h1_apply_factor(conf)
         speed_delta = 0.0
         intonation = float(query.get("intonationScale", 1.0))
         pitch = float(query.get("pitchScale", 0.0))
@@ -4006,9 +4103,13 @@ async def synthesize_speech_voicevox(
         mood_p = TTS_MOOD_PARAMS.get(mood, {})
         time_p = TTS_TIME_PARAMS.get(time_context, {})
 
-        speed_delta += mood_p.get("speed_delta", 0.0) + time_p.get("speed_delta", 0.0)
-        intonation *= mood_p.get("intonation_mult", 1.0) * time_p.get("intonation_mult", 1.0)
-        pitch += mood_p.get("pitch_delta", 0.0) + time_p.get("pitch_delta", 0.0)
+        raw_speed_delta = mood_p.get("speed_delta", 0.0) + time_p.get("speed_delta", 0.0)
+        raw_intonation_mult = mood_p.get("intonation_mult", 1.0) * time_p.get("intonation_mult", 1.0)
+        raw_pitch_delta = mood_p.get("pitch_delta", 0.0) + time_p.get("pitch_delta", 0.0)
+
+        speed_delta += raw_speed_delta * factor
+        intonation *= 1.0 + (raw_intonation_mult - 1.0) * factor
+        pitch += raw_pitch_delta * factor
 
         final_speed = max(TTS_SPEED_MIN, min(TTS_SPEED_MAX, speed + speed_delta))
         final_intonation = max(TTS_INTONATION_MIN, min(TTS_INTONATION_MAX, intonation))
@@ -4019,7 +4120,7 @@ async def synthesize_speech_voicevox(
         query["pitchScale"] = final_pitch
 
         logger.info(
-            f"[TTS] mood={mood!r} time={time_context!r} "
+            f"[TTS] mood={mood!r} time={time_context!r} conf={conf:.2f} factor={factor:.2f} "
             f"speed_delta={speed_delta:+.2f} speed={final_speed:.2f} "
             f"intonation={final_intonation:.2f} pitch={final_pitch:.3f}"
         )
@@ -6077,7 +6178,16 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
         # Detect instructions/technical questions directed at Claude Code, not MEI
         is_instruction = _is_claude_code_instruction(trigger_text)
 
-        prompt = _ambient_listener.build_llm_prompt(source_hint=source_hint)
+        llm_mode = "meeting_assist" if intervention == "meeting_assist" else "normal"
+        if intervention == "meeting_assist" and _ambient_listener.mei_spoke_ago < 3:
+            logger.info("[ambient] meeting_assist: mei_spoke_ago < 3s → skip")
+            await _broadcast_debug("[ambient] meeting_assist → cooldown skip")
+            _ambient_listener.record_judgment(method=method, result="skip", keyword=keyword, source_hint=source_hint, intervention=intervention)
+            await _broadcast_ambient_log()
+            _ambient_listener.state = "listening"
+            await _broadcast_ambient_state()
+            return
+        prompt = _ambient_listener.build_llm_prompt(source_hint=source_hint, mode=llm_mode)
         if intervention == "backchannel":
             prompt += "\n\n今回の目標は短い相槌のみ。必ず `BACKCHANNEL: ...` 形式で、4〜12文字くらいに収める。迷ったら SKIP。"
         if is_instruction:
@@ -6630,7 +6740,10 @@ async def websocket_endpoint(ws: WebSocket):
                     continue
                 elif data.get("type") == "update_settings":
                     # クライアントから設定変更 → 保存 & 他クライアントへブロードキャスト
-                    _settings.update(data.get("settings", {}))
+                    client_settings = data.get("settings", {})
+                    # K1: ambient_reactivity は専用エンドポイント経由のみで更新可能
+                    client_settings.pop("ambient_reactivity", None)
+                    _settings.update(client_settings)
                     if "autoApproveEnabled" in data.get("settings", {}):
                         _sync_auto_approve_file(bool(_settings.get("autoApproveEnabled")))
                     if "improveLoopEnabled" in data.get("settings", {}):
@@ -6824,7 +6937,7 @@ _PROACTIVE_STRESSED_REST_MSG = "少し休んだらどうかな？疲れが溜ま
 def _h4_get_tts_suppressed() -> bool:
     """Return True if TTS should be suppressed (night context with sufficient confidence)."""
     cs = _context_summary
-    if cs.is_stale() or cs.confidence < 0.6:
+    if cs.is_stale() or cs.confidence < 0.5:
         return False
     return cs.time_context == "night"
 
@@ -6832,7 +6945,7 @@ def _h4_get_tts_suppressed() -> bool:
 def _h4_get_focused_throttled() -> bool:
     """Return True if focused throttling applies (mood=focused, last intervention < 20 min)."""
     cs = _context_summary
-    if cs.is_stale() or cs.confidence < 0.6:
+    if cs.is_stale() or cs.confidence < 0.5:
         return False
     if cs.mood != "focused":
         return False
@@ -6842,7 +6955,7 @@ def _h4_get_focused_throttled() -> bool:
 def _h4_get_stressed_rest_message() -> str | None:
     """Return rest suggestion message if mood=stressed with sufficient confidence, else None."""
     cs = _context_summary
-    if cs.is_stale() or cs.confidence < 0.6:
+    if cs.is_stale() or cs.confidence < 0.5:
         return None
     if cs.mood == "stressed":
         return _PROACTIVE_STRESSED_REST_MSG

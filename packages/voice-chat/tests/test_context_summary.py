@@ -1108,3 +1108,306 @@ class TestH2InjectionAmbientBatch:
 
         hint = app._context_summary.to_prompt_block()
         assert hint == ""
+
+
+# ---- Phase J1: activity/language_register whitelist validation ----
+
+class TestJ1Validation:
+    """Phase J1: whitelist validation for activity and language_register fields."""
+
+    @pytest.fixture(autouse=True)
+    def reset_summary(self):
+        app._context_summary.activity = ""
+        app._context_summary.language_register = ""
+        app._context_summary.confidence = 0.0
+        app._context_summary.updated_at = 0.0
+        app._media_ctx.reset()
+        yield
+        app._media_ctx.reset()
+
+    def test_invalid_activity_falls_back_to_idle(self):
+        """LLM returning activity='focused_solo' (a language_register value) → replaced with 'idle'."""
+        async def run():
+            fake = json.dumps({
+                "activity": "focused_solo",
+                "language_register": "focused_solo",
+                "confidence": 0.7,
+                "evidence_snippets": ["テスト発話その一", "テスト発話その二"],
+            })
+            long_transcript = "テスト発話その一、テスト発話その二。" * 20
+            with mock.patch("app.chat_with_llm", return_value=fake):
+                await app._build_context_summary(long_transcript)
+            assert app._context_summary.activity == "idle"
+        asyncio.run(run())
+
+    def test_valid_activity_preserved(self):
+        """Valid activity values are not replaced."""
+        for valid_activity in ("working", "video_watching", "reading", "meeting", "chatting", "idle"):
+            async def run(act=valid_activity):
+                fake = json.dumps({
+                    "activity": act,
+                    "language_register": "casual_solo",
+                    "confidence": 0.7,
+                    "evidence_snippets": ["根拠一", "根拠二"],
+                })
+                long_transcript = "十分に長い発話内容。" * 20
+                with mock.patch("app.chat_with_llm", return_value=fake):
+                    await app._build_context_summary(long_transcript)
+                assert app._context_summary.activity == act
+            asyncio.run(run())
+
+    def test_invalid_language_register_falls_back_to_casual_solo(self):
+        """LLM returning language_register='noon' (invalid value) → replaced with 'casual_solo'."""
+        async def run():
+            fake = json.dumps({
+                "activity": "working",
+                "language_register": "noon",
+                "confidence": 0.7,
+                "evidence_snippets": ["根拠一", "根拠二"],
+            })
+            long_transcript = "十分に長い発話内容。" * 20
+            with mock.patch("app.chat_with_llm", return_value=fake):
+                await app._build_context_summary(long_transcript)
+            assert app._context_summary.language_register == "casual_solo"
+        asyncio.run(run())
+
+    def test_valid_language_register_preserved(self):
+        """Valid language_register values are not replaced."""
+        for valid_lr in ("casual_solo", "focused_solo", "business_meeting", "chat"):
+            async def run(lr=valid_lr):
+                fake = json.dumps({
+                    "activity": "working",
+                    "language_register": lr,
+                    "confidence": 0.7,
+                    "evidence_snippets": ["根拠一", "根拠二"],
+                })
+                long_transcript = "十分に長い発話内容。" * 20
+                with mock.patch("app.chat_with_llm", return_value=fake):
+                    await app._build_context_summary(long_transcript)
+                assert app._context_summary.language_register == lr
+            asyncio.run(run())
+
+    def test_empty_language_register_not_replaced(self):
+        """Empty language_register (absent from JSON) stays empty (not replaced with casual_solo)."""
+        async def run():
+            fake = json.dumps({
+                "activity": "working",
+                "confidence": 0.7,
+                "evidence_snippets": ["根拠一", "根拠二"],
+            })
+            long_transcript = "十分に長い発話内容。" * 20
+            with mock.patch("app.chat_with_llm", return_value=fake):
+                await app._build_context_summary(long_transcript)
+            assert app._context_summary.language_register == ""
+        asyncio.run(run())
+
+    def test_prompt_contains_concept_distinction_guidance(self):
+        """System prompt clarifies that activity and language_register are distinct concepts."""
+        async def run():
+            captured = {}
+
+            async def fake_llm(messages, model="gemma4:e4b"):
+                captured["system"] = messages[0]["content"]
+                return json.dumps({
+                    "activity": "working", "confidence": 0.5,
+                    "mood": "", "location": "", "time_context": "",
+                })
+
+            with mock.patch("app.chat_with_llm", side_effect=fake_llm):
+                await app._build_context_summary("テスト")
+
+            assert "focused_solo は language_register のみの値" in captured["system"]
+            assert "activity" in captured["system"]
+            assert "language_register" in captured["system"]
+        asyncio.run(run())
+
+    def test_prompt_contains_media_hint_bias_guidance(self):
+        """System prompt instructs to bias activity toward video_watching when co_view signal present."""
+        async def run():
+            app._media_ctx.inferred_type = "youtube_talk"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = time.time()
+            captured = {}
+
+            async def fake_llm(messages, model="gemma4:e4b"):
+                captured["system"] = messages[0]["content"]
+                return json.dumps({
+                    "activity": "video_watching", "confidence": 0.7,
+                    "mood": "", "location": "", "time_context": "",
+                })
+
+            with mock.patch("app.chat_with_llm", side_effect=fake_llm):
+                await app._build_context_summary("なるほどそういうことか")
+
+            assert "video_watching" in captured["system"]
+            assert "バイアス" in captured["system"] or "推奨" in captured["system"]
+        asyncio.run(run())
+
+
+# ---- Phase K2: is_meeting 3層防御 ----
+
+class TestK2IsMeetingDefense:
+    """Phase K2: is_meeting 誤判定対策（3層防御）。"""
+
+    _LONG_TRANSCRIPT = "テスト発話が続いている。" * 20
+
+    def _fake_llm(self, is_meeting: bool, confidence: float = 0.8):
+        return json.dumps({
+            "activity": "meeting" if is_meeting else "video_watching",
+            "topic": "テスト",
+            "is_meeting": is_meeting,
+            "confidence": confidence,
+            "evidence_snippets": ["根拠その一", "根拠その二"],
+            "mood": "", "location": "", "time_context": "",
+        })
+
+    @pytest.fixture(autouse=True)
+    def reset_state(self):
+        app._context_summary.is_meeting = False
+        app._context_summary.confidence = 0.0
+        app._context_summary.updated_at = 0.0
+        app._media_ctx.reset()
+        app._gcal_meeting_cache.update({
+            "title": "", "start_ts": 0.0, "end_ts": 0.0,
+            "event_id": "", "fetched_at": 0.0,
+        })
+        yield
+        app._media_ctx.reset()
+        app._gcal_meeting_cache.update({
+            "title": "", "start_ts": 0.0, "end_ts": 0.0,
+            "event_id": "", "fetched_at": 0.0,
+        })
+
+    def test_l1_youtube_talk_overrides_is_meeting_true(self):
+        """L1: youtube_talk + LLM is_meeting=True → False に上書き。"""
+        async def run():
+            app._media_ctx.inferred_type = "youtube_talk"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = time.time()
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is False
+        asyncio.run(run())
+
+    def test_l1_youtube_music_overrides_is_meeting_true(self):
+        """L1: youtube_music も対象。"""
+        async def run():
+            app._media_ctx.inferred_type = "youtube_music"
+            app._media_ctx.confidence = 0.9
+            app._media_ctx.last_inferred_at = time.time()
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is False
+        asyncio.run(run())
+
+    def test_l1_non_youtube_type_does_not_override(self):
+        """L1: youtube 系でない type（anime）は is_meeting を上書きしない。"""
+        async def run():
+            app._media_ctx.inferred_type = "anime"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = time.time()
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is True
+        asyncio.run(run())
+
+    def test_l1_stale_media_ctx_does_not_override(self):
+        """L1: 10分以上古い media_ctx は L1 発動しない。"""
+        async def run():
+            app._media_ctx.inferred_type = "youtube_talk"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = time.time() - 700
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is True
+        asyncio.run(run())
+
+    def test_l2_active_calendar_event_forces_is_meeting_true(self):
+        """L2: 進行中のカレンダーイベントがあれば L1 を上書きして is_meeting=True。"""
+        async def run():
+            now = time.time()
+            app._media_ctx.inferred_type = "youtube_talk"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = now
+            app._gcal_meeting_cache.update({
+                "title": "京セラ戦略会議",
+                "start_ts": now - 600,
+                "end_ts": now + 600,
+                "fetched_at": now,
+            })
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is True
+        asyncio.run(run())
+
+    def test_l2_no_active_event_does_not_change(self):
+        """L2: カレンダーイベントなしなら is_meeting に介入しない。"""
+        async def run():
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=False)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is False
+        asyncio.run(run())
+
+    def test_l3_low_akira_ratio_with_media_overrides(self):
+        """L3: Akira の発話比率 5% + youtube → is_meeting=False。"""
+        async def run():
+            now = time.time()
+            app._media_ctx.inferred_type = "youtube_talk"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = now
+            # ambient_listener をセットアップ (inlineクラスで代用)
+            class FakeAmbientListener:
+                _recent_speakers = [
+                    {"speaker": "other_person", "ts": now - 10},
+                    {"speaker": "other_person", "ts": now - 20},
+                    {"speaker": "other_person", "ts": now - 30},
+                    {"speaker": "other_person", "ts": now - 40},
+                    {"speaker": "other_person", "ts": now - 50},
+                    {"speaker": "other_person", "ts": now - 60},
+                    {"speaker": "other_person", "ts": now - 70},
+                    {"speaker": "other_person", "ts": now - 80},
+                    {"speaker": "other_person", "ts": now - 90},
+                    {"speaker": "other_person", "ts": now - 100},
+                    {"speaker": "other_person", "ts": now - 110},
+                    {"speaker": "other_person", "ts": now - 120},
+                    {"speaker": "other_person", "ts": now - 130},
+                    {"speaker": "other_person", "ts": now - 140},
+                    {"speaker": "other_person", "ts": now - 150},
+                    {"speaker": "other_person", "ts": now - 160},
+                    {"speaker": "other_person", "ts": now - 170},
+                    {"speaker": "other_person", "ts": now - 180},
+                    {"speaker": "other_person", "ts": now - 190},
+                    {"speaker": "akira", "ts": now - 200},  # 5%
+                ]
+            app._ambient_listener = FakeAmbientListener()
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is False
+            app._ambient_listener = None
+        asyncio.run(run())
+
+    def test_l3_high_akira_ratio_preserves_is_meeting(self):
+        """L3: Akira の発話比率 >= 30% → is_meeting=True を保持。"""
+        async def run():
+            now = time.time()
+            # youtube_talk だが akira 発話比率が高い → L1 が上書きするので、
+            # L1 が効かない type (anime) で L3 のみを確認する
+            app._media_ctx.inferred_type = "anime"
+            app._media_ctx.confidence = 0.8
+            app._media_ctx.last_inferred_at = now
+            class FakeAmbientListener:
+                _recent_speakers = [
+                    {"speaker": "akira", "ts": now - 10},
+                    {"speaker": "akira", "ts": now - 20},
+                    {"speaker": "akira", "ts": now - 30},
+                    {"speaker": "akira", "ts": now - 40},
+                    {"speaker": "other", "ts": now - 50},
+                    {"speaker": "other", "ts": now - 60},
+                    {"speaker": "other", "ts": now - 70},
+                ]
+            app._ambient_listener = FakeAmbientListener()
+            with mock.patch("app.chat_with_llm", return_value=self._fake_llm(is_meeting=True)):
+                await app._build_context_summary(self._LONG_TRANSCRIPT)
+            assert app._context_summary.is_meeting is True
+            app._ambient_listener = None
+        asyncio.run(run())

@@ -242,13 +242,13 @@ class TestDecideInterventionH3:
         assert result == "backchannel"
 
     def test_is_meeting_low_confidence_not_suppressed(self, listener):
-        # confidence < 0.6 では会議判定でも抑制しない（誤判定保護）
+        # confidence < 0.5 では会議判定でも抑制しない（誤判定保護）
         ctx = FakeContextSummary(is_meeting=True, confidence=0.4)
         result = listener.decide_intervention("メイ、おはよう。", "user_initiative", ctx)
         assert result == "reply"
 
     def test_is_meeting_exactly_at_threshold_suppresses(self, listener):
-        ctx = FakeContextSummary(is_meeting=True, confidence=0.6)
+        ctx = FakeContextSummary(is_meeting=True, confidence=0.5)
         result = listener.decide_intervention("どう思う？", "user_likely", ctx)
         assert result == "backchannel"
 
@@ -257,7 +257,12 @@ class TestDecideInterventionH3:
         result = listener.decide_intervention("ちょっと疲れた", "user_likely", ctx)
         assert result == "skip"
 
-    def test_activity_idle_low_confidence_not_suppressed(self, listener):
+    def test_activity_idle_at_threshold_suppressed(self, listener):
+        ctx = FakeContextSummary(activity="idle", confidence=0.5)
+        result = listener.decide_intervention("ちょっと疲れた", "user_likely", ctx)
+        assert result == "skip"
+
+    def test_activity_idle_below_threshold_not_suppressed(self, listener):
         ctx = FakeContextSummary(activity="idle", confidence=0.4)
         result = listener.decide_intervention("今日の天気どうかな", "user_likely", ctx)
         # confidence が低いので抑制されず通常判定（user_likely + 質問形 → reply）
@@ -268,7 +273,12 @@ class TestDecideInterventionH3:
         result = listener.decide_intervention("メイ、おはよう。", "user_initiative", ctx)
         assert result == "backchannel"
 
-    def test_mood_stressed_low_confidence_keeps_reply(self, listener):
+    def test_mood_stressed_at_threshold_downgrades(self, listener):
+        ctx = FakeContextSummary(mood="stressed", confidence=0.5)
+        result = listener.decide_intervention("メイ、おはよう。", "user_initiative", ctx)
+        assert result == "backchannel"
+
+    def test_mood_stressed_below_threshold_keeps_reply(self, listener):
         ctx = FakeContextSummary(mood="stressed", confidence=0.4)
         result = listener.decide_intervention("メイ、おはよう。", "user_initiative", ctx)
         assert result == "reply"
@@ -288,3 +298,57 @@ class TestDecideInterventionH3:
         ctx = FakeContextSummary(is_meeting=True, mood="stressed", confidence=0.8)
         result = listener.decide_intervention("どう？", "user_identified", ctx)
         assert result == "backchannel"
+
+
+class TestDecideInterventionK3:
+    """Phase K3: 会議補助モード（reactivity=5 + is_meeting）のテスト。"""
+
+    @pytest.fixture
+    def listener_level5(self, tmp_path):
+        rules_file = tmp_path / "rules.json"
+        examples_file = tmp_path / "examples.json"
+        rules_file.write_text('{"rules": [], "keywords": []}')
+        examples_file.write_text('{"examples": []}')
+        return AmbientListener(rules_path=rules_file, examples_path=examples_file, reactivity=5)
+
+    @pytest.fixture
+    def listener_level4(self, tmp_path):
+        rules_file = tmp_path / "rules.json"
+        examples_file = tmp_path / "examples.json"
+        rules_file.write_text('{"rules": [], "keywords": []}')
+        examples_file.write_text('{"examples": []}')
+        return AmbientListener(rules_path=rules_file, examples_path=examples_file, reactivity=4)
+
+    def test_reactivity5_meeting_true_returns_meeting_assist(self, listener_level5):
+        ctx = FakeContextSummary(is_meeting=True, confidence=0.7)
+        result = listener_level5.decide_intervention("それで次のアジェンダは", "user_identified", ctx)
+        assert result == "meeting_assist"
+
+    def test_reactivity4_meeting_true_returns_backchannel(self, listener_level4):
+        # H3 維持: reactivity=4 は引き続き backchannel に降格
+        ctx = FakeContextSummary(is_meeting=True, confidence=0.7)
+        result = listener_level4.decide_intervention("それで次のアジェンダは", "user_identified", ctx)
+        assert result == "backchannel"
+
+    def test_reactivity5_meeting_false_returns_reply(self, listener_level5):
+        ctx = FakeContextSummary(is_meeting=False, confidence=0.7)
+        result = listener_level5.decide_intervention("メイ、今日どう？", "user_initiative", ctx)
+        assert result == "reply"
+
+    def test_reactivity5_meeting_true_low_conf_not_meeting_assist(self, listener_level5):
+        # confidence < 0.5 では meeting_assist に昇格しない
+        ctx = FakeContextSummary(is_meeting=True, confidence=0.4)
+        result = listener_level5.decide_intervention("メイ、おはよう。", "user_initiative", ctx)
+        assert result == "reply"
+
+    def test_build_llm_prompt_meeting_assist_mode_contains_instruction(self, listener_level5, tmp_path):
+        prompt = listener_level5.build_llm_prompt(source_hint="user_identified", mode="meeting_assist")
+        assert "会議補助モード" in prompt
+
+    def test_build_llm_prompt_normal_mode_no_meeting_assist_block(self, listener_level5, tmp_path):
+        prompt = listener_level5.build_llm_prompt(source_hint="user_identified", mode="normal")
+        assert "会議補助モード" not in prompt
+
+    def test_build_llm_prompt_default_mode_no_meeting_assist_block(self, listener_level5, tmp_path):
+        prompt = listener_level5.build_llm_prompt(source_hint="user_identified")
+        assert "会議補助モード" not in prompt
