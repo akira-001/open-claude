@@ -889,6 +889,38 @@
       ],
       "evaluate_score": 0.6,
       "sentAt": "2026-05-02T09:31:16.818Z"
+    },
+    {
+      "botId": "eve",
+      "botName": "Eve（イヴ）",
+      "category": "email_reply",
+      "interestCategory": "dodgers",
+      "preview": "あ、そうだ。\n\nJ SPORTSからメール来てたよ。明日 *5月3日（日）08:10〜 J SPORTS 3* で *カージナルスvsドジャース* の生中継があるって ⚾\n\n佐々木朗希の登板予定試合みたい。ドラムレッスンが11時だから、午前中ちょっと観られるかも。",
+      "topic": "J SPORTS 佐々木朗希 カージナルスvsドジャース明日生中継",
+      "url": "",
+      "sourceType": "gmail-unread",
+      "skill": "general",
+      "themePath": [
+        "sports",
+        "sports/mlb",
+        "sports/mlb/dodgers",
+        "sports/mlb/dodgers/roki",
+        "sports/mlb/dodgers/roki/rotation"
+      ],
+      "themeKey": "sports/mlb/dodgers/roki/rotation",
+      "inner_thought": "J SPORTSメールに明日のドジャース中継情報があった。ドラムレッスン前に観られるかも、伝えておきたい",
+      "plan": [
+        "J SPORTSメール内容をドジャース文脈で共有",
+        "スタートアップ資金調達まとめを届ける",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.82,
+        0.55,
+        0.4
+      ],
+      "evaluate_score": 0.78,
+      "sentAt": "2026-05-02T10:31:10.418Z"
     }
   ]
 }

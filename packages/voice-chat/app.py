@@ -90,6 +90,13 @@ from ambient_listener import AmbientListener
 from ambient_policy import normalize_ambient_reply, should_apply_stt_correction
 from speaker_id import SpeakerIdentifier, audio_bytes_to_wav, compute_embedding
 from hotwords_auto_improver import auto_improve_loop as _hotwords_auto_improve_loop
+from enrichment import (
+    EnrichmentContext,
+    EnrichmentCache,
+    LLMSearchProvider,
+    EnrichmentOrchestrator,
+    enrichment_loop as _enrichment_loop,
+)
 
 load_dotenv(Path(__file__).parent / ".env")
 # ルートの .env も読む（ANTHROPIC_API_KEY / OPENAI_API_KEY を参照するため）
@@ -1343,6 +1350,40 @@ _context_summary = ContextSummary()
 _context_summary_task: asyncio.Task | None = None
 _confidence_history: deque = deque(maxlen=50)
 CONTEXT_SUMMARY_FEEDBACK_FILE = Path(__file__).parent / "context_summary_feedback.jsonl"
+
+# Enrichment: ambient プロンプト補強用（暫定 LLMSearchProvider、将来 PrefetchProvider に切替可能）
+_enrichment_cache = EnrichmentCache(max_entries=16)
+_enrichment_provider = LLMSearchProvider(prefer_claude=True, timeout_sec=90)
+_enrichment_orchestrator = EnrichmentOrchestrator(_enrichment_provider, _enrichment_cache)
+
+
+def _build_enrichment_context() -> EnrichmentContext | None:
+    """周期 enrichment_loop から呼ばれる。context_summary + media_ctx + calendar を集約。"""
+    cs = _context_summary
+    mc = _media_ctx
+    if cs.is_stale() and not mc.media_buffer:
+        return None
+    excerpt = ""
+    if mc.media_buffer:
+        excerpt = "\n".join(e.get("text", "")[:80] for e in mc.media_buffer[-5:])
+    cal_title = ""
+    if _gcal_meeting_cache.get("title"):
+        now = time.time()
+        s = _gcal_meeting_cache.get("start_ts", 0.0) or 0.0
+        e = _gcal_meeting_cache.get("end_ts", 0.0) or 0.0
+        if s and e and s <= now < e:
+            cal_title = _gcal_meeting_cache.get("title", "")
+    return EnrichmentContext(
+        activity=cs.activity,
+        is_meeting=bool(cs.is_meeting),
+        topic=cs.topic,
+        keywords=list(cs.keywords),
+        named_entities=list(cs.named_entities),
+        inferred_type=mc.inferred_type,
+        matched_title=mc.matched_title,
+        calendar_event=cal_title,
+        transcript_excerpt=excerpt,
+    )
 
 
 # --- Phase 2: 5min Audio Ring + large-v3 Chunk Transcription ---
@@ -6508,6 +6549,13 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
                 media_section += f"\n関連情報:\n{_media_ctx.enriched_info}\n"
             prompt += media_section
 
+        # Enrichment block（背景ループが事前に取得した補助情報、reply/meeting_assist で活用）
+        if intervention not in ("backchannel", "skip"):
+            _enrich_block = _enrichment_orchestrator.get_for_prompt()
+            if _enrich_block:
+                prompt += _enrich_block
+                logger.debug(f"[ambient] enrichment injected ({len(_enrich_block)} chars)")
+
         mei_speaker = _settings.get("meiVoice", "irodori-lora-emilia")
         mei_speed_raw = _settings.get("meiSpeed", "auto") or "auto"
         mei_speed = 0 if mei_speed_raw == "auto" else float(mei_speed_raw)
@@ -7475,6 +7523,10 @@ async def on_startup():
     # Hotwords auto-improvement loop（30分ごとに STT 誤認識を自動改善）
     asyncio.create_task(_hotwords_auto_improve_loop(chat_with_llm, lambda: _settings))
     logger.info("[startup] Hotwords auto-improvement loop started (interval=1800s)")
+
+    # Enrichment loop（60s ごとに co_view/meeting 補助情報をバックグラウンド更新）
+    asyncio.create_task(_enrichment_loop(_enrichment_orchestrator, _build_enrichment_context, interval_sec=60))
+    logger.info("[startup] Enrichment loop started (interval=60s, provider=LLMSearchProvider)")
 
 
 if __name__ == "__main__":
