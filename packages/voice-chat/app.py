@@ -226,7 +226,9 @@ def _load_settings() -> dict:
 
 
 def _save_settings(s: dict):
-    SETTINGS_FILE.write_text(json.dumps(s, ensure_ascii=False))
+    tmp = SETTINGS_FILE.with_suffix(SETTINGS_FILE.suffix + ".tmp")
+    tmp.write_text(json.dumps(s, ensure_ascii=False))
+    tmp.replace(SETTINGS_FILE)
 
 
 def _sync_auto_approve_file(enabled: bool) -> None:
@@ -1359,6 +1361,63 @@ async def _chunk_transcribe_loop():
             await asyncio.sleep(60)
 
 
+async def _periodic_media_inference_loop():
+    """L2: chunk_transcribe で蓄積された音声テキストから定期的にメディア種別を推定する。
+
+    ambient ルーティング（co_view path）に依存しないため、再起動後 ambient が
+    user_response/unknown ばかり classify してもメディア推定が継続される。
+    K2.L1（is_meeting=True を youtube_* で打ち消す）の前提条件を維持する目的。
+    """
+    INTERVAL = 180  # 3 分（chunk_transcribe と同じ間隔）
+    last_processed_ts_end = 0.0
+    while True:
+        try:
+            await asyncio.sleep(INTERVAL)
+            # chunk_buffer の snapshot から未処理の chunk を取得
+            snapshot = await _chunk_buffer.snapshot()
+            new_chunks = [c for c in snapshot if c["ts_end"] > last_processed_ts_end]
+            if not new_chunks:
+                continue
+            # 直近 chunk を _media_ctx に取り込む
+            async with _co_view_lock:
+                for chunk in new_chunks:
+                    text = chunk["text"]
+                    if not text:
+                        continue
+                    _media_ctx.add_snippet(text)
+                last_processed_ts_end = new_chunks[-1]["ts_end"]
+                if not _media_ctx.media_buffer:
+                    continue
+                # 推定を実行（confidence>=0.6 で content_type 確定、低 conf は据え置き）
+                inferred = await _infer_media_content()
+                new_content_type = inferred.get("content_type", "unknown")
+                new_conf = float(inferred.get("confidence") or 0.0)
+                if new_conf < 0.5:
+                    logger.debug(
+                        f"[periodic_media_infer] low conf {new_conf:.2f} "
+                        f"({new_content_type}), keeping {_media_ctx.inferred_type}"
+                    )
+                    continue
+                prev_type = _media_ctx.inferred_type
+                _media_ctx.inferred_type = new_content_type
+                _media_ctx.confidence = new_conf
+                _media_ctx.last_inferred_at = time.time()
+                _media_ctx.snippets_since_infer = 0
+                if (mt := inferred.get("matched_title")):
+                    _media_ctx.matched_title = mt
+                if (topic := inferred.get("topic")):
+                    _media_ctx.inferred_topic = topic
+                logger.info(
+                    f"[periodic_media_infer] {prev_type}→{new_content_type} "
+                    f"conf={new_conf:.2f} title='{_media_ctx.matched_title[:30]}'"
+                )
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            logger.warning(f"[periodic_media_infer] loop error: {e}")
+            await asyncio.sleep(60)
+
+
 def _context_summary_to_dict() -> dict:
     return {
         "activity": _context_summary.activity,
@@ -1559,6 +1618,31 @@ async def _build_context_summary(transcript: str) -> dict:
                 _context_summary.is_meeting = False
             elif _k2_ratio >= 0.30:
                 logger.debug(f"[K2.L3] akira_ratio={_k2_ratio:.2f} >= 0.30, is_meeting retained")
+
+    # L4: _media_ctx 未推定でも is_meeting を打ち消すフォールバック
+    # 条件: is_meeting=True + akira speech ratio < 0.10 + 進行中 calendar 不在
+    # → 視聴コンテンツ可能性が高い（メディア推定が間に合っていないだけ）
+    if (_context_summary.is_meeting
+            and not _k2_cal_active
+            and not _k2_media_youtube
+            and _ambient_listener is not None):
+        _k2l4_recent_spk = [
+            s for s in _ambient_listener._recent_speakers
+            if _k2_now - s["ts"] < 300
+        ]
+        if _k2l4_recent_spk:
+            _k2l4_akira_count = sum(
+                1 for s in _k2l4_recent_spk
+                if (s.get("speaker") or "").lower() in ("akira", "ユーザー", "user")
+            )
+            _k2l4_ratio = _k2l4_akira_count / len(_k2l4_recent_spk)
+            if _k2l4_ratio < 0.10:
+                logger.warning(
+                    f"[K2.L4] is_meeting=True overridden to False"
+                    f" (akira_ratio={_k2l4_ratio:.2f} < 0.10, calendar=empty,"
+                    f" media_ctx={_k2_media.inferred_type} unconfirmed)"
+                )
+                _context_summary.is_meeting = False
 
     _context_summary.updated_at = time.time()
     _confidence_history.append({"ts": _context_summary.updated_at, "confidence": _context_summary.confidence})
@@ -7094,8 +7178,18 @@ async def _warmup_irodori():
 async def on_startup():
     global _settings
     _settings = _load_settings()
+    # Migration: legacy settings.json with only {"ambient_reactivity": N} →
+    # promote to full state by saving merged dict (avoids re-loading partial file on next start).
+    _legacy_partial = (
+        len(_settings) <= 2
+        and "ambient_reactivity" in _settings
+        and "ttsEngine" not in _settings
+    )
     _sync_auto_approve_file(_get_auto_approve_enabled())
     _sync_improve_loop_disabled_file(bool(_settings.get("improveLoopEnabled", False)))
+    if _legacy_partial:
+        _save_settings(_settings)
+        logger.info("[startup] settings.json migrated from legacy partial state")
     await _warmup_irodori()
     # Wire up synthesize_speech for wake_response module
     _wake_response_module.synthesize_speech = synthesize_speech
@@ -7156,6 +7250,10 @@ async def on_startup():
         f"[startup] Chunk transcribe loop started "
         f"(audio_retention={CHUNK_AUDIO_RETENTION}s, interval={CHUNK_TRANSCRIBE_INTERVAL}s, model=large-v3-turbo)"
     )
+
+    # L2: 周期メディア種別推定（ambient ルーティング非依存）
+    asyncio.create_task(_periodic_media_inference_loop())
+    logger.info("[startup] Periodic media inference loop started (interval=180s)")
 
 
 if __name__ == "__main__":
