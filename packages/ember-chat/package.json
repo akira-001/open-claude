@@ -21,7 +21,10 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": "dir",
-      "icon": "AppIcon.icns"
+      "icon": "AppIcon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "files": [
       "main.js",
