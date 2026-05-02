@@ -632,6 +632,38 @@
       ],
       "evaluate_score": 0.72,
       "sentAt": "2026-05-02T02:01:12.659Z"
+    },
+    {
+      "botId": "eve",
+      "botName": "Eve（イヴ）",
+      "category": "flashback",
+      "interestCategory": "dodgers",
+      "preview": "ねえ、知ってる？\n\nウォーカープラスに *埼玉県最大級の「温泉バルコニー キング＆クイーン」* の記事が出てたよ ♨\n\nGW後半、どこ行くか決めてなければ埼玉ローカルで探してみてもいいかも。\nhttps://news.google.com/rss/articles/CBMibkFVX3lxTE9aW",
+      "topic": "埼玉県最大級！温泉バルコニー キング＆クイーン",
+      "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9aWjhrT1hoNC1FQWVQRHFob1RSdW8zTHVJTHpfUng3N2ZEMDVMMlBlUzVubUhWMC1xZGgtdEdXWl9oMzJETEhlZWstTkJwSzNtS2lGZWo0dlRJNmhLVWF1eWNrVlFBR0lWV1NPT3B3?oc=5",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMibkFVX3lxTE9aWjhrT1hoNC1FQWVQRHFob1RSdW8zTHVJTHpfUng3N2ZEMDVMMlBlUzVubUhWMC1xZGgtdEdXWl9oMzJETEhlZWstTkJwSzNtS2lGZWo0dlRJNmhLVWF1eWNrVlFBR0lWV1NPT3B3?oc=5",
+      "sourceType": "ウォーカープラス",
+      "skill": "general",
+      "themePath": [
+        "lifestyle",
+        "lifestyle/food-wellness",
+        "lifestyle/food-wellness/spa",
+        "lifestyle/food-wellness/spa/king-queen"
+      ],
+      "themeKey": "lifestyle/food-wellness/spa/king-queen",
+      "inner_thought": "温泉バルコニーって何だろう、気になりすぎる。埼玉最大級って所沢からも近いかも",
+      "plan": [
+        "温泉バルコニー キング＆クイーンを共有",
+        "コスパ最強ステーキ情報を共有",
+        "沈黙"
+      ],
+      "generate_score": [
+        0.84,
+        0.6,
+        0.45
+      ],
+      "evaluate_score": 0.79,
+      "sentAt": "2026-05-02T04:30:49.418Z"
     }
   ]
 }
