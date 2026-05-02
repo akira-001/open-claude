@@ -1,11 +1,11 @@
 {
-  "lastUpdated": "2026-05-02T01:50:01.016209+00:00",
+  "lastUpdated": "2026-05-02T02:50:15.496858+00:00",
   "priorities": {
-    "ai_agent": 0.8,
-    "llm_local": 0.464,
+    "ai_agent": 0.7,
+    "llm_local": 0.364,
     "dev_tools": 0.426,
-    "business_strategy": 0.758,
-    "ma_startup": 0.38,
+    "business_strategy": 0.658,
+    "ma_startup": 0.28,
     "dodgers": 1.0,
     "golf": 0.657,
     "campingcar": 0.615,
@@ -183,28 +183,28 @@
       "label": "ドジャース・大谷翔平",
       "items": [
         {
+          "title": "大谷翔平、第３打席は中飛に倒れここまで快音響かず　チームも劣勢で後半戦へ - ｄメニューニュース",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOX0dMMzI1RVFQQlNUcldRVXFseGMtUGZtdHVBbjRSVFNjNWtFQUlOVFl6NG5wY1pmYTdHd1ducnNBSFJnN0ZrVF9QdXU1ZjZfU2tmT3JqLTBZVjEwT3NQcXFpRXl1V2ItTUdJT3Qwb3FoLTFDbjRSdHd2a0JSMHVFUnIta0prR0ZIdjVxcmJMd1U0NWhiUUHSAZsBQVVfeXFMUFZPM1FYQmJ6OGlHdllLU3RvQjQzVU5HNXJzMGh4d1hmZVRHMnZwNEcxTUFKMzlXSmotS2ZUb3FUY3UwZkxiZ2k4aDVtcVlfX3JRek96UDhha0ZsSVVOdjhPN0tSUnBXNXBpWnhxcTZwUEx3QnpaNTB0R3VEYU9CZ1FBSHM1MGZNR1dsMUxZYVBVbHBrX0loejBmdTA?oc=5",
+          "source": "ｄメニューニュース",
+          "pub_date": "2026-05-02T02:03:00+00:00",
+          "timeliness": 0.984,
+          "score": 0.793
+        },
+        {
           "title": "【MLB】「大谷翔平／今日の打席結果速報」5月初試合、昨季一発の若手左腕から7号アーチなるか【5月2日カージナルス戦】 - spread-sports.jp",
           "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE93NHQ0UF9rNGdnRm9XbnZWeUFaUlZyTXc4TXBCZ3lOM0JCdng1SGZRRl80T2djNmxtdkpLNG9OdWR0cWRCMmROSjJHVHFHNkN3d3c?oc=5",
           "source": "spread-sports.jp",
-          "pub_date": "2026-05-02T00:16:59+00:00",
-          "timeliness": 0.988,
-          "score": 0.795
+          "pub_date": "2026-05-02T00:16:54+00:00",
+          "timeliness": 0.947,
+          "score": 0.779
         },
         {
-          "title": "How to watch Dodgers vs. Cardinals: TV channel and streaming options for May 1 - The New York Times",
-          "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPVHlQSTdkN2c0QVRqdUwwQ2FEY2dHV1NIbjBHeTVIV3hPNFp5ZEdJeUJnaVJ6RjlrQi1yMTJPVGYxaFpNN2dZUS1OMTd3cDFUZkEteWRkZzFPVkRUNHRjOEZZZnRnWlZhVjNJekhMVVlWd0Z4UjZoSkFrYmZlU1Y2SmpSWUt4S2pjRE1mbUVxVWllSmlVREQ4OHVpUmkwLVZkMk16RkhSOEZsX296WEJOMUVKSUhWckRvRDRJU3MwUWRPRkdjN3RkOQ?oc=5",
-          "source": "The New York Times",
-          "pub_date": "2026-05-01T23:14:01+00:00",
-          "timeliness": 0.966,
-          "score": 0.786
-        },
-        {
-          "title": "【打者部門】大谷翔平は何位？ 2026年MLBナリーグ打撃成績ランキング - ベースボールチャンネル",
-          "url": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBtbkhXR01FTEU1d2sxR3cyYzQyZEF0OXJjVl90R1dycWc0bjJvSTgtZ2MyT2M3QWY2QnRLSUw4bDduaVpVVkdIYWxFeWZYdm9PcFIwbw?oc=5",
-          "source": "ベースボールチャンネル",
-          "pub_date": "2026-05-01T22:53:50+00:00",
-          "timeliness": 0.959,
-          "score": 0.784
+          "title": "Dodgers vs. Cardinals (May 1, 2026) Box Score - ESPN",
+          "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE92LUMtazNIbWY0U0dJSXI0VXhXSWF4ZjFLQ2p5REI5TG1WNmNMRGUzNHNoVFBfWHlDWTA1cVRmR2tmZWN5YlcyLWpYU2RCV0tfYlAxRlBaUzJkWUdpamhPU2t3?oc=5",
+          "source": "ESPN",
+          "pub_date": "2026-05-02T00:16:08+00:00",
+          "timeliness": 0.946,
+          "score": 0.779
         },
         {
           "title": "【5回1失点7奪三振の好投！山本由伸 投球ダイジェスト】ダイヤモンドバックスvsドジャース MLB2025スプリングトレーニング 3.11",
@@ -224,7 +224,7 @@
           "pub_date": null,
           "content_type": "video",
           "duration": "2:53",
-          "view_count": 134410,
+          "view_count": 134412,
           "timeliness": 0.1,
           "score": 0.7
         }
@@ -233,7 +233,7 @@
       "priority": 1.0,
       "tier": "S",
       "emotion_type": "light",
-      "lastChecked": "2026-05-02T00:51:31.783359+00:00"
+      "lastChecked": "2026-05-02T02:50:12.948962+00:00"
     },
     "campingcar": {
       "label": "キャンピングカー",
@@ -843,7 +843,7 @@
       "priority": 0.5,
       "tier": "B",
       "emotion_type": "light",
-      "lastChecked": "2026-05-02T01:50:01.016114+00:00"
+      "lastChecked": "2026-05-02T02:50:15.496777+00:00"
     },
     "movie_theater": {
       "label": "映画・上映中",
@@ -974,36 +974,36 @@
       "tier": "S"
     },
     {
+      "title": "大谷翔平、第３打席は中飛に倒れここまで快音響かず　チームも劣勢で後半戦へ - ｄメニューニュース",
+      "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxOX0dMMzI1RVFQQlNUcldRVXFseGMtUGZtdHVBbjRSVFNjNWtFQUlOVFl6NG5wY1pmYTdHd1ducnNBSFJnN0ZrVF9QdXU1ZjZfU2tmT3JqLTBZVjEwT3NQcXFpRXl1V2ItTUdJT3Qwb3FoLTFDbjRSdHd2a0JSMHVFUnIta0prR0ZIdjVxcmJMd1U0NWhiUUHSAZsBQVVfeXFMUFZPM1FYQmJ6OGlHdllLU3RvQjQzVU5HNXJzMGh4d1hmZVRHMnZwNEcxTUFKMzlXSmotS2ZUb3FUY3UwZkxiZ2k4aDVtcVlfX3JRek96UDhha0ZsSVVOdjhPN0tSUnBXNXBpWnhxcTZwUEx3QnpaNTB0R3VEYU9CZ1FBSHM1MGZNR1dsMUxZYVBVbHBrX0loejBmdTA?oc=5",
+      "source": "ｄメニューニュース",
+      "pub_date": "2026-05-02T02:03:00+00:00",
+      "timeliness": 0.984,
+      "score": 0.793,
+      "category": "dodgers",
+      "categoryLabel": "ドジャース・大谷翔平",
+      "priority": 1.0,
+      "tier": "S"
+    },
+    {
       "title": "【MLB】「大谷翔平／今日の打席結果速報」5月初試合、昨季一発の若手左腕から7号アーチなるか【5月2日カージナルス戦】 - spread-sports.jp",
       "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE93NHQ0UF9rNGdnRm9XbnZWeUFaUlZyTXc4TXBCZ3lOM0JCdng1SGZRRl80T2djNmxtdkpLNG9OdWR0cWRCMmROSjJHVHFHNkN3d3c?oc=5",
       "source": "spread-sports.jp",
-      "pub_date": "2026-05-02T00:16:59+00:00",
-      "timeliness": 0.988,
-      "score": 0.795,
+      "pub_date": "2026-05-02T00:16:54+00:00",
+      "timeliness": 0.947,
+      "score": 0.779,
       "category": "dodgers",
       "categoryLabel": "ドジャース・大谷翔平",
       "priority": 1.0,
       "tier": "S"
     },
     {
-      "title": "How to watch Dodgers vs. Cardinals: TV channel and streaming options for May 1 - The New York Times",
-      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxPVHlQSTdkN2c0QVRqdUwwQ2FEY2dHV1NIbjBHeTVIV3hPNFp5ZEdJeUJnaVJ6RjlrQi1yMTJPVGYxaFpNN2dZUS1OMTd3cDFUZkEteWRkZzFPVkRUNHRjOEZZZnRnWlZhVjNJekhMVVlWd0Z4UjZoSkFrYmZlU1Y2SmpSWUt4S2pjRE1mbUVxVWllSmlVREQ4OHVpUmkwLVZkMk16RkhSOEZsX296WEJOMUVKSUhWckRvRDRJU3MwUWRPRkdjN3RkOQ?oc=5",
-      "source": "The New York Times",
-      "pub_date": "2026-05-01T23:14:01+00:00",
-      "timeliness": 0.966,
-      "score": 0.786,
-      "category": "dodgers",
-      "categoryLabel": "ドジャース・大谷翔平",
-      "priority": 1.0,
-      "tier": "S"
-    },
-    {
-      "title": "【打者部門】大谷翔平は何位？ 2026年MLBナリーグ打撃成績ランキング - ベースボールチャンネル",
-      "url": "https://news.google.com/rss/articles/CBMiVEFVX3lxTFBtbkhXR01FTEU1d2sxR3cyYzQyZEF0OXJjVl90R1dycWc0bjJvSTgtZ2MyT2M3QWY2QnRLSUw4bDduaVpVVkdIYWxFeWZYdm9PcFIwbw?oc=5",
-      "source": "ベースボールチャンネル",
-      "pub_date": "2026-05-01T22:53:50+00:00",
-      "timeliness": 0.959,
-      "score": 0.784,
+      "title": "Dodgers vs. Cardinals (May 1, 2026) Box Score - ESPN",
+      "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE92LUMtazNIbWY0U0dJSXI0VXhXSWF4ZjFLQ2p5REI5TG1WNmNMRGUzNHNoVFBfWHlDWTA1cVRmR2tmZWN5YlcyLWpYU2RCV0tfYlAxRlBaUzJkWUdpamhPU2t3?oc=5",
+      "source": "ESPN",
+      "pub_date": "2026-05-02T00:16:08+00:00",
+      "timeliness": 0.946,
+      "score": 0.779,
       "category": "dodgers",
       "categoryLabel": "ドジャース・大谷翔平",
       "priority": 1.0,
@@ -1043,7 +1043,7 @@
       "pub_date": null,
       "content_type": "video",
       "duration": "2:53",
-      "view_count": 134410,
+      "view_count": 134412,
       "timeliness": 0.1,
       "score": 0.7,
       "category": "dodgers",
