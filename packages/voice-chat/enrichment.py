@@ -17,6 +17,7 @@ import hashlib
 import json
 import logging
 import os
+import shutil
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -24,6 +25,21 @@ from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("voice-chat")
+
+
+_BIN_SEARCH_PATHS = (
+    "/Users/akira/.local/bin",
+    "/opt/homebrew/bin",
+    "/usr/local/bin",
+    "/Applications/cmux.app/Contents/Resources/bin",
+)
+
+
+def _resolve_bin(name: str) -> Optional[str]:
+    augmented_path = os.pathsep.join(
+        list(_BIN_SEARCH_PATHS) + [os.environ.get("PATH", "")]
+    )
+    return shutil.which(name, path=augmented_path)
 
 
 # --- Context model ---
@@ -197,10 +213,14 @@ class LLMSearchProvider(EnrichmentProvider):
 
     async def _claude_research(self, prompt: str) -> str:
         """claude CLI subprocess で実行。組込み WebSearch / Slack tool を活用させる。"""
+        bin_path = _resolve_bin("claude")
+        if not bin_path:
+            logger.warning("[enrichment/claude] claude CLI not found")
+            return ""
         env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}
         try:
             proc = await asyncio.create_subprocess_exec(
-                "claude", "-p", "--model", "sonnet",
+                bin_path, "-p", "--model", "sonnet",
                 "--dangerously-skip-permissions",
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
@@ -228,10 +248,14 @@ class LLMSearchProvider(EnrichmentProvider):
 
     async def _codex_research(self, prompt: str) -> str:
         """codex CLI subprocess で実行（fallback）。"""
+        bin_path = _resolve_bin("codex")
+        if not bin_path:
+            logger.warning("[enrichment/codex] codex CLI not found")
+            return ""
         out_path = Path(f"/tmp/enrichment_codex_{os.getpid()}_{int(time.time())}.txt")
         try:
             proc = await asyncio.create_subprocess_exec(
-                "codex", "exec",
+                bin_path, "exec",
                 "--skip-git-repo-check",
                 "--model", "gpt-5.5",
                 "--output-last-message", str(out_path),
@@ -281,11 +305,14 @@ class PrefetchProvider(EnrichmentProvider):
 class EnrichmentOrchestrator:
     """背景ループから呼ばれて cache を更新する。ambient flow は同期的に latest() を読む。"""
 
+    FAIL_COOLDOWN_SEC = 600.0
+
     def __init__(self, provider: EnrichmentProvider, cache: EnrichmentCache):
         self.provider = provider
         self.cache = cache
         self._last_signature: str = ""
         self._inflight: bool = False
+        self._failed_signatures: dict[str, float] = {}
 
     async def maybe_refresh(self, ctx: EnrichmentContext) -> None:
         """signature が前回と違えば enrich を実行。並走防止。"""
@@ -294,6 +321,10 @@ class EnrichmentOrchestrator:
             return
         existing = self.cache.get(sig)
         if existing:
+            self._last_signature = sig
+            return
+        last_fail = self._failed_signatures.get(sig)
+        if last_fail and time.time() - last_fail < self.FAIL_COOLDOWN_SEC:
             self._last_signature = sig
             return
         if self._inflight:
@@ -311,10 +342,15 @@ class EnrichmentOrchestrator:
                 ttl = 600.0 if ctx.is_meeting else 1800.0
                 self.cache.set(sig, text, ttl_sec=ttl)
                 self._last_signature = sig
+                self._failed_signatures.pop(sig, None)
                 logger.info(f"[enrichment] cached ({len(text)} chars, ttl={int(ttl)}s)")
             else:
-                logger.debug("[enrichment] empty result, not caching")
+                self._failed_signatures[sig] = time.time()
+                self._last_signature = sig
+                logger.debug(f"[enrichment] empty result, cooldown {int(self.FAIL_COOLDOWN_SEC)}s for sig={sig}")
         except Exception as e:
+            self._failed_signatures[sig] = time.time()
+            self._last_signature = sig
             logger.warning(f"[enrichment] refresh error: {e}")
         finally:
             self._inflight = False

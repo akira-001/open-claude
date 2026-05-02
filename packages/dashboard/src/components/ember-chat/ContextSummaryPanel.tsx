@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { ContextSummary } from './types';
+import type { ContextSummary, MediaContext } from './types';
 
 const API_BASE = '/whisper/api';
 const COLLAPSED_KEY = 'ember-chat:context-summary-collapsed';
@@ -7,6 +7,7 @@ const COLLAPSED_KEY = 'ember-chat:context-summary-collapsed';
 interface ContextSummaryPanelProps {
   open: boolean;
   externalSummary?: ContextSummary | null;
+  mediaCtx?: MediaContext | null;
 }
 
 type FieldKey = 'activity' | 'topic' | 'is_meeting' | 'keywords' | 'named_entities' | 'mood' | 'location' | 'time_context';
@@ -119,7 +120,7 @@ function ageInfo(updatedAt?: number): { text: string; isStale: boolean } {
   return { text, isStale };
 }
 
-export default function ContextSummaryPanel({ open, externalSummary }: ContextSummaryPanelProps) {
+export default function ContextSummaryPanel({ open, externalSummary, mediaCtx }: ContextSummaryPanelProps) {
   const [summary, setSummary] = useState<ContextSummary | null>(null);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
@@ -131,6 +132,7 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
   const [showCorrection, setShowCorrection] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showEnriched, setShowEnriched] = useState(false);
   const [feedbackStatus, setFeedbackStatus] = useState<{ text: string; error: boolean } | null>(null);
   const [, forceTick] = useState(0);
   const ageTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -695,6 +697,104 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
             <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
           </div>
         )}
+        {/* 特定コンテンツ */}
+        <div style={{ marginTop: 6 }}>
+          <span style={{ color: '#7da6ff', fontWeight: 600 }}>特定コンテンツ</span>
+          {mediaCtx && mediaCtx.inferred_type && mediaCtx.inferred_type !== 'unknown' ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                <span style={chipActiveStyle}>{mediaCtx.inferred_type}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                <span style={labelStyle}>タイトル:</span>
+                <span style={{ color: '#fff' }}>{mediaCtx.matched_title || '—'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                <span style={labelStyle}>トピック:</span>
+                <span style={{ color: '#fff' }}>{mediaCtx.inferred_topic || '—'}</span>
+              </div>
+              <div style={{ marginTop: 2 }}>
+                <span style={labelStyle}>信頼度:</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    marginTop: 2,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 100,
+                      height: 6,
+                      background: '#2a2f3a',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${(mediaCtx.confidence * 100).toFixed(0)}%`,
+                        height: '100%',
+                        background:
+                          mediaCtx.confidence >= 0.7
+                            ? '#7dffaa'
+                            : mediaCtx.confidence >= 0.4
+                              ? '#ffd17d'
+                              : '#888',
+                      }}
+                    />
+                  </div>
+                  <span style={{ color: '#cfd6e4', fontSize: 10 }}>{(mediaCtx.confidence * 100).toFixed(0)}%</span>
+                </div>
+              </div>
+              {mediaCtx.keywords && mediaCtx.keywords.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                  <span style={labelStyle}>キーワード:</span>
+                  <span style={{ color: '#9fd8ff' }}>{mediaCtx.keywords.join(', ')}</span>
+                </div>
+              )}
+              {mediaCtx.enriched_info && (
+                <div style={{ marginTop: 2 }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowEnriched(!showEnriched)}
+                    style={{
+                      ...buttonStyle,
+                      background: '#2a2f3a',
+                      color: '#888',
+                      borderColor: '#3a4050',
+                      padding: '3px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    詳細を見る {showEnriched ? '▲' : '▼'}
+                  </button>
+                  {showEnriched && (
+                    <div
+                      style={{
+                        marginTop: 4,
+                        whiteSpace: 'pre-wrap',
+                        color: '#cfd6e4',
+                        fontSize: 11,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {mediaCtx.enriched_info}
+                    </div>
+                  )}
+                </div>
+              )}
+              {mediaCtx.last_inferred_at && (
+                <div style={{ marginTop: 4, textAlign: 'right', color: '#666', fontSize: 10 }}>
+                  {ageInfo(mediaCtx.last_inferred_at).text}
+                </div>
+              )}
+            </>
+          ) : (
+            <span style={{ color: '#666', fontSize: 10 }}>未特定</span>
+          )}
+        </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
         <button type="button" onClick={handleYes} style={yesStyle}>
