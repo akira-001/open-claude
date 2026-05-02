@@ -11,6 +11,9 @@ export interface ContextSummary {
   evidence_snippets?: string[];
   confidence?: number;
   updated_at?: number;
+  mood?: string;
+  location?: string;
+  time_context?: string;
 }
 
 export interface ChatMessage {

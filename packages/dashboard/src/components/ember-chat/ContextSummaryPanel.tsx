@@ -8,7 +8,7 @@ interface ContextSummaryPanelProps {
   externalSummary?: ContextSummary | null;
 }
 
-type FieldKey = 'activity' | 'topic' | 'is_meeting' | 'keywords' | 'named_entities';
+type FieldKey = 'activity' | 'topic' | 'is_meeting' | 'keywords' | 'named_entities' | 'mood' | 'location' | 'time_context';
 
 const containerStyle: CSSProperties = {
   padding: '6px 10px',
@@ -103,6 +103,9 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
   const [fixMeeting, setFixMeeting] = useState('');
   const [fixKeywords, setFixKeywords] = useState('');
   const [fixEntities, setFixEntities] = useState('');
+  const [fixMood, setFixMood] = useState('');
+  const [fixLocation, setFixLocation] = useState('');
+  const [fixTimeContext, setFixTimeContext] = useState('');
   const [fixNote, setFixNote] = useState('');
 
   // Inline field chip state
@@ -154,6 +157,9 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
     else if (field === 'is_meeting') setChipValue(summary.is_meeting === true ? 'true' : summary.is_meeting === false ? 'false' : '');
     else if (field === 'keywords') setChipValue((summary.keywords ?? []).join(', '));
     else if (field === 'named_entities') setChipValue((summary.named_entities ?? []).join(', '));
+    else if (field === 'mood') setChipValue(summary.mood ?? '');
+    else if (field === 'location') setChipValue(summary.location ?? '');
+    else if (field === 'time_context') setChipValue(summary.time_context ?? '');
   }, [activeChip, summary]);
 
   const closeChip = useCallback(() => {
@@ -207,6 +213,9 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
       setFixMeeting(summary.is_meeting === true ? 'true' : summary.is_meeting === false ? 'false' : '');
       setFixKeywords((summary.keywords ?? []).join(', '));
       setFixEntities((summary.named_entities ?? []).join(', '));
+      setFixMood(summary.mood ?? '');
+      setFixLocation(summary.location ?? '');
+      setFixTimeContext(summary.time_context ?? '');
       setFixNote('');
     }
   }, [summary]);
@@ -247,6 +256,9 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
     else if (fixMeeting === 'false') correction.is_meeting = false;
     if (fixKeywords.trim()) correction.keywords = fixKeywords.split(',').map((s) => s.trim()).filter(Boolean);
     if (fixEntities.trim()) correction.named_entities = fixEntities.split(',').map((s) => s.trim()).filter(Boolean);
+    if (fixMood.trim()) correction.mood = fixMood.trim();
+    if (fixLocation.trim()) correction.location = fixLocation.trim();
+    if (fixTimeContext.trim()) correction.time_context = fixTimeContext.trim();
     if (fixNote.trim()) correction.note = fixNote.trim();
     if (Object.keys(correction).length === 0) {
       flashStatus('正しい答えを1つ以上入力してね', true);
@@ -268,7 +280,7 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
     } catch (err) {
       flashStatus(`失敗: ${(err as Error).message}`, true);
     }
-  }, [summary, fixActivity, fixTopic, fixMeeting, fixKeywords, fixEntities, fixNote, flashStatus]);
+  }, [summary, fixActivity, fixTopic, fixMeeting, fixKeywords, fixEntities, fixMood, fixLocation, fixTimeContext, fixNote, flashStatus]);
 
   if (!open) return null;
 
@@ -461,6 +473,102 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
             <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
           </div>
         )}
+        {/* 気分 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>気分:</span>
+          <span style={{ color: '#fff' }}>{summary?.mood || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('mood')}
+            style={activeChip === 'mood' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
+        </div>
+        {activeChip === 'mood' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <select
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Escape' && closeChip()}
+              autoFocus
+            >
+              <option value="">(未指定)</option>
+              <option value="calm">calm</option>
+              <option value="focused">focused</option>
+              <option value="excited">excited</option>
+              <option value="stressed">stressed</option>
+              <option value="neutral">neutral</option>
+            </select>
+            <button type="button" onClick={() => submitChipCorrection('mood')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* 場所 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>場所:</span>
+          <span style={{ color: '#fff' }}>{summary?.location || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('location')}
+            style={activeChip === 'location' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
+        </div>
+        {activeChip === 'location' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <select
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Escape' && closeChip()}
+              autoFocus
+            >
+              <option value="">(未指定)</option>
+              <option value="home">home</option>
+              <option value="office">office</option>
+              <option value="cafe">cafe</option>
+              <option value="commute">commute</option>
+              <option value="unknown">unknown</option>
+            </select>
+            <button type="button" onClick={() => submitChipCorrection('location')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
+        {/* 時間帯 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span style={labelStyle}>時間帯:</span>
+          <span style={{ color: '#fff' }}>{summary?.time_context || '—'}</span>
+          <button
+            type="button"
+            onClick={() => openChip('time_context')}
+            style={activeChip === 'time_context' ? chipActiveStyle : chipStyle}
+          >
+            違う
+          </button>
+        </div>
+        {activeChip === 'time_context' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 4, marginBottom: 2 }}>
+            <select
+              value={chipValue}
+              onChange={(e) => setChipValue(e.target.value)}
+              style={inputStyle}
+              onKeyDown={(e) => e.key === 'Escape' && closeChip()}
+              autoFocus
+            >
+              <option value="">(未指定)</option>
+              <option value="morning">morning</option>
+              <option value="afternoon">afternoon</option>
+              <option value="evening">evening</option>
+              <option value="night">night</option>
+              <option value="unknown">unknown</option>
+            </select>
+            <button type="button" onClick={() => submitChipCorrection('time_context')} style={{ ...buttonStyle, background: '#2a4a8a', color: '#dde6ff', borderColor: '#3d6dc7' }}>保存</button>
+            <button type="button" onClick={closeChip} style={{ ...buttonStyle, background: '#333', color: '#ccc', borderColor: '#555' }}>×</button>
+          </div>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
         <button type="button" onClick={handleYes} style={yesStyle}>
@@ -560,6 +668,33 @@ export default function ContextSummaryPanel({ open, externalSummary }: ContextSu
               placeholder="カンマ区切り: DeepMind"
               style={inputStyle}
             />
+            <label style={labelStyle}>気分</label>
+            <select value={fixMood} onChange={(e) => setFixMood(e.target.value)} style={inputStyle}>
+              <option value="">(未指定)</option>
+              <option value="calm">calm</option>
+              <option value="focused">focused</option>
+              <option value="excited">excited</option>
+              <option value="stressed">stressed</option>
+              <option value="neutral">neutral</option>
+            </select>
+            <label style={labelStyle}>場所</label>
+            <select value={fixLocation} onChange={(e) => setFixLocation(e.target.value)} style={inputStyle}>
+              <option value="">(未指定)</option>
+              <option value="home">home</option>
+              <option value="office">office</option>
+              <option value="cafe">cafe</option>
+              <option value="commute">commute</option>
+              <option value="unknown">unknown</option>
+            </select>
+            <label style={labelStyle}>時間帯</label>
+            <select value={fixTimeContext} onChange={(e) => setFixTimeContext(e.target.value)} style={inputStyle}>
+              <option value="">(未指定)</option>
+              <option value="morning">morning</option>
+              <option value="afternoon">afternoon</option>
+              <option value="evening">evening</option>
+              <option value="night">night</option>
+              <option value="unknown">unknown</option>
+            </select>
             <label style={labelStyle}>メモ</label>
             <input
               type="text"
