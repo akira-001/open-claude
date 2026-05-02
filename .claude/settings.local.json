@@ -12,7 +12,9 @@
       "Bash(cp ~/.claude/settings.json ~/.claude/settings.json.bak.pre-rtk)",
       "Read(//Users/akira/.claude/**)",
       "mcp__claude_ai_Google_Calendar__list_events",
-      "mcp__claude_ai_Gmail__search_threads"
+      "mcp__claude_ai_Gmail__search_threads",
+      "Bash(mkdir -p /Users/akira/.claude/projects/-Users-akira-workspace-ember/memory)",
+      "Bash(/bin/ls /Users/akira/.claude/projects/-Users-akira-workspace-ember/memory/)"
     ]
   }
 }
