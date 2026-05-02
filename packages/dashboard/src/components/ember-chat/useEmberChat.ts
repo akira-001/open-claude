@@ -19,6 +19,7 @@ export function useEmberChat() {
   const [replyBot, setReplyBot] = useState<string | null>(null);
   const [lastBotId, setLastBotId] = useState<string | null>(null);
   const [contextSummary, setContextSummary] = useState<ContextSummary | null>(null);
+  const [mediaCtx, setMediaCtx] = useState<MediaContext | null>(null);
   const settingsExpanded = settings.settingsExpanded ?? false;
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -310,6 +311,7 @@ export function useEmberChat() {
           }
         } else if (msg.type === 'context_summary') {
           if (msg.summary) setContextSummary(msg.summary as ContextSummary);
+          if (msg.media_ctx) setMediaCtx(msg.media_ctx as MediaContext);
         } else if (msg.type === 'reply_ended') {
           if (msg.bot_id && msg.reply_ts) {
             updateSetting('lastSeen', { ...settingsRef.current.lastSeen, [msg.bot_id]: msg.reply_ts });
@@ -561,7 +563,7 @@ export function useEmberChat() {
     messages, settings, speakers, botSpeakers, models,
     recording, processing, wsConnected,
     replyBot, lastBotId, settingsExpanded,
-    contextSummary,
+    contextSummary, mediaCtx,
     // Actions
     sendText, startRecording, stopRecording,
     updateSetting, updateSettings, loadSpeakers, handleBotEngineChange,
