@@ -86,11 +86,17 @@ export default function ChatToolbar({
         onChange={(e) => onAmbientModelChange(e.target.value)}
         style={selectStyle}
       >
-        {models.map((m) => (
-          <option key={m.name} value={m.name}>
-            {m.name} {m.size ? `(${m.size})` : ''}
-          </option>
-        ))}
+        <optgroup label="Cloud">
+          <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+          <option value="gpt-5-mini">gpt-5-mini</option>
+        </optgroup>
+        <optgroup label="Local (Ollama)">
+          {models.map((m) => (
+            <option key={m.name} value={m.name}>
+              {m.name} {m.size ? `(${m.size})` : ''}
+            </option>
+          ))}
+        </optgroup>
       </select>
 
       <span style={labelStyle}>TTS</span>

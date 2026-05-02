@@ -88,8 +88,11 @@ from ambient_commands import detect_ambient_command
 from ambient_listener import AmbientListener
 from ambient_policy import normalize_ambient_reply, should_apply_stt_correction
 from speaker_id import SpeakerIdentifier, audio_bytes_to_wav, compute_embedding
+from hotwords_auto_improver import auto_improve_loop as _hotwords_auto_improve_loop
 
 load_dotenv(Path(__file__).parent / ".env")
+# ルートの .env も読む（ANTHROPIC_API_KEY / OPENAI_API_KEY を参照するため）
+load_dotenv(Path(__file__).parent.parent.parent / ".env", override=False)
 
 app = FastAPI()
 app.add_middleware(
@@ -640,7 +643,62 @@ def _transcribe_sync_with_metrics(audio_bytes: bytes, fast: bool) -> dict:
     }
 
 
-async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
+def _convert_messages_for_anthropic(messages: list[dict]) -> tuple[str, list[dict]]:
+    """OpenAI 形式のメッセージリストを Anthropic 形式に変換する。
+    system role を抽出して system 引数用文字列として返す。"""
+    system_parts: list[str] = []
+    converted: list[dict] = []
+    for msg in messages:
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+        if role == "system":
+            system_parts.append(content)
+        else:
+            converted.append({"role": role, "content": content})
+    system_text = "\n".join(system_parts)
+    return system_text, converted
+
+
+async def _chat_claude(messages: list[dict], model: str) -> str:
+    """Anthropic Claude でチャット応答を取得"""
+    import anthropic as _anthropic
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        logger.warning("[llm] ANTHROPIC_API_KEY not set, falling back to Ollama")
+        return await _chat_ollama(messages, "gemma4:e4b")
+    client = _anthropic.AsyncAnthropic(api_key=api_key)
+    system_text, converted = _convert_messages_for_anthropic(messages)
+    resp = await asyncio.wait_for(
+        client.messages.create(
+            model=model,
+            max_tokens=1024,
+            system=system_text or _anthropic.NOT_GIVEN,
+            messages=converted,
+        ),
+        timeout=30,
+    )
+    return resp.content[0].text
+
+
+async def _chat_openai(messages: list[dict], model: str) -> str:
+    """OpenAI でチャット応答を取得"""
+    import openai as _openai
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    if not api_key:
+        logger.warning("[llm] OPENAI_API_KEY not set, falling back to Ollama")
+        return await _chat_ollama(messages, "gemma4:e4b")
+    client = _openai.AsyncOpenAI(api_key=api_key)
+    resp = await asyncio.wait_for(
+        client.chat.completions.create(
+            model=model,
+            messages=messages,  # type: ignore[arg-type]
+        ),
+        timeout=30,
+    )
+    return resp.choices[0].message.content or ""
+
+
+async def _chat_ollama(messages: list[dict], model: str) -> str:
     """Ollama でチャット応答を取得"""
     async with httpx.AsyncClient(timeout=300) as client:
         resp = await client.post(
@@ -653,6 +711,19 @@ async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
         )
         resp.raise_for_status()
         return resp.json()["message"]["content"]
+
+
+async def chat_with_llm(messages: list[dict], model: str = "gemma4:e4b") -> str:
+    """マルチプロバイダ対応チャット応答取得。
+    - claude* → Anthropic SDK
+    - gpt* → OpenAI SDK
+    - その他 → Ollama
+    """
+    if model.startswith("claude"):
+        return await _chat_claude(messages, model)
+    if model.startswith("gpt"):
+        return await _chat_openai(messages, model)
+    return await _chat_ollama(messages, model)
 
 
 # --- STT Post-Correction (Aqua Voice inspired) ---
@@ -6391,14 +6462,16 @@ async def _ambient_llm_reply(ws: WebSocket, trigger_text: str, method: str = "ke
         await _broadcast_ambient_state()
 
         # --- Tier 2: Claude follow-up for quality comment (if ambient model is claude) ---
-        # Skip Tier 2 for instructions, short/trivial triggers, or non-claude mode
+        # tier1 が Claude/OpenAI の高品質モデルのときは tier2 不要
+        _tier1_is_premium = ambient_model.startswith("claude") or ambient_model.startswith("gpt")
         _skip_tier2 = (
-            ambient_model != "claude"
+            _tier1_is_premium
+            or ambient_model != "claude"
             or is_instruction
             or reply_kind == "backchannel"
             or len(trigger_text) < 10
         )
-        if ambient_model != "claude":
+        if _tier1_is_premium or ambient_model != "claude":
             # Also handle tool routing for local-only mode
             needs_tool = bool(_TOOL_NEEDED_KEYWORDS.search(trigger_text))
             if needs_tool:
@@ -6672,7 +6745,8 @@ async def _generate_soliloquy() -> str:
 
     try:
         ambient_model = (_settings.get("ambientModel", "") or (_settings.get("modelSelect") or "gemma4:e4b"))
-        if ambient_model == "claude":
+        # 独り言はローカルモデルで生成（Claude/OpenAI は API コスト・レイテンシが高い）
+        if ambient_model.startswith("claude") or ambient_model.startswith("gpt"):
             ambient_model = "gemma4:e4b"  # Use local for soliloquy
         response = await chat_with_llm([
             {"role": "system", "content": system_prompt},
@@ -7270,6 +7344,10 @@ async def on_startup():
     # L2: 周期メディア種別推定（ambient ルーティング非依存）
     asyncio.create_task(_periodic_media_inference_loop())
     logger.info("[startup] Periodic media inference loop started (interval=180s)")
+
+    # Hotwords auto-improvement loop（30分ごとに STT 誤認識を自動改善）
+    asyncio.create_task(_hotwords_auto_improve_loop(chat_with_llm, lambda: _settings))
+    logger.info("[startup] Hotwords auto-improvement loop started (interval=1800s)")
 
 
 if __name__ == "__main__":
