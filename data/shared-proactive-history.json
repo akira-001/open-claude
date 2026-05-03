@@ -1066,6 +1066,37 @@
       ],
       "evaluate_score": 0.74,
       "sentAt": "2026-05-02T23:30:54.923Z"
+    },
+    {
+      "botId": "mei",
+      "botName": "Mei（メイ）",
+      "category": "flashback",
+      "interestCategory": "golf",
+      "preview": "Akiraさん、試合どう？\n\nライブドアニュースに *ハンドファーストは危険？アプローチで簡単に寄せる方法* って記事が出てたよ ⛳\n\n次のレッスンで試せそうなネタ、ストックしておいて。\nhttps://news.google.com/rss/articles/CBMiX0FVX3lxTFBuSUd",
+      "topic": "ハンドファーストアプローチ",
+      "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTFBuSUd3dkc0ckVFU2lJbWxGMmdzcEF2VFJDX1d3eU9VdmRIV2FOU3ZsbmVzZjNRemhJV3VIcW42N3NqVWVzVXJ5WWpseDI0OFVNSW1BelY1Q2h3S0JEQ0Uw",
+      "candidateId": "url:https://news.google.com/rss/articles/CBMiX0FVX3lxTFBuSUd3dkc0ckVFU2lJbWxGMmdzcEF2VFJDX1d3eU9VdmRIV2FOU3ZsbmVzZjNRemhJV3VIcW42N3NqVWVzVXJ5WWpseDI0OFVNSW1BelY1Q2h3S0JEQ0Uw",
+      "sourceType": "topic-table",
+      "skill": "general",
+      "themePath": [
+        "sports",
+        "sports/golf",
+        "sports/golf/short-game"
+      ],
+      "themeKey": "sports/golf/short-game",
+      "inner_thought": "ゴルフのアプローチ記事、スコア一番高いし実用的。試合の合間に軽く読めるネタとして置いておきたい",
+      "plan": [
+        "ゴルフアプローチ記事を共有",
+        "GW映画4選を共有",
+        "沈黙して試合終了を待つ"
+      ],
+      "generate_score": [
+        0.85,
+        0.65,
+        0.4
+      ],
+      "evaluate_score": 0.75,
+      "sentAt": "2026-05-03T01:01:17.200Z"
     }
   ]
 }
