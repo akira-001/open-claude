@@ -946,5 +946,27 @@
     "added_at": "2026-05-03T09:59:43",
     "confidence": 0.8,
     "reason": "文脈から判断して、特定の技術的なモジュール名や製品名が音韻的に誤って書き起こされている可能性が高い。"
+  },
+  {
+    "id": "b4c6a11ec610",
+    "replacement": "Jamaica",
+    "patterns": [
+      "Jamaika"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-03T10:30:13",
+    "confidence": 0.9,
+    "reason": "「ジャマイカ」の音韻的な誤認識と判断される。"
+  },
+  {
+    "id": "913a5483da84",
+    "replacement": "さまざまな",
+    "patterns": [
+      "サマザな"
+    ],
+    "type": "auto",
+    "added_at": "2026-05-03T10:30:13",
+    "confidence": 0.85,
+    "reason": "「さまざまな」の音韻的な誤認識と判断される。"
   }
 ]
