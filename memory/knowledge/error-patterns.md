@@ -123,3 +123,20 @@
 **フィルタ撃沈履歴**: `echoCancellation: false` / `autoplay-policy=no-user-gesture-required` switch / silent gain → destination chain → どれも単独では効かない。
 **対策**: BrowserWindow の `webPreferences.webSecurity: false` + `session.setPermissionRequestHandler` / `setPermissionCheckHandler` で `media`/`microphone`/`audioCapture` を auto-grant する3点セット。旧 main.js の posture 復元が事実上の正解。
 **確認**: サーバ側で audio chunk size を見る (1323 byte = silent、数万 byte = OK)。
+
+## EP-021: electron-builder の Hardened Runtime + 不完全 entitlements で macOS が permission ダイアログを silent 拒否
+**発生**: 2026-05-03 | **Arousal**: 0.9 | **ドメイン**: electron / macos
+**症状**: 新ビルドの Electron アプリ起動 → Always-On 押下 → macOS のマイク権限ダイアログが**一切出ない**。`tccutil reset` しても出ない。`Info.plist` には `NSMicrophoneUsageDescription` がある。
+**原因**: electron-builder のデフォルト entitlements (`app-builder-lib/templates/entitlements.mac.plist`) には `com.apple.security.cs.allow-jit` 等3つしか入っていない。Hardened Runtime (`flags=0x10002(adhoc,runtime)`) が有効でマイク entitlement (`com.apple.security.device.audio-input`) が無いと、macOS は権限ダイアログを出さず silent 拒否する。`NS*UsageDescription` だけでは不十分。
+**比較で発覚**: Dock 版 (`node_modules/.../electron/dist/Ember Chat.app`) は entitlements 完全に空 + Hardened Runtime 無効 → 制約なくマイクアクセス可。一方 electron-builder 製は Hardened Runtime 有効で詰みだった。
+**対策**: `packages/<app>/build/entitlements.mac.plist` 作成（マイク・カメラ・ネットワーク・ファイル等の必要 entitlements を全部記述）→ `package.json` の `build.mac` に `hardenedRuntime: true` + `entitlements` + `entitlementsInherit` を指定 → リビルドで全権限が含まれる。
+**確認**: `codesign -d --entitlements - "/Applications/<app>.app" 2>&1 | grep audio-input` で entitlement 入りを検証。Dock版とApp版の挙動差は entitlements 比較が最短診断。
+
+## EP-022: Privacy Settings UI のアイコンは ヘルパーアプリ経由で識別される（メインアプリだけでは不足）
+**発生**: 2026-05-03 | **Arousal**: 0.95 | **ドメイン**: electron / macos
+**症状**: メインアプリの `Resources/icon.icns` (炎マーク) + `Info.plist` の `CFBundleIconFile` が正しいのに、Privacy Settings UI でデフォルト Electron ロゴが表示される。
+**試した無駄な手段（全部効かず・大量の時間浪費）**: tccutil reset / iconservicesd 再起動 / `/Library/Caches/com.apple.iconservices.store` 削除 / lsregister -kill -r / PCの再起動 / アプリのリネーム→戻す / icns 1024x1024 含めて再生成 / CFBundleIconName 追加 / icns ファイル名を electron.icns に変更 / ad-hoc 再署名 / TCC.db 直接削除 / クリーンスタート。
+**原因**: Electron アプリの `Contents/Frameworks/` 配下にある **4つのヘルパーアプリ**（`<App> Helper.app`, `Helper (GPU)`, `Helper (Plugin)`, `Helper (Renderer)`）の `Info.plist` に `CFBundleIconFile` が無く、`Resources/` に icns が無い状態だと、Privacy Settings UI が「Electron Helper」を経由してデフォルトロゴを表示する。メインアプリのアイコンは無視される。
+**対策**: electron-builder の `afterPack` フックで `patch-mac-bundle.js` を実行し、メイン+全ヘルパーに `icon.icns` をコピー + `CFBundleIconFile`/`CFBundleName`/`CFBundleDisplayName` を設定。`afterPack` はコード署名前に走るので、その後 electron-builder が自動再署名する（手動 codesign 不要）。
+**比較診断**: 動作している他の Electron アプリ（Aqua Voice 等の最もシンプル構造）の `Frameworks/` 配下を `plutil -p ".../<App> Helper.app/Contents/Info.plist" | grep CFBundleIcon` で確認。これだけで切り分けられる。誤推論 7 連発（ad-hoc 署名が原因 / Apple Developer ID が必要 / Asset Catalog が必要 等）を回避できた。
+**スキル**: `electron-mac-icon-debug` 参照。誤推論一覧と patch-mac-bundle.js の完全コードを記録済み。

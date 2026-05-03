@@ -9,6 +9,7 @@
 const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const { patchAppBundle } = require('./patch-mac-bundle');
 
 const PACKAGE_ROOT = path.resolve(__dirname, '..');
 
@@ -56,4 +57,11 @@ try {
   execSync(`defaults write "${path.join(targetApp, 'Contents', 'Info.plist')}" CFBundleIdentifier -string com.ember.chat`);
 } catch (e) {
   console.warn('[postinstall] CFBundleIdentifier set failed:', e.message);
+}
+
+try {
+  patchAppBundle(targetApp);
+  console.log('[postinstall] patched Ember Chat.app names and icons');
+} catch (e) {
+  console.warn('[postinstall] app bundle patch failed:', e.message);
 }

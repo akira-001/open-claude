@@ -18,8 +18,8 @@ prefer_compact = true
 token_budget = 6000
 
 [cogmem.crystallization]
-last_checkpoint = "2026-05-01"
-checkpoint_count = 9
+last_checkpoint = "2026-05-03"
+checkpoint_count = 10
 pattern_threshold = 3
 error_threshold = 5
 log_days_threshold = 10
@@ -28,7 +28,7 @@ checkpoint_interval_days = 21
 auto_improve = "auto"  # "auto" | "ask" | "off"
 
 [cogmem.metrics]
-total_sessions = 52
+total_sessions = 53
 
 [cogmem.scoring]
 sim_weight = 0.7

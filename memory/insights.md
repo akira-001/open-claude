@@ -28,3 +28,13 @@ summary.md に判断原則とアクティブプロジェクト情報を直接書
 **発生**: 2026-05-01 | **Arousal**: 0.8 | **ドメイン**: electron
 `file://` origin は Chromium で trusted 扱い (autoplay/getUserMedia/mixed-content/CORS が緩い)。`http://localhost:...` origin に切り替えると同じコードでも動かなくなる、しかも症状が「silent stream」「無反応」など分かりにくい形で現れる。
 **ルール**: Electron で既存 web 機能を loadFile→loadURL 化する際は、まず旧 main.js の `webPreferences` (特に `webSecurity`) と `session.setPermissionRequestHandler` を grep して同等 posture を新版に復元する。Always-On / mic / camera / clipboard 系は特に注意。
+
+## INS-006: 動作している類似アプリと比較するのが UI/macOS 系問題の最短診断
+**発生**: 2026-05-03 | **Arousal**: 0.9 | **ドメイン**: macos / debugging
+Electron アイコン問題で、「ad-hoc 署名が原因」「Asset Catalog が必要」等の誤推論を7連発し時間を大量浪費した。最終的な真因（ヘルパーアプリのアイコン設定不足）は、動作している Aqua Voice の Frameworks/ 配下を見れば即座に切り分けられた。
+**ルール**: macOS / Electron / OS 統合系の UI 問題で「キャッシュ消しても直らない」「設定は正しいのに反映されない」と感じたら、**動作している同種アプリの該当バンドル/設定/ファイル構造をまず差分する**。仮説でしらみ潰しに試すより比較が速い。「これまで表示されてたから方法はあるはず」(Akira)。
+
+## INS-007: UI/UX の小さな問題は後々大きな問題になる — 妥協ラインを下げない
+**発生**: 2026-05-03 | **Arousal**: 0.7 | **ドメイン**: ux / engineering
+アイコン表示問題で「機能は動いてるから諦めても」と提案したが、Akiraの「絶対に諦めない。コスパよりUI/UXは小さな問題も後々大きな問題になる」で押し戻され、結果として根本原因（ヘルパーアプリ）に到達した。
+**ルール**: UI/UX の見た目問題に対して「実害ない」「コスパ悪い」と諦めを提案する前に、Webで類似事例を調査し比較診断を尽くす。Akira は spec 通りの体験を強く求めるユーザー。妥協提案より探索を続ける方が信頼を得る。

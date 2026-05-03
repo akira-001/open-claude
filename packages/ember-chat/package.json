@@ -18,6 +18,7 @@
   "build": {
     "appId": "com.ember.chat",
     "productName": "Ember Chat",
+    "afterPack": "scripts/patch-mac-bundle.js",
     "mac": {
       "category": "public.app-category.productivity",
       "target": "dir",
